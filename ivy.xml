@@ -15,7 +15,6 @@
   </publications>
 
   <dependencies>
-    <dependency org="com.google" name="guice"  rev="3.0"            conf="default"/>
     <dependency org="org.testng" name="testng" rev="latest.release" conf="test->default"/>
   </dependencies>
 
