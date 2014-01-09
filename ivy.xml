@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ivy-module version="2.0">
+
+  <info organisation="com.usrz.libs" module="scrypt" revision="0.0.0" />
+
+  <configurations>
+    <conf name="default" visibility="public" />
+    <conf name="test"    visibility="private" extends="default" />
+  </configurations>
+
+  <publications>
+      <artifact name="scrypt" type="bin" ext="jar" conf="default"/>
+      <artifact name="scrypt" type="src" ext="zip" conf="default"/>
+      <artifact name="scrypt" type="doc" ext="zip" conf="default"/>
+  </publications>
+
+  <dependencies>
+    <dependency org="com.google" name="guice"  rev="3.0"            conf="default"/>
+    <dependency org="org.testng" name="testng" rev="latest.release" conf="test->default"/>
+  </dependencies>
+
+</ivy-module>
