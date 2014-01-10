@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <project>
-  <property name="ivy.libraries" value="/Users/pier/Workspace/libraries" />
   <property name="ivy.publications" value="/Users/pier/Workspace/pubs" />
   <import file="build/build-shared.xml" />
 </project>

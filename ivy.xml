@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ivy-module version="2.0">
 
-  <info organisation="org.usrz.libs" module="scrypt" revision="0.0.0" />
+  <info organisation="org.usrz.libs" module="scrypt" revision="0.0.0">
+    <description>USRZ Crypto Libraries</description>
+  </info>
 
   <configurations>
     <conf name="default" visibility="public" />
