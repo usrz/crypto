@@ -24,6 +24,7 @@ package org.usrz.libs.crypto.codecs;
  * using all possible alphabets.
  *
  * @see <a href="http://en.wikipedia.org/wiki/Base64">Base 64</a>
+ * @author <a href="mailto:pier@usrz.com">Pier Fumagalli</a>
  */
 public class Base64Codec extends AbstractCodec {
 
@@ -47,6 +48,7 @@ public class Base64Codec extends AbstractCodec {
          */
 
         MODULAR_CRYPT("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789./"),
+
         /**
          * URL and file safe alphabet, as specified by
          * <a href="http://tools.ietf.org/html/rfc4648#section-5">RFC-4648,
@@ -75,9 +77,9 @@ public class Base64Codec extends AbstractCodec {
 
     /* ====================================================================== */
 
-    /** The current alphabet used for encoding. */
+    /* The current alphabet used for encoding. */
     private final char[] alphabet;
-    /** Whether we support padding or not. */
+    /* Whether we support padding or not. */
     private final boolean padding;
 
     /**

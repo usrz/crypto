@@ -17,6 +17,16 @@ package org.usrz.libs.crypto.codecs;
 
 import java.util.Arrays;
 
+/**
+ * A {@link Codec} implementing the hexadecimal encoding algorithm.
+ *
+ * Regardless of the case specified at
+ * {@linkplain #HexCodec(boolean) construction} this class will always decode
+ * {@link String}s using all possible alphabets.
+ *
+ * @see <a href="http://en.wikipedia.org/wiki/Hexadecimal">Hexadecimal</code>
+ * @author <a href="mailto:pier@usrz.com">Pier Fumagalli</a>
+ */
 public class HexCodec extends AbstractCodec {
 
     private static final char[] ALPHABET_UPPER = "0123456789ABCDEF".toCharArray();
@@ -32,9 +42,8 @@ public class HexCodec extends AbstractCodec {
 
     /* ====================================================================== */
 
+    /* The alphabet (upper or lower case) to use for encoding */
     private final char[] alphabet;
-
-    /* ====================================================================== */
 
     /**
      * Create a new {@link HexCodec} using the default upper-case alphabet.
@@ -52,6 +61,8 @@ public class HexCodec extends AbstractCodec {
     public HexCodec(final boolean upperCase) {
         alphabet = upperCase ? ALPHABET_UPPER : ALPHABET_LOWER;
     }
+
+    /* ====================================================================== */
 
     @Override
     public String encode(final byte[] data, final int offset, final int length) {

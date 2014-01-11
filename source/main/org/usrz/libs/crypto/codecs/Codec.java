@@ -15,12 +15,46 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.codecs;
 
+/**
+ * The {@link Codec} interface defines an object capable of converting between
+ * <code>byte[]</code> and {@link String}s.
+ *
+ * @author <a href="mailto:pier@usrz.com">Pier Fumagalli</a>
+ */
 public interface Codec {
 
+    /**
+     * Encode the specified <code>byte[]</code> into a {@link String} according
+     * to the algorithm implemented by this {@link Codec}.
+     *
+     * @param data The <code>byte[]</code> to encode.
+     * @return A {@link String} containing the encoded data.
+     * @throws NullPointerException If the specified data was <b>null</b>.
+     */
     public String encode(byte[] data);
 
+    /**
+     * Encode a portion of the specified <code>byte[]</code> into a
+     * {@link String} according to the algorithm implemented by this
+     * {@link Codec}.
+     *
+     * @param data The <code>byte[]</code> to encode.
+     * @return A {@link String} containing the encoded data.
+     * @throws NullPointerException If the specified data was <b>null</b>.
+     * @throws IndexOutOfBoundsException If the specified offset or length are
+     *                                   invalid for the <code>byte[]</code>.
+     */
     public String encode(byte[] data, int offset, int length);
 
+    /**
+     * Decode the specified {@link String} into a <code>byte[]</code> according
+     * to the algorithm implemented by this {@link Codec}.
+     *
+     * @param data The {@link String} to decode.
+     * @return A <code>byte[]</code> containing the decoded data.
+     * @throws NullPointerException If the specified data was <b>null</b>.
+     * @throws IllegalArgumentException If the data was not correctly encoded.
+     */
     public byte[] decode(String data)
     throws IllegalArgumentException;
 

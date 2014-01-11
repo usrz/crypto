@@ -17,22 +17,49 @@ package org.usrz.libs.crypto.codecs;
 
 import java.util.Arrays;
 
+/**
+ * A {@link Codec} implementing the Base 32 encoding algorithm <b>without
+ * padding</b>.
+ *
+ * Regardless of the case specified at
+ * {@linkplain #Base32Codec(boolean) construction} this class will always decode
+ * {@link String}s using all possible alphabets.
+ *
+ * @see <a href="http://en.wikipedia.org/wiki/Base32">Base 32</a>
+ * @author <a href="mailto:pier@usrz.com">Pier Fumagalli</a>
+ */
 public class Base32Codec extends AbstractCodec {
 
-    private static final char[] BASE32_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567".toCharArray();
+    private static final char[] BASE32_UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567".toCharArray();
+    private static final char[] BASE32_LOWER = "abcdefghijklmnopqrstuvwxyz234567".toCharArray();
     private static final int[] BASE32_VALUES = new int[128];
 
     static {
         Arrays.fill(BASE32_VALUES, -1);
-        for (int x = 0; x < BASE32_CHARS.length; x++) {
-            BASE32_VALUES[Character.toLowerCase(BASE32_CHARS[x])] = x;
-            BASE32_VALUES[Character.toUpperCase(BASE32_CHARS[x])] = x;
-        }
+        for (int x = 0; x < BASE32_UPPER.length; x++) BASE32_VALUES[BASE32_UPPER[x]] = x;
+        for (int x = 0; x < BASE32_LOWER.length; x++) BASE32_VALUES[BASE32_LOWER[x]] = x;
     }
 
+    /* ====================================================================== */
+
+    /* The alphabet (upper or lower case) to use for encoding */
+    private final char[] alphabet;
+
+    /**
+     * Create a new {@link HexCodec} using the default upper-case alphabet.
+     */
     public Base32Codec() {
-        super();
+        alphabet = BASE32_UPPER;
     }
+
+    /**
+     * Create a new {@link HexCodec} using the default upper-case alphabet.
+     */
+    public Base32Codec(final boolean upperCase) {
+        alphabet = upperCase ? BASE32_UPPER : BASE32_LOWER;
+    }
+
+    /* ====================================================================== */
 
     @Override
     public byte[] decode(String data)
@@ -109,7 +136,7 @@ public class Base32Codec extends AbstractCodec {
                 if (index == 0)
                     i++;
             }
-            base32.append(BASE32_CHARS[digit]);
+            base32.append(alphabet[digit]);
         }
 
         return base32.toString();

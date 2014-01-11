@@ -15,10 +15,17 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.codecs;
 
+/**
+ * An abstract implementation of the {@link Codec} interface.
+ *
+ * @author <a href="mailto:pier@usrz.com">Pier Fumagalli</a>
+ */
 public abstract class AbstractCodec implements Codec {
 
+    /** An empty, singleton {@link String}. */
     protected static final String EMPTY_STRING = "".intern();
 
+    /** An empty, singleton <code>byte[]</code>. */
     protected static final byte[] EMPTY_ARRAY = new byte[0];
 
     @Override
