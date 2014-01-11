@@ -15,22 +15,61 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.hash;
 
+/**
+ * A component capable of producing a hash for a <code>byte[]</code>.
+ *
+ * @author <a href="mailto:pier@usrz.com">Pier Fumagalli</a>
+ * @param <F> The concrete type of {@link HashFunction} implemented.
+ */
 public interface HashFunction<F extends HashFunction<F>> {
 
+    /**
+     * Return the {@link Hash} associated with this instance.
+     */
     public Hash getHash();
 
+    /**
+     * Return the length, in bytes, of the hashes produced  by this instance.
+     */
     public int getHashLength();
 
+    /**
+     * Updates the hash value using the specified byte.
+     */
     public F update(byte input);
 
+    /**
+     * Updates the hash value using the specified <code>byte[]</code>.
+     */
     public F update(byte[] input);
 
+    /**
+     * Updates the hash value using a part of the specified <code>byte[]</code>.
+     */
     public F update(byte[] input, int offset, int length);
 
+    /**
+     * Compute the final hash value and return it as a new <code>byte[]</code>.
+     * <p>
+     * This instance is {@linkplain #reset() reset} after calling this method.
+     */
     public byte[] finish();
 
-    public void finish(byte[] output, int offset);
+    /**
+     * Compute the final hash value and write it in the specified
+     * <code>byte[]</code> at the given offset.
+     * <p>
+     * This instance is {@linkplain #reset() reset} after calling this method.
+     *
+     * @throws IllegalArgumentException If the buffer was not big enough.
+     */
+    public void finish(byte[] output, int offset)
+    throws IllegalArgumentException;
 
+    /**
+     * Reset this instance to its original construction state, discarding all
+     * the data it was {@linkplain #update(byte[], int, int) updated} with.
+     */
     public F reset();
 
 }

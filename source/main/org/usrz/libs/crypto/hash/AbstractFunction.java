@@ -15,15 +15,28 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.hash;
 
+/**
+ * An abstract implementation of the {@link HashFunction} interface.
+ *
+ * @author <a href="mailto:pier@usrz.com">Pier Fumagalli</a>
+ * @param <F> The concrete type of {@link AbstractFunction} implemented.
+ */
 public abstract class AbstractFunction<F extends AbstractFunction<F>>
 implements HashFunction<F> {
 
+    /* The {@link Hash} used by this function. */
     private final Hash hash;
 
+    /**
+     * Create a new {@link AbstractFunction} instance associated with the
+     * specifed {@link Hash}.
+     */
     protected AbstractFunction(Hash hash) {
         assert (hash != null): "Hash is null";
         this.hash = hash;
     }
+
+    /* ====================================================================== */
 
     @Override
     public final Hash getHash() {
@@ -34,8 +47,6 @@ implements HashFunction<F> {
     public final int getHashLength() {
         return hash.getHashLength();
     }
-
-    /* ====================================================================== */
 
     @Override
     public final F update(byte input) {

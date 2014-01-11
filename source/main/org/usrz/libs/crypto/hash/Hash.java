@@ -23,7 +23,7 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
 /**
- * A factory of hashing algorithms.
+ * An enumeration of all supported hashing algorithms.
  * <p>
  * The standard JSSE provided {@link MessageDigest} and {@link Mac}
  * instantiation is extremely costly and (in case of {@link Mac}s) does not
@@ -37,6 +37,8 @@ import javax.crypto.spec.SecretKeySpec;
  * <b>NOTE:</b> The current JSSE included with Java 7 does not support the SHA2
  * algorithm with 224-bits hash values, this feature will be added in
  * <a href="https://blogs.oracle.com/mullan/entry/jep_130_sha_224_message">Java 8</a>.
+ *
+ * @author <a href="mailto:pier@usrz.com">Pier Fumagalli</a>
  */
 public enum Hash {
 

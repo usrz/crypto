@@ -18,19 +18,38 @@ package org.usrz.libs.crypto.hash;
 import javax.crypto.Mac;
 import javax.crypto.ShortBufferException;
 
+/**
+ * A {@link HashFunction} producing hash-based message authentication codes.
+ *
+ * @see <a href="http://en.wikipedia.org/wiki/Hash-based_message_authentication_code">Hash-based
+ *      message authentication code</a>
+ * @author <a href="mailto:pier@usrz.com">Pier Fumagalli</a>
+ */
 public class HMAC extends AbstractFunction<HMAC> {
 
+    /* The {@link Mac} wrapped by this instance. */
     private final Mac mac;
 
+    /**
+     * Create a new {@link HMAC} instance associated with the given {@link Hash}
+     * and {@link Mac}.
+     */
     protected HMAC(Hash hash, Mac mac) {
         super(hash);
         assert (mac != null): "Null Mac";
         this.mac = mac;
     }
 
+    /* ====================================================================== */
+
+    /**
+     * Return the underlying {@link Mac} associated with this instance.
+     */
     public final Mac getMac() {
         return mac;
     }
+
+    /* ====================================================================== */
 
     @Override
     public final HMAC reset() {

@@ -18,19 +18,38 @@ package org.usrz.libs.crypto.hash;
 import java.security.DigestException;
 import java.security.MessageDigest;
 
+/**
+ * A {@link HashFunction} for simple cryptographic hash function.
+ *
+ * @see <a href="http://en.wikipedia.org/wiki/Cryptographic_hash_function">Cryptographic
+ *      hash function</a>
+ * @author <a href="mailto:pier@usrz.com">Pier Fumagalli</a>
+ */
 public class MD extends AbstractFunction<MD> {
 
+    /* The {@link MessageDigest} wrapped by this instance. */
     private final MessageDigest digest;
 
+    /**
+     * Create a new {@link MD} instance associated with the given {@link Hash}
+     * and {@link MessageDigest}.
+     */
     protected MD(Hash hash, MessageDigest digest) {
         super(hash);
         assert (digest != null): "Null MessageDigest";
         this.digest = digest;
     }
 
+    /* ====================================================================== */
+
+    /**
+     * Return the underlying {@link MessageDigest} associated with this instance.
+     */
     public final MessageDigest getMessageDigest() {
         return digest;
     }
+
+    /* ====================================================================== */
 
     @Override
     public final MD reset() {
