@@ -20,18 +20,37 @@ import static java.lang.System.arraycopy;
 import org.usrz.libs.crypto.hash.HMAC;
 import org.usrz.libs.crypto.hash.Hash;
 
+/**
+ * The implementation of the Password-Based Key Derivation Function 2.
+ *
+ * @author <a href="mailto:pier@usrz.com">Pier Fumagalli</a>
+ * @see <a href="http://en.wikipedia.org/wiki/PBKDF2">Password-Based Key
+ *      Derivation Function 2</a>
+ */
 public class PBKDF2 extends AbstractKDF {
 
+    /* The {@link Hash} to use. */
     private final Hash hash;
+    /* The number of iterations to use. */
     private final int iterations;
-    private final int derivedKeyLength;
 
     /* ====================================================================== */
 
+    /**
+     * Create a new {@link PBKDF2} instance wih the specified {@link Hash} and
+     * number of iterations.
+     * <p>
+     * The {@linkplain #getDerivedKeyLength() derived key length} will be
+     * the same as the {@linkplain Hash#getHashLength() hash length}.
+     */
     public PBKDF2(Hash hash, int iterations) {
         this(hash, iterations, hash == null ? -1 : hash.getHashLength());
     }
 
+    /**
+     * Create a new {@link PBKDF2} instance wih the specified {@link Hash},
+     * number of iterations and derived key length.
+     */
     public PBKDF2(Hash hash, int iterations, int derivedKeyLength) {
         super(derivedKeyLength);
 
@@ -44,13 +63,18 @@ public class PBKDF2 extends AbstractKDF {
 
         this.hash = hash;
         this.iterations = iterations;
-        this.derivedKeyLength = derivedKeyLength;
     }
 
+    /**
+     * Return the {@link Hash} associated with this instance.
+     */
     public final Hash getHash() {
         return hash;
     }
 
+    /**
+     * Return the number of iterations used by this instance.
+     */
     public final int getIterations() {
         return iterations;
     }
@@ -59,6 +83,7 @@ public class PBKDF2 extends AbstractKDF {
 
     @Override
     public void computeKey(byte[] password, byte[] salt, byte[] output, int offset) {
+        final int derivedKeyLength = getDerivedKeyLength();
 
         /* Get a hold on our HMAC instance */
         final HMAC hmac = hash.hmac(password);

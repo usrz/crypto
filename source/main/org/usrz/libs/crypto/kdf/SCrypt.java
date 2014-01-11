@@ -21,19 +21,39 @@ import static java.lang.System.arraycopy;
 import org.usrz.libs.crypto.hash.Hash;
 
 /**
- * Heavily influenced by https://github.com/wg/scrypt/
+ * The implementation of <i>Colin Percival</i>'s SCrypt key derivation function.
+ * <p>
+ * This implementation was <i>heavily based</i> on Will Glozer's own pure-Java
+ * <a href="https://github.com/wg/scrypt/">SCrypt</a> implementation,
+ * distributed under the terms of the Apache Software License, version 2.
+ *
+ * @see <a href="https://github.com/wg/scrypt/">Will Glozer's implementation</a>
+ * @see <a href="http://en.wikipedia.org/wiki/Scrypt">SCrypt</a>
+ * @author <a href="mailto:pier@usrz.com">Pier Fumagalli</a>
  */
 public class SCrypt extends AbstractKDF {
 
+    /* Our CPU and memory cost index */
     private final int cpuMemoryCost;
+    /* Our block size */
     private final int blockSize;
+    /* Our parallelization factor */
     private final int parallelization;
-
+    /* Remember the number (blockSize * 128). */
     private final int blockSizeTimes128;
-
+    /* The SHA256 KDF for the first hashing (pwd/salt) */
     private final PBKDF2 kdf1;
+    /* The SHA256 KDF for the second hashing (final key) */
     private final PBKDF2 kdf2;
 
+    /**
+     * Create a {@link SCrypt} with its specified initialization parameters.
+     *
+     * @param cpuMemoryCost The CPU and memory cost parameter.
+     * @param blockSize The block size parameter.
+     * @param parallelization The parallelization parameter.
+     * @param derivedKeyLength The length for the derived key.
+     */
     public SCrypt(int cpuMemoryCost,
                   int blockSize,
                   int parallelization,
@@ -73,6 +93,9 @@ public class SCrypt extends AbstractKDF {
 
     }
 
+    /**
+     * Evaluate (roughly) how much memory will be used to compute the key.
+     */
     protected int getComputationMemoryRequirement() {
         return (blockSizeTimes128 * cpuMemoryCost) // bufferV
              + (blockSizeTimes128 * 2) // buffer1;

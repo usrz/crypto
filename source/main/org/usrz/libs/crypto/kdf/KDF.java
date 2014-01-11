@@ -15,12 +15,39 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.kdf;
 
+/**
+ * The {@link KDF} interface defines a component capable of derivating a
+ * key from a password and <i>salt</i>.
+ *
+ * @see <a href="http://en.wikipedia.org/wiki/Key_derivation_function">Key
+ *      derivation functions</a>
+ * @author <a href="mailto:pier@usrz.com">Pier Fumagalli</a>
+ */
 public interface KDF {
 
+    /**
+     * Return the length (in bytes) of the derived key.
+     */
     public int getDerivedKeyLength();
 
-    public byte[] deriveKey(byte[] password, byte[] salt);
+    /**
+     * Derive a key from the specified password and <i>salt</i>, and return it
+     * into a new <code>byte[]</code>.
+     *
+     * @throws NullPointerException If password or <i>salt</i> were <b>null</b>.
+     */
+    public byte[] deriveKey(byte[] password, byte[] salt)
+    throws NullPointerException;
 
-    public void deriveKey(byte[] password, byte[] salt, byte[] output, int offset);
+    /**
+     * Derive a key from the specified password and <i>salt</i> and write in the
+     * specified <code>byte[]</code> at the specified position.
+     *
+     * @throws NullPointerException If password, <i>salt</i> or output buffer
+     *                              were <b>null</b>.
+     * @throws IllegalArgumentException If the buffer was not big enough.
+     */
+    public void deriveKey(byte[] password, byte[] salt, byte[] output, int offset)
+    throws NullPointerException, IllegalArgumentException;
 
 }

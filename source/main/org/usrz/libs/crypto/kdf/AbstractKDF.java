@@ -15,10 +15,19 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.kdf;
 
+/**
+ * An abstract implementation of the {@link KDF} interface.
+ *
+ * @author <a href="mailto:pier@usrz.com">Pier Fumagalli</a>
+ */
 public abstract class AbstractKDF implements KDF {
 
+    /* The derived key length to return. */
     private final int derivedKeyLength;
 
+    /**
+     * Create a new {@link AbstractKDF} instance.
+     */
     public AbstractKDF(int derivedKeyLength) {
         if (derivedKeyLength < 1)
             throw new IllegalArgumentException("Derived key length less than zero");
@@ -44,7 +53,7 @@ public abstract class AbstractKDF implements KDF {
     }
 
     @Override
-    public void deriveKey(byte[] password, byte[] salt, byte[] output, int offset) {
+    public final void deriveKey(byte[] password, byte[] salt, byte[] output, int offset) {
 
         /* Check for null parameters */
         if (password == null) throw new NullPointerException("Null password");
@@ -61,6 +70,10 @@ public abstract class AbstractKDF implements KDF {
 
     }
 
+    /**
+     * Method to be implemented by concrete classes to actually compute the
+     * derived key after parameters have been checked.
+     */
     protected abstract void computeKey(byte[] password, byte[] salt, byte[] output, int offset);
 
 }
