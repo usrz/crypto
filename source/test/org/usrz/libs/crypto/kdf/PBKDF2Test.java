@@ -18,11 +18,10 @@ package org.usrz.libs.crypto.kdf;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import org.usrz.libs.crypto.codecs.Base64Codec;
+import org.usrz.libs.crypto.codecs.Base64Codec.Alphabet;
 import org.usrz.libs.crypto.codecs.Codec;
 import org.usrz.libs.crypto.codecs.HexCodec;
-import org.usrz.libs.crypto.codecs.Base64Codec.Alphabet;
 import org.usrz.libs.crypto.hash.Hash;
-import org.usrz.libs.crypto.kdf.PBKDF2;
 
 public class PBKDF2Test {
 
@@ -91,7 +90,7 @@ public class PBKDF2Test {
         Assert.assertEquals(result, hex.decode("4b007901b765489abead49d926f721d065a429c1"));
     }
 
-    @Test(enabled=false) // takes a long time!
+    @Test(groups="local")
     public void testRFC6070_16777216() throws Exception {
         byte[] result = new PBKDF2(Hash.SHA1, 16777216).deriveKey(password, salt);
         Assert.assertEquals(result, hex.decode("eefe3d61cd4da4e4e9945b3d6ba2158c2634e984"));

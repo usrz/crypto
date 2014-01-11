@@ -21,7 +21,6 @@ import java.util.Random;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import org.usrz.libs.crypto.codecs.HexCodec;
-import org.usrz.libs.crypto.kdf.SCrypt;
 
 public class SCryptTest {
 
@@ -93,7 +92,7 @@ public class SCryptTest {
 
     /* ====================================================================== */
 
-    @Test(enabled=false)
+    @Test(groups="local")
     public void testSpeed() {
         final SCrypt scrypt = new SCrypt(16384, 8, 1, 64);
         System.err.println("Computational memory per iteration: " + (scrypt.getComputationMemoryRequirement() / 1048576F) + " megs");
@@ -158,7 +157,7 @@ public class SCryptTest {
                             new HexCodec().decode("7023bdcb3afd7348461c06cd81fd38ebfda8fbba904f8e3ea9b543f6545da1f2d5432955613f0fcf62d49705242a9af9e61e85dc0d651e40dfcf017b45575887"));
     }
 
-    @Test
+    @Test(groups="local")
     public void testIETFVector4() {
         Assert.assertEquals(new SCrypt(1048576, 8, 1, 64).deriveKey("pleaseletmein".getBytes(UTF8), "SodiumChloride".getBytes(UTF8)),
                             new HexCodec().decode("2101cb9b6a511aaeaddbbe09cf70f881ec568d574a2ffd4dabe5ee9820adaa478e56fd8f4ba5d09ffa1c6d927c40f4c337304049e8a952fbcbf45c6fa77a41a4"));

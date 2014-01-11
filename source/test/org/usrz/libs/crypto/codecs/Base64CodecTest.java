@@ -19,7 +19,6 @@ import java.nio.charset.Charset;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
-import org.usrz.libs.crypto.codecs.Base64Codec;
 
 public class Base64CodecTest {
 
@@ -121,7 +120,7 @@ public class Base64CodecTest {
         Assert.assertEquals(new Base64Codec(true).encode("abcdefghijk".getBytes(UTF8)), "YWJjZGVmZ2hpams=");
     }
 
-    @Test(enabled=false)
+    @Test(groups="local")
     public void testIteratively() {
         long time = System.currentTimeMillis();
         long count = 0;

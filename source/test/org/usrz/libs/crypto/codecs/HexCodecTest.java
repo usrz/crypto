@@ -17,7 +17,6 @@ package org.usrz.libs.crypto.codecs;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
-import org.usrz.libs.crypto.codecs.HexCodec;
 
 public class HexCodecTest {
 
@@ -97,7 +96,7 @@ public class HexCodecTest {
         new HexCodec().decode("FFF\u3041");
     }
 
-    @Test(enabled=false)
+    @Test(groups="local")
     public void testIteratively() {
         long time = System.currentTimeMillis();
         long count = 0;
