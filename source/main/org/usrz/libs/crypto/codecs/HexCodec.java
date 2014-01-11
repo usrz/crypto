@@ -19,7 +19,7 @@ import java.util.Arrays;
 
 /**
  * A {@link Codec} implementing the hexadecimal encoding algorithm.
- *
+ * <p>
  * Regardless of the case specified at
  * {@linkplain #HexCodec(boolean) construction} this class will always decode
  * {@link String}s using all possible alphabets.

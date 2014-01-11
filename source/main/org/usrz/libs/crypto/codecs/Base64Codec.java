@@ -17,7 +17,7 @@ package org.usrz.libs.crypto.codecs;
 
 /**
  * A relatively-fast {@link Codec} implementing the Base 64 encoding algorithm.
- *
+ * <p>
  * Regardless of the {@link Base64Codec.Alphabet Alphabet} specified at
  * {@linkplain #Base64Codec(Alphabet) construction} (and because the various
  * alphabets do not overlap) this class will always decode {@link String}s

@@ -20,7 +20,7 @@ import java.util.Arrays;
 /**
  * A {@link Codec} implementing the Base 32 encoding algorithm <b>without
  * padding</b>.
- *
+ * <p>
  * Regardless of the case specified at
  * {@linkplain #Base32Codec(boolean) construction} this class will always decode
  * {@link String}s using all possible alphabets.
