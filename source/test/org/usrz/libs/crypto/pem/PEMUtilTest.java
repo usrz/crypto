@@ -23,6 +23,7 @@ import java.net.URL;
 import java.security.Principal;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateCrtKey;
+import java.security.interfaces.RSAPublicKey;
 import java.util.List;
 
 import javax.crypto.Cipher;
@@ -86,6 +87,21 @@ public class PEMUtilTest {
     throws Exception {
         final URL url = this.getClass().getResource("key512-aes256.pem");
         checkKey512(PEMUtil.loadPrivateKey(url, "asdf"));
+    }
+
+    @Test
+    public void testPublicKey512()
+    throws Exception {
+        final URL publicUrl = this.getClass().getResource("key512-public.pem");
+        RSAPublicKey publicKey = PEMUtil.loadPublicKey(publicUrl);
+        Assert.assertNotNull(publicKey);
+
+        final URL privateUrl = this.getClass().getResource("key512.pem");
+        RSAPrivateCrtKey privateKey = PEMUtil.loadPrivateKey(privateUrl);
+        Assert.assertNotNull(privateKey);
+
+        Assert.assertEquals(publicKey.getModulus(),        privateKey.getModulus());
+        Assert.assertEquals(publicKey.getPublicExponent(), privateKey.getPublicExponent());
     }
 
     @Test
@@ -159,6 +175,21 @@ public class PEMUtilTest {
     throws Exception {
         final URL url = this.getClass().getResource("key4096-aes256.pem");
         checkKey4096(PEMUtil.loadPrivateKey(url, "asdf"));
+    }
+
+    @Test
+    public void testPublicKey4096()
+    throws Exception {
+        final URL publicUrl = this.getClass().getResource("key4096-public.pem");
+        RSAPublicKey publicKey = PEMUtil.loadPublicKey(publicUrl);
+        Assert.assertNotNull(publicKey);
+
+        final URL privateUrl = this.getClass().getResource("key4096.pem");
+        RSAPrivateCrtKey privateKey = PEMUtil.loadPrivateKey(privateUrl);
+        Assert.assertNotNull(privateKey);
+
+        Assert.assertEquals(publicKey.getModulus(),        privateKey.getModulus());
+        Assert.assertEquals(publicKey.getPublicExponent(), privateKey.getPublicExponent());
     }
 
     @Test

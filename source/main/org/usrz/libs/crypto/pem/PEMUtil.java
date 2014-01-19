@@ -19,12 +19,12 @@ import static org.usrz.libs.crypto.codecs.Base64Codec.BASE_64;
 import static org.usrz.libs.crypto.codecs.CharsetCodec.UTF8;
 import static org.usrz.libs.crypto.codecs.HexCodec.HEX;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.LineNumberReader;
 import java.math.BigInteger;
 import java.net.URL;
 import java.security.GeneralSecurityException;
@@ -37,7 +37,10 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateCrtKey;
+import java.security.interfaces.RSAPublicKey;
+import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPrivateCrtKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -69,11 +72,31 @@ public final class PEMUtil {
     private static final Pattern BEGIN_PRIVATE_KEY = Pattern.compile("^--+BEGIN (RSA )?PRIVATE KEY--+$");
     private static final Pattern END_PRIVATE_KEY =   Pattern.compile("^--+END (RSA )?PRIVATE KEY--+$");
 
-    private static final Pattern BEGIN_PUBLIC_KEY = Pattern.compile("^--+BEGIN (RSA )?PRIVATE KEY--+$");
-    private static final Pattern END_PUBLIC_KEY =   Pattern.compile("^--+END (RSA )?PRIVATE KEY--+$");
+    private static final Pattern BEGIN_PUBLIC_KEY = Pattern.compile("^--+BEGIN (RSA )?PUBLIC KEY--+$");
+    private static final Pattern END_PUBLIC_KEY =   Pattern.compile("^--+END (RSA )?PUBLIC KEY--+$");
 
     private static final Pattern PRIVATE_KEY_ENCRYPTED = Pattern.compile("^Proc-Type: 4,ENCRYPTED$");
     private static final Pattern PRIVATE_KEY_ALGORITHM = Pattern.compile("^DEK-Info: ([^,]+),(.+)$");
+
+    private static final KeyFactory KEY_FACTORY;
+    private static final CertificateFactory CERTIFICATE_FACTORY;
+
+    static {
+        try {
+            KEY_FACTORY = KeyFactory.getInstance("RSA");
+        } catch (NoSuchAlgorithmException exception) {
+            final Error error = new InternalError("RSA key factory unsupported");
+            throw (InternalError) error.initCause(exception);
+        }
+
+        try {
+            CERTIFICATE_FACTORY = CertificateFactory.getInstance("X.509");
+        } catch (CertificateException exception) {
+            final Error error = new InternalError("X.509 certificate factory unsupported");
+            throw (InternalError) error.initCause(exception);
+        }
+
+    }
 
     /* ====================================================================== */
 
@@ -110,24 +133,30 @@ public final class PEMUtil {
 
         final InputStream stream = url.openStream();
         final InputStreamReader reader = new InputStreamReader(stream, UTF8);
-        final LineNumberReader buffer = new LineNumberReader(reader);
+        final BufferedReader buffer = new BufferedReader(reader);
 
         try {
             final List<X509Certificate> certificates = new ArrayList<>();
-            final CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
-
-            final StringBuilder builder = new StringBuilder();
 
             String line;
+            StringBuilder builder = null;
             while ((line = buffer.readLine()) != null) {
                 line = line.trim();
 
                 /* Ignore empty lines */
                 if (line.isEmpty()) continue;
 
-                /* Make sure that we begin a certificate properly */
+                /* Make sure that we begin properly */
                 if (BEGIN_CERTIFICATE.matcher(line).matches()) {
-                    if (builder.length() == 0) continue;
+                    if (builder == null) {
+                        builder = new StringBuilder();
+                        continue;
+                    }
+                    throw new PEMException("Unexpected content \"" + line + "\"", url);
+                }
+
+                /* If we never begun the certificate, we can't parse it */
+                if (builder == null) {
                     throw new PEMException("Unexpected content \"" + line + "\"", url);
                 }
 
@@ -144,7 +173,7 @@ public final class PEMUtil {
 
                     /* Create our X509 certificate */
                     final ByteArrayInputStream certificateStream = new ByteArrayInputStream(certificateBytes);
-                    final Certificate certificate = certificateFactory.generateCertificate(certificateStream);
+                    final Certificate certificate = CERTIFICATE_FACTORY.generateCertificate(certificateStream);
 
                     /* Add our certificate to the list and reset the buffer */
                     try {
@@ -152,7 +181,7 @@ public final class PEMUtil {
                     } catch (ClassCastException exception) {
                         throw new PEMException("Exception casting certificate", url, exception);
                     }
-                    builder.setLength(0);
+                    builder = null;
                     continue;
                 }
 
@@ -162,11 +191,99 @@ public final class PEMUtil {
             }
 
             /* Check we don't have a hanging certificate */
-            if (builder.length() != 0) throw new PEMException("Unterminated certificate", url);
+            if (builder != null) throw new PEMException("Unterminated certificate", url);
 
             /* Check if we read any certificate */
             if (certificates.size() > 0) return certificates;
             throw new PEMException("No certificates found", url);
+
+        } finally {
+            /* Close all */
+            buffer.close();
+            reader.close();
+            stream.close();
+        }
+    }
+
+    /* ====================================================================== */
+    /* PUBLIC KEYS                                                            */
+    /* ====================================================================== */
+
+    /**
+     * Load a RSA public key from the specified {@link File}.
+     *
+     * @throws InvalidKeySpecException If the key could not be loaded.
+     * @throws PEMException If the PEM format was somehow broken.
+     * @throws IOException If an I/O error occurred.
+     */
+    public static final RSAPublicKey loadPublicKey(File file)
+    throws InvalidKeySpecException, PEMException, IOException {
+        if (file == null) throw new NullPointerException("Null file");
+        return loadPublicKey(file.toURI().toURL());
+    }
+
+    /**
+     * Load a RSA public key from the specified {@link File}.
+     *
+     * @throws InvalidKeySpecException If the key could not be loaded.
+     * @throws PEMException If the PEM format was somehow broken.
+     * @throws IOException If an I/O error occurred.
+     */
+    public static final RSAPublicKey loadPublicKey(URL url)
+    throws InvalidKeySpecException, PEMException, IOException {
+
+        final InputStream stream = url.openStream();
+        final InputStreamReader reader = new InputStreamReader(stream, UTF8);
+        final BufferedReader buffer = new BufferedReader(reader);
+
+        try {
+            String line;
+            StringBuilder builder = null;
+            while ((line = buffer.readLine()) != null) {
+                line = line.trim();
+
+                /* Ignore empty lines */
+                if (line.isEmpty()) continue;
+
+                /* Make sure that we begin properly */
+                if (BEGIN_PUBLIC_KEY.matcher(line).matches()) {
+                    if (builder == null) {
+                        builder = new StringBuilder();
+                        continue;
+                    }
+                    throw new PEMException("Unexpected content \"" + line + "\"", url);
+                }
+
+                /* If we never begun the key, we can't parse it */
+                if (builder == null) {
+                    throw new PEMException("Unexpected content \"" + line + "\"", url);
+                }
+
+                /* We found the end of the block */
+                if (END_PUBLIC_KEY.matcher(line).matches()) {
+                    if (builder.length() == 0) throw new PEMException("Empty public key found", url);
+
+                    /* Parse our Base64 public key */
+                    final byte[] publicKeyBytes;
+                    try {
+                        publicKeyBytes = BASE_64.decode(builder.toString());
+                    } catch (IllegalArgumentException exception) {
+                        throw new PEMException("Error decoding Base64 data", url);
+                    }
+
+                    /* Parse ASN.1 (supported for public) and return the key */
+                    return (RSAPublicKey) KEY_FACTORY.generatePublic(new X509EncodedKeySpec(publicKeyBytes));
+
+                }
+
+                /* In all other case, let's hope this is a Base64 line */
+                builder.append(line);
+
+            }
+
+            /* Check we don't have a hanging public key */
+            if (builder == null) throw new PEMException("Public key not found", url);
+            throw new PEMException("Unterminated public key", url);
 
         } finally {
             /* Close all */
@@ -256,16 +373,13 @@ public final class PEMUtil {
 
         final InputStream stream = url.openStream();
         final InputStreamReader reader = new InputStreamReader(stream, UTF8);
-        final LineNumberReader buffer = new LineNumberReader(reader);
+        final BufferedReader buffer = new BufferedReader(reader);
 
         try {
-            final KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-            final StringBuilder builder = new StringBuilder();
-
-            RSAPrivateCrtKey privateKey = null;
             String line = null;
-            String encryptionAlgorithm = null;
+            StringBuilder builder = null;
             String encryptionSalt = null;
+            String encryptionAlgorithm = null;
             while ((line = buffer.readLine()) != null) {
                 line = line.trim();
 
@@ -274,24 +388,28 @@ public final class PEMUtil {
 
                 /* Make sure that we begin a private key properly */
                 if (BEGIN_PRIVATE_KEY.matcher(line).matches()) {
-                    if ((builder.length() == 0) && (privateKey == null)) continue;
+                    if (builder == null) {
+                        builder = new StringBuilder();
+                        continue;
+                    }
                     throw new PEMException("Unexpected content \"" + line + "\"", url);
                 }
 
-                /* If we already have a private key, simply fail */
-                if (privateKey != null) {
+                /* If we never begun the key, we can't parse it */
+                if (builder == null) {
                     throw new PEMException("Unexpected content \"" + line + "\"", url);
                 }
 
-                /* Check if this is an encrypted key */
+                /* Skip any header that says "this is encrypted" */
                 if (PRIVATE_KEY_ENCRYPTED.matcher(line).matches()) continue;
+
+                /* Extract the Algortithm and SALT */
                 final Matcher encryptionMatcher = PRIVATE_KEY_ALGORITHM.matcher(line);
                 if (encryptionMatcher.matches()) {
                     encryptionAlgorithm = encryptionMatcher.group(1);
                     encryptionSalt = encryptionMatcher.group(2);
                     continue;
                 }
-
 
                 /* On end of private keys, parse */
                 if (END_PRIVATE_KEY.matcher(line).matches()) {
@@ -313,12 +431,10 @@ public final class PEMUtil {
 
                     /* Create our RSA private key, reset our buffer, and go! */
                     try {
-                        privateKey = (RSAPrivateCrtKey) keyFactory.generatePrivate(privateKeySpec);
+                        return (RSAPrivateCrtKey) KEY_FACTORY.generatePrivate(privateKeySpec);
                     } catch (ClassCastException exception) {
                         throw new PEMException("Exception casting private key", url, exception);
                     }
-                    builder.setLength(0);
-                    continue;
                 }
 
                 /* In all other case, let's hope this is a Base64 line */
@@ -327,9 +443,8 @@ public final class PEMUtil {
             }
 
             /* Check we don't have a hanging private key */
-            if (builder.length() != 0) throw new PEMException("Unterminated private key", url);
-
-            return privateKey;
+            if (builder == null) throw new PEMException("Private key not found", url);
+            throw new PEMException("Unterminated private key", url);
 
         } finally {
             /* Close all */
