@@ -15,42 +15,36 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.codecs;
 
-import java.nio.charset.Charset;
+import static org.usrz.libs.crypto.codecs.CharsetCodec.UTF8;
+
 import java.util.Random;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
-import org.usrz.libs.crypto.codecs.Base32Codec;
 
 public class Base32CodecTest {
 
-    private static byte[] convert(String string) {
-        return string.getBytes(Charset.forName("UTF8"));
-    }
-
-    private static String convert(byte[] data) {
-        return new String(data, Charset.forName("UTF8"));
-    }
+    private static final CharsetCodec codec = new CharsetCodec(UTF8);
 
     @Test
     public void testEncode() {
         final Base32Codec base32 = new Base32Codec();
 
-        Assert.assertEquals(base32.encode(convert("")), "");
-        Assert.assertEquals(base32.encode(convert("f")), "MY");
-        Assert.assertEquals(base32.encode(convert("fo")), "MZXQ");
-        Assert.assertEquals(base32.encode(convert("foo")), "MZXW6");
-        Assert.assertEquals(base32.encode(convert("foob")), "MZXW6YQ");
-        Assert.assertEquals(base32.encode(convert("fooba")), "MZXW6YTB");
-        Assert.assertEquals(base32.encode(convert("foobar")), "MZXW6YTBOI");
+        Assert.assertEquals(base32.encode(codec.decode("")), "");
+        Assert.assertEquals(base32.encode(codec.decode("f")), "MY");
+        Assert.assertEquals(base32.encode(codec.decode("fo")), "MZXQ");
+        Assert.assertEquals(base32.encode(codec.decode("foo")), "MZXW6");
+        Assert.assertEquals(base32.encode(codec.decode("foob")), "MZXW6YQ");
+        Assert.assertEquals(base32.encode(codec.decode("fooba")), "MZXW6YTB");
+        Assert.assertEquals(base32.encode(codec.decode("foobar")), "MZXW6YTBOI");
 
-        Assert.assertEquals(base32.encode(convert("--"), 1, 0), "");
-        Assert.assertEquals(base32.encode(convert("-f--"), 1, 1), "MY");
-        Assert.assertEquals(base32.encode(convert("-fo---"), 1, 2), "MZXQ");
-        Assert.assertEquals(base32.encode(convert("-foo----"), 1, 3), "MZXW6");
-        Assert.assertEquals(base32.encode(convert("-foob-----"), 1, 4), "MZXW6YQ");
-        Assert.assertEquals(base32.encode(convert("-fooba------"), 1, 5), "MZXW6YTB");
-        Assert.assertEquals(base32.encode(convert("-foobar-------"), 1, 6), "MZXW6YTBOI");
+        Assert.assertEquals(base32.encode(codec.decode("--"), 1, 0), "");
+        Assert.assertEquals(base32.encode(codec.decode("-f--"), 1, 1), "MY");
+        Assert.assertEquals(base32.encode(codec.decode("-fo---"), 1, 2), "MZXQ");
+        Assert.assertEquals(base32.encode(codec.decode("-foo----"), 1, 3), "MZXW6");
+        Assert.assertEquals(base32.encode(codec.decode("-foob-----"), 1, 4), "MZXW6YQ");
+        Assert.assertEquals(base32.encode(codec.decode("-fooba------"), 1, 5), "MZXW6YTB");
+        Assert.assertEquals(base32.encode(codec.decode("-foobar-------"), 1, 6), "MZXW6YTBOI");
 
     }
 
@@ -58,21 +52,21 @@ public class Base32CodecTest {
     public void testDecode() {
         final Base32Codec base32 = new Base32Codec();
 
-        Assert.assertEquals(convert(base32.decode("")), "");
-        Assert.assertEquals(convert(base32.decode("MY")), "f");
-        Assert.assertEquals(convert(base32.decode("MZXQ")), "fo");
-        Assert.assertEquals(convert(base32.decode("MZXW6")), "foo");
-        Assert.assertEquals(convert(base32.decode("MZXW6YQ")), "foob");
-        Assert.assertEquals(convert(base32.decode("MZXW6YTB")), "fooba");
-        Assert.assertEquals(convert(base32.decode("MZXW6YTBOI")), "foobar");
+        Assert.assertEquals(codec.encode(base32.decode("")), "");
+        Assert.assertEquals(codec.encode(base32.decode("MY")), "f");
+        Assert.assertEquals(codec.encode(base32.decode("MZXQ")), "fo");
+        Assert.assertEquals(codec.encode(base32.decode("MZXW6")), "foo");
+        Assert.assertEquals(codec.encode(base32.decode("MZXW6YQ")), "foob");
+        Assert.assertEquals(codec.encode(base32.decode("MZXW6YTB")), "fooba");
+        Assert.assertEquals(codec.encode(base32.decode("MZXW6YTBOI")), "foobar");
 
-        Assert.assertEquals(convert(base32.decode("")), "");
-        Assert.assertEquals(convert(base32.decode("my")), "f");
-        Assert.assertEquals(convert(base32.decode("mzxq")), "fo");
-        Assert.assertEquals(convert(base32.decode("mzxw6")), "foo");
-        Assert.assertEquals(convert(base32.decode("mzxw6yq")), "foob");
-        Assert.assertEquals(convert(base32.decode("mzxw6ytb")), "fooba");
-        Assert.assertEquals(convert(base32.decode("mzxw6ytboi")), "foobar");
+        Assert.assertEquals(codec.encode(base32.decode("")), "");
+        Assert.assertEquals(codec.encode(base32.decode("my")), "f");
+        Assert.assertEquals(codec.encode(base32.decode("mzxq")), "fo");
+        Assert.assertEquals(codec.encode(base32.decode("mzxw6")), "foo");
+        Assert.assertEquals(codec.encode(base32.decode("mzxw6yq")), "foob");
+        Assert.assertEquals(codec.encode(base32.decode("mzxw6ytb")), "fooba");
+        Assert.assertEquals(codec.encode(base32.decode("mzxw6ytboi")), "foobar");
 
     }
 

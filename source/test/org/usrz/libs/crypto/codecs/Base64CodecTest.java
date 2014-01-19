@@ -15,14 +15,12 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.codecs;
 
-import java.nio.charset.Charset;
+import static org.usrz.libs.crypto.codecs.CharsetCodec.UTF8;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 public class Base64CodecTest {
-
-    private final Charset UTF8 = Charset.forName("UTF-8");
 
     @Test
     public void testSimpleEncode() {

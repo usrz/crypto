@@ -15,7 +15,8 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.kdf;
 
-import java.nio.charset.Charset;
+import static org.usrz.libs.crypto.codecs.CharsetCodec.UTF8;
+
 import java.util.Random;
 
 import org.testng.Assert;
@@ -23,8 +24,6 @@ import org.testng.annotations.Test;
 import org.usrz.libs.crypto.codecs.HexCodec;
 
 public class SCryptTest {
-
-    private static final Charset UTF8 = Charset.forName("UTF-8");
 
     @Test
     public void testParallelThreads()

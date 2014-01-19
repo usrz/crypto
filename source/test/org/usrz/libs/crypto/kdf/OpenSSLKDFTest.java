@@ -15,7 +15,7 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.kdf;
 
-import java.nio.charset.Charset;
+import static org.usrz.libs.crypto.codecs.CharsetCodec.UTF8;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -23,7 +23,7 @@ import org.usrz.libs.crypto.codecs.HexCodec;
 
 public class OpenSSLKDFTest {
 
-    final byte[] pass = "password".getBytes(Charset.forName("UTF8"));
+    final byte[] pass = "password".getBytes(UTF8);
     final byte[] salt = new HexCodec().decode("E626005A8C9FE8EC");
 
     @Test
@@ -50,7 +50,7 @@ public class OpenSSLKDFTest {
     @Test
     public void testAlternative() {
         final OpenSSLKDF kdf = new OpenSSLKDF(16);
-        final byte[] result = kdf.deriveKey("asdf".getBytes(), new HexCodec().decode("9018B9965CB475A3"));
+        final byte[] result = kdf.deriveKey("asdf".getBytes(UTF8), new HexCodec().decode("9018B9965CB475A3"));
         Assert.assertEquals(result, new HexCodec().decode("ED1F1DE2ECD77EA1DC5F08465EF36402"));
     }
 
