@@ -16,42 +16,42 @@
 package org.usrz.libs.crypto.kdf;
 
 import static org.usrz.libs.crypto.codecs.CharsetCodec.UTF8;
+import static org.usrz.libs.crypto.codecs.HexCodec.HEX;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
-import org.usrz.libs.crypto.codecs.HexCodec;
 
 public class OpenSSLKDFTest {
 
     final byte[] pass = "password".getBytes(UTF8);
-    final byte[] salt = new HexCodec().decode("E626005A8C9FE8EC");
+    final byte[] salt = HEX.decode("E626005A8C9FE8EC");
 
     @Test
     public void testShort() {
         final OpenSSLKDF kdf = new OpenSSLKDF(8);
         final byte[] result = kdf.deriveKey(pass, salt);
-        Assert.assertEquals(result, new HexCodec().decode("ba87b69741a4d7da"));
+        Assert.assertEquals(result, HEX.decode("ba87b69741a4d7da"));
     }
 
     @Test
     public void testSimple() {
         final OpenSSLKDF kdf = new OpenSSLKDF(16);
         final byte[] result = kdf.deriveKey(pass, salt);
-        Assert.assertEquals(result, new HexCodec().decode("ba87b69741a4d7dab15e972c07e7d9f1"));
+        Assert.assertEquals(result, HEX.decode("ba87b69741a4d7dab15e972c07e7d9f1"));
     }
 
     @Test
     public void testLong() {
         final OpenSSLKDF kdf = new OpenSSLKDF(24);
         final byte[] result = kdf.deriveKey(pass, salt);
-        Assert.assertEquals(result, new HexCodec().decode("ba87b69741a4d7dab15e972c07e7d9f18b43599a81d1bbef"));
+        Assert.assertEquals(result, HEX.decode("ba87b69741a4d7dab15e972c07e7d9f18b43599a81d1bbef"));
     }
 
     @Test
     public void testAlternative() {
         final OpenSSLKDF kdf = new OpenSSLKDF(16);
-        final byte[] result = kdf.deriveKey("asdf".getBytes(UTF8), new HexCodec().decode("9018B9965CB475A3"));
-        Assert.assertEquals(result, new HexCodec().decode("ED1F1DE2ECD77EA1DC5F08465EF36402"));
+        final byte[] result = kdf.deriveKey("asdf".getBytes(UTF8), HEX.decode("9018B9965CB475A3"));
+        Assert.assertEquals(result, HEX.decode("ED1F1DE2ECD77EA1DC5F08465EF36402"));
     }
 
 }

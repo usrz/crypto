@@ -77,6 +77,15 @@ public class Base64Codec extends AbstractCodec {
 
     /* ====================================================================== */
 
+    /**
+     * A shared {@link Base64Codec} instance using the
+     * {@link Base64Codec.Alphabet#STANDARD STANDARD} alphabet
+     * and performing padding of results.
+     */
+    public static final Base64Codec BASE_64 = new Base64Codec();
+
+    /* ====================================================================== */
+
     /* The current alphabet used for encoding. */
     private final char[] alphabet;
     /* Whether we support padding or not. */

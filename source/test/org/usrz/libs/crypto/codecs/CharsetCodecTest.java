@@ -15,6 +15,8 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.codecs;
 
+import static org.usrz.libs.crypto.codecs.HexCodec.HEX;
+
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -23,7 +25,7 @@ public class CharsetCodecTest {
     @Test
     public void test() {
         final String string = "\u6771\u4EAC";
-        final byte[] bytes = new HexCodec().decode("e69db1e4baac");
+        final byte[] bytes = HEX.decode("e69db1e4baac");
         Assert.assertEquals(new CharsetCodec().encode(bytes), string);
         Assert.assertEquals(new CharsetCodec().decode(string), bytes);
     }

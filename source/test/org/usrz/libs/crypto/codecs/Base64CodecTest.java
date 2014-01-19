@@ -15,6 +15,7 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.codecs;
 
+import static org.usrz.libs.crypto.codecs.Base64Codec.BASE_64;
 import static org.usrz.libs.crypto.codecs.CharsetCodec.UTF8;
 
 import org.testng.Assert;
@@ -134,7 +135,7 @@ public class Base64CodecTest {
                 }
 
                 /* Encode and decode the array, it should yeld the same result */
-                byte result[] = new Base64Codec().decode(new Base64Codec().encode(array));
+                byte result[] = BASE_64.decode(BASE_64.encode(array));
                 Assert.assertEquals(result, array);
                 count ++;
             }

@@ -16,12 +16,12 @@
 package org.usrz.libs.crypto.kdf;
 
 import static org.usrz.libs.crypto.codecs.CharsetCodec.UTF8;
+import static org.usrz.libs.crypto.codecs.HexCodec.HEX;
 
 import java.util.Random;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
-import org.usrz.libs.crypto.codecs.HexCodec;
 
 public class SCryptTest {
 
@@ -121,7 +121,7 @@ public class SCryptTest {
         final byte[] result = new byte[63];
 
         new SCrypt(1024, 8, 16, 64).deriveKey("password".getBytes(UTF8), "NaCl".getBytes(UTF8), result, 0);
-        Assert.assertEquals(result, new HexCodec().decode("fdbabe1c9d3472007856e7190d01e9fe7c6ad7cbc8237830e77376634b3731622eaf30d92e22a3886ff109279d9830dac727afb94a83ee6d8360cbdfa2cc0640"));
+        Assert.assertEquals(result, HEX.decode("fdbabe1c9d3472007856e7190d01e9fe7c6ad7cbc8237830e77376634b3731622eaf30d92e22a3886ff109279d9830dac727afb94a83ee6d8360cbdfa2cc0640"));
     }
 
     @Test
@@ -131,7 +131,7 @@ public class SCryptTest {
         result[65] = 0x1;
 
         new SCrypt(1024, 8, 16, 64).deriveKey("password".getBytes(UTF8), "NaCl".getBytes(UTF8), result, 1);
-        Assert.assertEquals(result, new HexCodec().decode("29fdbabe1c9d3472007856e7190d01e9fe7c6ad7cbc8237830e77376634b3731622eaf30d92e22a3886ff109279d9830dac727afb94a83ee6d8360cbdfa2cc064001"));
+        Assert.assertEquals(result, HEX.decode("29fdbabe1c9d3472007856e7190d01e9fe7c6ad7cbc8237830e77376634b3731622eaf30d92e22a3886ff109279d9830dac727afb94a83ee6d8360cbdfa2cc064001"));
     }
 
     /* ====================================================================== */
@@ -141,25 +141,25 @@ public class SCryptTest {
     @Test
     public void testIETFVector1() {
         Assert.assertEquals(new SCrypt(16, 1, 1, 64).deriveKey("".getBytes(UTF8), "".getBytes(UTF8)),
-                            new HexCodec().decode("77d6576238657b203b19ca42c18a0497f16b4844e3074ae8dfdffa3fede21442fcd0069ded0948f8326a753a0fc81f17e8d3e0fb2e0d3628cf35e20c38d18906"));
+                            HEX.decode("77d6576238657b203b19ca42c18a0497f16b4844e3074ae8dfdffa3fede21442fcd0069ded0948f8326a753a0fc81f17e8d3e0fb2e0d3628cf35e20c38d18906"));
     }
 
     @Test
     public void testIETFVector2() {
         Assert.assertEquals(new SCrypt(1024, 8, 16, 64).deriveKey("password".getBytes(UTF8), "NaCl".getBytes(UTF8)),
-                            new HexCodec().decode("fdbabe1c9d3472007856e7190d01e9fe7c6ad7cbc8237830e77376634b3731622eaf30d92e22a3886ff109279d9830dac727afb94a83ee6d8360cbdfa2cc0640"));
+                            HEX.decode("fdbabe1c9d3472007856e7190d01e9fe7c6ad7cbc8237830e77376634b3731622eaf30d92e22a3886ff109279d9830dac727afb94a83ee6d8360cbdfa2cc0640"));
     }
 
     @Test
     public void testIETFVector3() {
         Assert.assertEquals(new SCrypt(16384, 8, 1, 64).deriveKey("pleaseletmein".getBytes(UTF8), "SodiumChloride".getBytes(UTF8)),
-                            new HexCodec().decode("7023bdcb3afd7348461c06cd81fd38ebfda8fbba904f8e3ea9b543f6545da1f2d5432955613f0fcf62d49705242a9af9e61e85dc0d651e40dfcf017b45575887"));
+                            HEX.decode("7023bdcb3afd7348461c06cd81fd38ebfda8fbba904f8e3ea9b543f6545da1f2d5432955613f0fcf62d49705242a9af9e61e85dc0d651e40dfcf017b45575887"));
     }
 
     @Test(groups="local")
     public void testIETFVector4() {
         Assert.assertEquals(new SCrypt(1048576, 8, 1, 64).deriveKey("pleaseletmein".getBytes(UTF8), "SodiumChloride".getBytes(UTF8)),
-                            new HexCodec().decode("2101cb9b6a511aaeaddbbe09cf70f881ec568d574a2ffd4dabe5ee9820adaa478e56fd8f4ba5d09ffa1c6d927c40f4c337304049e8a952fbcbf45c6fa77a41a4"));
+                            HEX.decode("2101cb9b6a511aaeaddbbe09cf70f881ec568d574a2ffd4dabe5ee9820adaa478e56fd8f4ba5d09ffa1c6d927c40f4c337304049e8a952fbcbf45c6fa77a41a4"));
     }
 
 }

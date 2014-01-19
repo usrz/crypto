@@ -42,6 +42,11 @@ public class Base32Codec extends AbstractCodec {
 
     /* ====================================================================== */
 
+    /** A shared {@link Base32Codec} instance using the upper case alphabet. */
+    public static final Base32Codec BASE_32 = new Base32Codec();
+
+    /* ====================================================================== */
+
     /* The alphabet (upper or lower case) to use for encoding */
     private final char[] alphabet;
 

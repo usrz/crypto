@@ -42,6 +42,11 @@ public class HexCodec extends AbstractCodec {
 
     /* ====================================================================== */
 
+    /** A shared {@link HexCodec} instance using the upper case alphabet. */
+    public static final HexCodec HEX = new HexCodec();
+
+    /* ====================================================================== */
+
     /* The alphabet (upper or lower case) to use for encoding */
     private final char[] alphabet;
 
