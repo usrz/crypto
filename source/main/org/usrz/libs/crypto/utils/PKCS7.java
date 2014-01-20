@@ -144,16 +144,24 @@ public class PKCS7 {
         }
     }
 
+    /**
+     * Prepare a detached <code>PKCS7</code> signature reading contents from
+     * standard input, and emitting the signature on standard output.
+     *
+     * @param args <ul><li>The private key file</li>
+     *                 <li>The certificate for signing</li>
+     *                 <li><i>(Optional)</i> Extra certificate authorities</li></ul>
+     */
     public static void main(String args[])
     throws Exception {
-        if (args.length < 3) {
-            System.err.println("Usage: " + PKCS7.class.getName() + " <private key> <signing certificate> <authority certificates chain>");
+        if (args.length < 2) {
+            System.err.println("Usage: " + PKCS7.class.getName() + " <private key> <signing certificate> [authority certificates chain]");
             System.exit(1);
         }
 
         final RSAPrivateKey k = PEM.loadPrivateKey(new File(args[0]));
         final X509Certificate c = PEM.loadCertificates(new File(args[1])).get(0);
-        final List<X509Certificate> a = PEM.loadCertificates(new File(args[2]));
+        final List<X509Certificate> a = args.length < 3 ? null : PEM.loadCertificates(new File(args[2]));
 
         final ByteArrayOutputStream data = new ByteArrayOutputStream();
         final byte[] buffer = new byte[65535];
