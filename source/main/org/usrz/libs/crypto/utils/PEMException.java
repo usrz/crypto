@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and        *
  * limitations under the License.                                             *
  * ========================================================================== */
-package org.usrz.libs.crypto.pem;
+package org.usrz.libs.crypto.utils;
 
 import java.net.URL;
 import java.security.GeneralSecurityException;

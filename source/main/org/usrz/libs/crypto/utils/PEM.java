@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and        *
  * limitations under the License.                                             *
  * ========================================================================== */
-package org.usrz.libs.crypto.pem;
+package org.usrz.libs.crypto.utils;
 
 import static org.usrz.libs.crypto.codecs.Base64Codec.BASE_64;
 import static org.usrz.libs.crypto.codecs.CharsetCodec.UTF8;
@@ -61,7 +61,7 @@ import org.usrz.libs.crypto.kdf.OpenSSLKDF;
  *
  * @author <a href="mailto:pier@usrz.com">Pier Fumagalli</a>
  */
-public final class PEMUtil {
+public final class PEM {
 
     private static final Pattern BEGIN_CERTIFICATE = Pattern.compile("^--+BEGIN CERTIFICATE--+$");
     private static final Pattern END_CERTIFICATE =   Pattern.compile("^--+END CERTIFICATE--+$");
@@ -97,7 +97,7 @@ public final class PEMUtil {
 
     /* ====================================================================== */
 
-    private PEMUtil() {
+    private PEM() {
         throw new IllegalStateException("Do not construct");
     }
 

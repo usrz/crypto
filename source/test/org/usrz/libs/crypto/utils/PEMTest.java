@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and        *
  * limitations under the License.                                             *
  * ========================================================================== */
-package org.usrz.libs.crypto.pem;
+package org.usrz.libs.crypto.utils;
 
 import static org.usrz.libs.crypto.codecs.CharsetCodec.UTF8;
 import static org.usrz.libs.crypto.codecs.HexCodec.HEX;
@@ -32,7 +32,7 @@ import javax.security.auth.x500.X500Principal;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-public class PEMUtilTest {
+public class PEMTest {
 
     private void checkKey512(RSAPrivateCrtKey privateKey) {
         // Data gathered with -> openssl rsa -text -noout -in ./source/test/org/usrz/libs/crypto/pem/key512.pem
@@ -51,53 +51,53 @@ public class PEMUtilTest {
     public void testPrivateKey512()
     throws Exception {
         final URL url = this.getClass().getResource("key512.pem");
-        checkKey512(PEMUtil.loadPrivateKey(url));
+        checkKey512(PEM.loadPrivateKey(url));
     }
 
     @Test
     public void testPrivateKey512_DES()
     throws Exception {
         final URL url = this.getClass().getResource("key512-des.pem");
-        checkKey512(PEMUtil.loadPrivateKey(url, "asdf"));
+        checkKey512(PEM.loadPrivateKey(url, "asdf"));
     }
 
     @Test
     public void testPrivateKey512_DES3()
     throws Exception {
         final URL url = this.getClass().getResource("key512-des3.pem");
-        checkKey512(PEMUtil.loadPrivateKey(url, "asdf"));
+        checkKey512(PEM.loadPrivateKey(url, "asdf"));
     }
 
     @Test
     public void testPrivateKey512_AES128()
     throws Exception {
         final URL url = this.getClass().getResource("key512-aes128.pem");
-        checkKey512(PEMUtil.loadPrivateKey(url, "asdf"));
+        checkKey512(PEM.loadPrivateKey(url, "asdf"));
     }
 
     @Test
     public void testPrivateKey512_AES192()
     throws Exception {
         final URL url = this.getClass().getResource("key512-aes192.pem");
-        checkKey512(PEMUtil.loadPrivateKey(url, "asdf"));
+        checkKey512(PEM.loadPrivateKey(url, "asdf"));
     }
 
     @Test
     public void testPrivateKey512_AES256()
     throws Exception {
         final URL url = this.getClass().getResource("key512-aes256.pem");
-        checkKey512(PEMUtil.loadPrivateKey(url, "asdf"));
+        checkKey512(PEM.loadPrivateKey(url, "asdf"));
     }
 
     @Test
     public void testPublicKey512()
     throws Exception {
         final URL publicUrl = this.getClass().getResource("key512-public.pem");
-        RSAPublicKey publicKey = PEMUtil.loadPublicKey(publicUrl);
+        RSAPublicKey publicKey = PEM.loadPublicKey(publicUrl);
         Assert.assertNotNull(publicKey);
 
         final URL privateUrl = this.getClass().getResource("key512.pem");
-        RSAPrivateCrtKey privateKey = PEMUtil.loadPrivateKey(privateUrl);
+        RSAPrivateCrtKey privateKey = PEM.loadPrivateKey(privateUrl);
         Assert.assertNotNull(privateKey);
 
         Assert.assertEquals(publicKey.getModulus(),        privateKey.getModulus());
@@ -108,7 +108,7 @@ public class PEMUtilTest {
     public void testDecrypt512()
     throws Exception {
         final URL url = this.getClass().getResource("key512.pem");
-        final RSAPrivateCrtKey privateKey = PEMUtil.loadPrivateKey(url, "asdf");
+        final RSAPrivateCrtKey privateKey = PEM.loadPrivateKey(url, "asdf");
 
         // Generated with -> echo -n "Testing encryption at 512 bits" | openssl rsautl -encrypt -inkey ./source/test/org/usrz/libs/crypto/pem/key512.pem -pkcs
         final byte[] data = HEX.decode("521af34fa9ab2ad13cd8e59375c863ad78711ed2d52aa58303c2c4e63cfd6c345888a93559eb221e2ac1220bbe0939e98717c9dbb80c362d87463bdec4abf398");
@@ -139,53 +139,53 @@ public class PEMUtilTest {
     public void testPrivateKey4096()
     throws Exception {
         final URL url = this.getClass().getResource("key4096.pem");
-        checkKey4096(PEMUtil.loadPrivateKey(url));
+        checkKey4096(PEM.loadPrivateKey(url));
     }
 
     @Test
     public void testPrivateKey4096_DES()
     throws Exception {
         final URL url = this.getClass().getResource("key4096-des.pem");
-        checkKey4096(PEMUtil.loadPrivateKey(url, "asdf"));
+        checkKey4096(PEM.loadPrivateKey(url, "asdf"));
     }
 
     @Test
     public void testPrivateKey4096_DES3()
     throws Exception {
         final URL url = this.getClass().getResource("key4096-des3.pem");
-        checkKey4096(PEMUtil.loadPrivateKey(url, "asdf"));
+        checkKey4096(PEM.loadPrivateKey(url, "asdf"));
     }
 
     @Test
     public void testPrivateKey4096_AES128()
     throws Exception {
         final URL url = this.getClass().getResource("key4096-aes128.pem");
-        checkKey4096(PEMUtil.loadPrivateKey(url, "asdf"));
+        checkKey4096(PEM.loadPrivateKey(url, "asdf"));
     }
 
     @Test
     public void testPrivateKey4096_AES192()
     throws Exception {
         final URL url = this.getClass().getResource("key4096-aes192.pem");
-        checkKey4096(PEMUtil.loadPrivateKey(url, "asdf"));
+        checkKey4096(PEM.loadPrivateKey(url, "asdf"));
     }
 
     @Test
     public void testPrivateKey4096_AES256()
     throws Exception {
         final URL url = this.getClass().getResource("key4096-aes256.pem");
-        checkKey4096(PEMUtil.loadPrivateKey(url, "asdf"));
+        checkKey4096(PEM.loadPrivateKey(url, "asdf"));
     }
 
     @Test
     public void testPublicKey4096()
     throws Exception {
         final URL publicUrl = this.getClass().getResource("key4096-public.pem");
-        RSAPublicKey publicKey = PEMUtil.loadPublicKey(publicUrl);
+        RSAPublicKey publicKey = PEM.loadPublicKey(publicUrl);
         Assert.assertNotNull(publicKey);
 
         final URL privateUrl = this.getClass().getResource("key4096.pem");
-        RSAPrivateCrtKey privateKey = PEMUtil.loadPrivateKey(privateUrl);
+        RSAPrivateCrtKey privateKey = PEM.loadPrivateKey(privateUrl);
         Assert.assertNotNull(privateKey);
 
         Assert.assertEquals(publicKey.getModulus(),        privateKey.getModulus());
@@ -196,7 +196,7 @@ public class PEMUtilTest {
     public void testDecrypt4096()
     throws Exception {
         final URL url = this.getClass().getResource("key4096.pem");
-        final RSAPrivateCrtKey privateKey = PEMUtil.loadPrivateKey(url, "asdf");
+        final RSAPrivateCrtKey privateKey = PEM.loadPrivateKey(url, "asdf");
 
         // Generated with -> echo -n "Testing encryption at 4096 bits" | openssl rsautl -encrypt -inkey ./source/test/org/usrz/libs/crypto/pem/key4096.pem -pkcs
         final byte[] data = HEX.decode("add78391c43565744cec22c61988ff3a25621179195e47ffb61ba2aba069233cbefde5290c8139fe3f2bb7c35f44b387f8765e49a8e60fe668b6a0804697c4aba0b9ea81fcca9462745d0dd6588ab42ccd929b8958708bf44e356b309f16c2699362baae804410956858aa3d799156abd5955dd37965f2c70b74a8eb025d279deed6b308039d19ee52e3f56cd132f5bc029cd75ec51c03c331ae33156765e5be171e1c5d944c654423e654b96702648af41c8ff84ac63cdb4f88b0d241605b24d5d0cdf420160c7ed8c9e33a9cc201043e709760de4a9d475d6bbc1149fb9719b60fd2b0b5cf5ed73270d0638120c4816ee4eb37937d1743c753ff0389119de710671601fd6a3b47959bc6c4b48df872852db4798fde166e34a6d52450149118c77c905390b7622b495c97de72a7b4b61c2545daa442c310098a9e627c49b6de2daa58c77cdf21eac192d5fb1b126b0c51362d8a600f71369127f95e0964dc76ebe0e3bfc87b895b3829094cd631462cb4fbe1fd6faccae793d4c6b1822ce73bb41fe45756105bbb119c3b64eb547bf52ec021938bfef4b7442d07dac934bafa23e1bf1cab4a479358447b1be00d15886938c790ddcc5c4f839515e09929d1dee01ef512817d018ec0ab3e6e136d789789647668afbd181bcd569753a25de0174352631d19357169c7cf1bcb0e4550fd149ad7531a3014ef0f2bb45093081a82");
@@ -219,7 +219,7 @@ public class PEMUtilTest {
     public void testCertificate()
     throws Exception {
         final URL url = this.getClass().getResource("certificate.pem");
-        final List<X509Certificate> certificates = PEMUtil.loadCertificates(url);
+        final List<X509Certificate> certificates = PEM.loadCertificates(url);
 
         Assert.assertNotNull(certificates);
         Assert.assertEquals(certificates.size(), 1);
@@ -234,7 +234,7 @@ public class PEMUtilTest {
     public void testChain()
     throws Exception {
         final URL url = this.getClass().getResource("chain.pem");
-        final List<X509Certificate> certificates = PEMUtil.loadCertificates(url);
+        final List<X509Certificate> certificates = PEM.loadCertificates(url);
 
         Assert.assertNotNull(certificates);
         Assert.assertEquals(certificates.size(), 3);
