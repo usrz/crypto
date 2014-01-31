@@ -25,6 +25,14 @@ import java.security.GeneralSecurityException;
  */
 public class PEMException extends GeneralSecurityException {
 
+    public PEMException(String message) {
+        this(message, null, null);
+    }
+
+    public PEMException(String message, Throwable cause) {
+        this(message, null, cause);
+    }
+
     public PEMException(String message, URL url) {
         this(message, url, null);
     }
