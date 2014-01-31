@@ -26,6 +26,8 @@ import java.nio.charset.UnsupportedCharsetException;
  */
 public class CharsetCodec extends AbstractCodec {
 
+    /** The <i>US-ASCII</i> character set. */
+    public static final Charset ASCII = Charset.forName("US-ASCII");
     /** The <i>BIG5</i> character set. */
     public static final Charset BIG5 = Charset.forName("Big5");
     /** The <i>EUC_JP</i> character set. */
