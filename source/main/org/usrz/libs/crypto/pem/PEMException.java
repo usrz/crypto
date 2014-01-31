@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and        *
  * limitations under the License.                                             *
  * ========================================================================== */
-package org.usrz.libs.crypto.utils;
+package org.usrz.libs.crypto.pem;
 
 import java.net.URL;
 import java.security.GeneralSecurityException;
@@ -26,18 +26,18 @@ import java.security.GeneralSecurityException;
 public class PEMException extends GeneralSecurityException {
 
     public PEMException(String message) {
-        this(message, null, null);
+        this(null, message, null);
     }
 
     public PEMException(String message, Throwable cause) {
-        this(message, null, cause);
+        this(null, message, cause);
     }
 
-    public PEMException(String message, URL url) {
-        this(message, url, null);
+    public PEMException(URL url, String message) {
+        this(url, message, null);
     }
 
-    public PEMException(String message, URL url, Throwable cause) {
+    public PEMException(URL url, String message, Throwable cause) {
         super(new StringBuilder()
                         .append(message == null? "Unknown error": message)
                         .append(url == null? "": " parsing " + url.toString())

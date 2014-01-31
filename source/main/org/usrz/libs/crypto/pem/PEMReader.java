@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,8 +35,12 @@ import java.util.regex.Pattern;
 
 import org.usrz.libs.crypto.pem.PEMEntry.Encryption;
 import org.usrz.libs.crypto.pem.PEMEntry.Type;
-import org.usrz.libs.crypto.utils.PEMException;
 
+/**
+ * A reader for PEM-formatted files.
+ *
+ * @author <a href="mailto:pier@usrz.com">Pier Fumagalli</a>
+ */
 public class PEMReader {
 
     private static final Logger LOGGER = Logger.getLogger(PEMKeyStoreSpi.class.getName());
@@ -55,25 +60,56 @@ public class PEMReader {
 
     private enum State { HEADER_OR_DATA, HEADER, DATA }
     private final BufferedReader reader;
+    private final URL url;
 
+    /**
+     * Create a {@link PEMReader} loading from a {@link URL}.
+     */
+    public PEMReader(URL url)
+    throws IOException {
+        this(url, new InputStreamReader(url.openStream(), ASCII));
+    }
+
+    /**
+     * Create a {@link PEMReader} loading from an {@link InputStream}.
+     */
     public PEMReader(InputStream input) {
-        this(input, ASCII);
+        this(null, new InputStreamReader(input, ASCII));
     }
 
+    /**
+     * Create a {@link PEMReader} loading from an {@link InputStream}.
+     */
     public PEMReader(InputStream input, String charsetName) {
-        this(input, charsetName == null ? ASCII : Charset.forName(charsetName));
+        this(null, new InputStreamReader(input, charsetName == null ? ASCII : Charset.forName(charsetName)));
     }
 
+    /**
+     * Create a {@link PEMReader} loading from an {@link InputStream}.
+     */
     public PEMReader(InputStream input, Charset charset) {
-        this(new InputStreamReader(input, charset == null ? ASCII : charset));
+        this(null, new InputStreamReader(input, charset == null ? ASCII : charset));
     }
 
+    /**
+     * Create a {@link PEMReader} loading from an {@link Reader}.
+     */
     public PEMReader(Reader reader) {
+        this(null, reader);
+    }
+
+    /* Our internal constructor */
+    private PEMReader(URL url, Reader reader) {
+        this.url = url;
         this.reader = reader instanceof BufferedReader ?
                               (BufferedReader) reader :
                               new BufferedReader(reader);
     }
 
+    /**
+     * Reat a {@linkplain List list} of {@linkplain PEMEntry entries} from the
+     * input specified at construction.
+     */
     public List<PEMEntry<?>> read()
     throws IOException, PEMException {
         final List<PEMEntry<?>> entries = new ArrayList<>();
@@ -148,7 +184,7 @@ public class PEMReader {
                         }
 
                         /* Unrecognized header, bail out */
-                        throw new PEMException("Unrecognized header: " + line);
+                        throw new PEMException(url, "Unrecognized header: " + line);
 
                     case DATA:
 
@@ -184,10 +220,10 @@ public class PEMReader {
             }
 
             /* We sure we read the whole thing? */
-            if (entry != null) throw new PEMException("PEM file truncated reading element of type " + entry.type);
+            if (entry != null) throw new PEMException(url, "PEM file truncated reading element of type " + entry.type);
 
             /* Check we actually found some real data */
-            if (entries.size() == 0) throw new PEMException("No data found in PEM file");
+            if (entries.size() == 0) throw new PEMException(url, "No data found in PEM file");
 
         } finally {
             try {
@@ -200,6 +236,8 @@ public class PEMReader {
         /* Return what we got */
         return entries;
     }
+
+    /* ====================================================================== */
 
     private class Entry {
 
@@ -220,17 +258,17 @@ public class PEMReader {
         private PEMEntry<?> end(Type type)
         throws PEMException {
             if (type != this.type)
-                throw new PEMException("Mismatched begin/end blocks, looking for " + this.type + " but got " + type);
+                throw new PEMException(url, "Mismatched begin/end blocks, looking for " + this.type + " but got " + type);
 
             if (!encrypted) {
                 /* Not encrypted, check we don't have a spurious encryption entry */
-                if (encryption != null) throw new PEMException("Encryption algorithm specified for non-encrypted entry");
-                if (salt != null) throw new PEMException("Salt specified for non-encrypted entry");
+                if (encryption != null) throw new PEMException(url, "Encryption algorithm specified for non-encrypted entry");
+                if (salt != null) throw new PEMException(url, "Salt specified for non-encrypted entry");
 
             } else {
                 /* Encrypted, check that we have the proper values */
-                if (encryption == null) throw new PEMException("No encryption algorightm found for encrypted entry");
-                if (salt == null) throw new PEMException("No salt found for encrypted entry");
+                if (encryption == null) throw new PEMException(url, "No encryption algorightm found for encrypted entry");
+                if (salt == null) throw new PEMException(url, "No salt found for encrypted entry");
             }
 
             /* Figure out the encryption algorithm */
@@ -238,7 +276,7 @@ public class PEMReader {
             try {
                 realEncryption = encryption == null ? null : Encryption.normalizedValueOf(encryption.trim());
             } catch (Exception exception) {
-                throw new PEMException("Invalid/unsupported encryption " + encryption);
+                throw new PEMException(url, "Invalid/unsupported encryption " + encryption);
             }
 
             /* Figure out the salt */
@@ -246,7 +284,7 @@ public class PEMReader {
             try {
                 realSalt = salt == null ? null : HEX.decode(salt);
             } catch (Exception exception) {
-                throw new PEMException("Unable to decode salt " + salt);
+                throw new PEMException(url, "Unable to decode salt " + salt);
             }
 
             /* Figure out the data */
@@ -254,14 +292,14 @@ public class PEMReader {
             try {
                 realData = BASE_64.decode(data.toString());
             } catch (Exception exception) {
-                throw new PEMException("Unable to decode salt " + salt);
+                throw new PEMException(url, "Unable to decode salt " + salt);
             }
 
             /* Last check */
             if (realData.length == 0)
-                throw new PEMException("Empty data block in PEM");
+                throw new PEMException(url, "Empty data block in PEM");
             if ((realSalt != null) && (realSalt.length == 0))
-                throw new PEMException("Empty salt for decryption");
+                throw new PEMException(url, "Empty salt for decryption");
 
             /* Return the final entry */
             switch (type) {
@@ -271,7 +309,7 @@ public class PEMReader {
             }
 
             /* Should really never happen */
-            throw new PEMException("Unsupported block type " + type);
+            throw new PEMException(url, "Unsupported block type " + type);
         }
     }
 }

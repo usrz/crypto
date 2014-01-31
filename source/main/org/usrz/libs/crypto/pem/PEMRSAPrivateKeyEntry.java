@@ -21,8 +21,6 @@ import java.security.GeneralSecurityException;
 import java.security.interfaces.RSAPrivateCrtKey;
 import java.security.spec.RSAPrivateCrtKeySpec;
 
-import org.usrz.libs.crypto.utils.PEMException;
-
 /**
  * A {@link PEMEntry} for {@linkplain RSAPrivateCrtKey RSA private keys}.
  *

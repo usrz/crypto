@@ -29,6 +29,7 @@ import java.util.List;
 
 import org.usrz.libs.crypto.pem.PEMEntry;
 import org.usrz.libs.crypto.pem.PEMEntry.Type;
+import org.usrz.libs.crypto.pem.PEMException;
 import org.usrz.libs.crypto.pem.PEMRSAPrivateKeyEntry;
 import org.usrz.libs.crypto.pem.PEMRSAPublicKeyEntry;
 import org.usrz.libs.crypto.pem.PEMReader;
@@ -73,7 +74,7 @@ public final class PEM {
     public static final List<X509Certificate> loadCertificates(URL url)
     throws GeneralSecurityException, PEMException, IOException {
 
-        final List<PEMEntry<?>> entries = new PEMReader(url.openStream()).read();
+        final List<PEMEntry<?>> entries = new PEMReader(url).read();
         final List<X509Certificate> certificates = new ArrayList<>();
 
         for (PEMEntry<?> entry: entries) {
@@ -84,7 +85,7 @@ public final class PEM {
 
         /* Check if we read any certificate */
         if (certificates.size() > 0) return certificates;
-        throw new PEMException("No certificates found", url);
+        throw new PEMException(url, "No certificates found");
 
     }
 
@@ -115,14 +116,14 @@ public final class PEM {
     public static final RSAPublicKey loadPublicKey(URL url)
     throws GeneralSecurityException, PEMException, IOException {
 
-        final PEMEntry<?> entry = new PEMReader(url.openStream()).read().get(0);
+        final PEMEntry<?> entry = new PEMReader(url).read().get(0);
 
         if (entry.getType() == Type.RSA_PUBLIC_KEY) {
             return ((PEMRSAPublicKeyEntry)entry).get();
         }
 
         /* Check if we read any certificate */
-        throw new PEMException("Invalid type " + entry.getType() + " found", url);
+        throw new PEMException(url, "Invalid type " + entry.getType() + " found");
     }
 
     /* ====================================================================== */
@@ -202,14 +203,14 @@ public final class PEM {
      */
     public static final RSAPrivateCrtKey loadPrivateKey(URL url, byte[] password)
     throws GeneralSecurityException, PEMException, IOException {
-        final PEMEntry<?> entry = new PEMReader(url.openStream()).read().get(0);
+        final PEMEntry<?> entry = new PEMReader(url).read().get(0);
 
         if (entry.getType() == Type.RSA_PRIVATE_KEY) {
             return ((PEMRSAPrivateKeyEntry)entry).get(password);
         }
 
         /* Check if we read any certificate */
-        throw new PEMException("Invalid type " + entry.getType() + " found", url);
+        throw new PEMException(url, "Invalid type " + entry.getType() + " found");
 
     }
 }
