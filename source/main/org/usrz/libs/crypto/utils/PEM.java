@@ -15,45 +15,24 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.utils;
 
-import static org.usrz.libs.crypto.codecs.Base64Codec.BASE_64;
 import static org.usrz.libs.crypto.codecs.CharsetCodec.UTF8;
-import static org.usrz.libs.crypto.codecs.HexCodec.HEX;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.math.BigInteger;
 import java.net.URL;
 import java.security.GeneralSecurityException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.KeyFactory;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.Certificate;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateCrtKey;
 import java.security.interfaces.RSAPublicKey;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.RSAPrivateCrtKeySpec;
-import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
-
-import org.usrz.libs.crypto.kdf.OpenSSLKDF;
+import org.usrz.libs.crypto.pem.PEMEntry;
+import org.usrz.libs.crypto.pem.PEMEntry.Type;
+import org.usrz.libs.crypto.pem.PEMRSAPrivateKeyEntry;
+import org.usrz.libs.crypto.pem.PEMRSAPublicKeyEntry;
+import org.usrz.libs.crypto.pem.PEMReader;
+import org.usrz.libs.crypto.pem.PEMX509CertificateEntry;
 
 /**
  * A simple utility file to read RSA keys and X509 certificates in PEM format
@@ -62,40 +41,6 @@ import org.usrz.libs.crypto.kdf.OpenSSLKDF;
  * @author <a href="mailto:pier@usrz.com">Pier Fumagalli</a>
  */
 public final class PEM {
-
-    private static final Pattern BEGIN_CERTIFICATE = Pattern.compile("^--+BEGIN CERTIFICATE--+$");
-    private static final Pattern END_CERTIFICATE =   Pattern.compile("^--+END CERTIFICATE--+$");
-
-    private static final Pattern BEGIN_PRIVATE_KEY = Pattern.compile("^--+BEGIN (RSA )?PRIVATE KEY--+$");
-    private static final Pattern END_PRIVATE_KEY =   Pattern.compile("^--+END (RSA )?PRIVATE KEY--+$");
-
-    private static final Pattern BEGIN_PUBLIC_KEY = Pattern.compile("^--+BEGIN (RSA )?PUBLIC KEY--+$");
-    private static final Pattern END_PUBLIC_KEY =   Pattern.compile("^--+END (RSA )?PUBLIC KEY--+$");
-
-    private static final Pattern PRIVATE_KEY_ENCRYPTED = Pattern.compile("^Proc-Type: 4,ENCRYPTED$");
-    private static final Pattern PRIVATE_KEY_ALGORITHM = Pattern.compile("^DEK-Info: ([^,]+),(.+)$");
-
-    private static final KeyFactory KEY_FACTORY;
-    private static final CertificateFactory CERTIFICATE_FACTORY;
-
-    static {
-        try {
-            KEY_FACTORY = KeyFactory.getInstance("RSA");
-        } catch (NoSuchAlgorithmException exception) {
-            final Error error = new InternalError("RSA key factory unsupported");
-            throw (InternalError) error.initCause(exception);
-        }
-
-        try {
-            CERTIFICATE_FACTORY = CertificateFactory.getInstance("X.509");
-        } catch (CertificateException exception) {
-            final Error error = new InternalError("X.509 certificate factory unsupported");
-            throw (InternalError) error.initCause(exception);
-        }
-
-    }
-
-    /* ====================================================================== */
 
     private PEM() {
         throw new IllegalStateException("Do not construct");
@@ -108,12 +53,12 @@ public final class PEM {
     /**
      * Load a (list of) X509 certificate(s) from the specified {@link File}.
      *
-     * @throws CertificateException If the certificate was not invalid.
+     * @throws GeneralSecurityException If the certificate could not be loaded.
      * @throws PEMException If the PEM format was somehow broken.
      * @throws IOException If an I/O error occurred.
      */
     public static final List<X509Certificate> loadCertificates(File file)
-    throws CertificateException, PEMException, IOException {
+    throws GeneralSecurityException, PEMException, IOException {
         if (file == null) throw new NullPointerException("Null file");
         return loadCertificates(file.toURI().toURL());
     }
@@ -121,85 +66,26 @@ public final class PEM {
     /**
      * Load a (list of) X509 certificate(s) from the specified {@link URL}.
      *
-     * @throws CertificateException If the certificate was not invalid.
+     * @throws GeneralSecurityException If the certificate could not be loaded.
      * @throws PEMException If the PEM format was somehow broken.
      * @throws IOException If an I/O error occurred.
      */
     public static final List<X509Certificate> loadCertificates(URL url)
-    throws CertificateException, PEMException, IOException {
+    throws GeneralSecurityException, PEMException, IOException {
 
-        final InputStream stream = url.openStream();
-        final InputStreamReader reader = new InputStreamReader(stream, UTF8);
-        final BufferedReader buffer = new BufferedReader(reader);
+        final List<PEMEntry<?>> entries = new PEMReader(url.openStream()).read();
+        final List<X509Certificate> certificates = new ArrayList<>();
 
-        try {
-            final List<X509Certificate> certificates = new ArrayList<>();
-
-            String line;
-            StringBuilder builder = null;
-            while ((line = buffer.readLine()) != null) {
-                line = line.trim();
-
-                /* Ignore empty lines */
-                if (line.isEmpty()) continue;
-
-                /* Make sure that we begin properly */
-                if (BEGIN_CERTIFICATE.matcher(line).matches()) {
-                    if (builder == null) {
-                        builder = new StringBuilder();
-                        continue;
-                    }
-                    throw new PEMException("Unexpected content \"" + line + "\"", url);
-                }
-
-                /* If we never begun the certificate, we can't parse it */
-                if (builder == null) {
-                    throw new PEMException("Unexpected content \"" + line + "\"", url);
-                }
-
-                if (END_CERTIFICATE.matcher(line).matches()) {
-                    if (builder.length() == 0) throw new PEMException("Empty certificate found", url);
-
-                    /* Parse our Base64 certificate */
-                    final byte[] certificateBytes;
-                    try {
-                        certificateBytes = BASE_64.decode(builder.toString());
-                    } catch (IllegalArgumentException exception) {
-                        throw new PEMException("Error decoding Base64 data", url);
-                    }
-
-                    /* Create our X509 certificate */
-                    final ByteArrayInputStream certificateStream = new ByteArrayInputStream(certificateBytes);
-                    final Certificate certificate = CERTIFICATE_FACTORY.generateCertificate(certificateStream);
-
-                    /* Add our certificate to the list and reset the buffer */
-                    try {
-                        certificates.add((X509Certificate) certificate);
-                    } catch (ClassCastException exception) {
-                        throw new PEMException("Exception casting certificate", url, exception);
-                    }
-                    builder = null;
-                    continue;
-                }
-
-                /* In all other case, let's hope this is a Base64 line */
-                builder.append(line);
-
+        for (PEMEntry<?> entry: entries) {
+            if (entry.getType() == Type.X509_CERTIFICATE) {
+                certificates.add(((PEMX509CertificateEntry)entry).get());
             }
-
-            /* Check we don't have a hanging certificate */
-            if (builder != null) throw new PEMException("Unterminated certificate", url);
-
-            /* Check if we read any certificate */
-            if (certificates.size() > 0) return certificates;
-            throw new PEMException("No certificates found", url);
-
-        } finally {
-            /* Close all */
-            buffer.close();
-            reader.close();
-            stream.close();
         }
+
+        /* Check if we read any certificate */
+        if (certificates.size() > 0) return certificates;
+        throw new PEMException("No certificates found", url);
+
     }
 
     /* ====================================================================== */
@@ -209,12 +95,12 @@ public final class PEM {
     /**
      * Load a RSA public key from the specified {@link File}.
      *
-     * @throws InvalidKeySpecException If the key could not be loaded.
+     * @throws GeneralSecurityException If the key could not be loaded.
      * @throws PEMException If the PEM format was somehow broken.
      * @throws IOException If an I/O error occurred.
      */
     public static final RSAPublicKey loadPublicKey(File file)
-    throws InvalidKeySpecException, PEMException, IOException {
+    throws GeneralSecurityException, PEMException, IOException {
         if (file == null) throw new NullPointerException("Null file");
         return loadPublicKey(file.toURI().toURL());
     }
@@ -222,72 +108,21 @@ public final class PEM {
     /**
      * Load a RSA public key from the specified {@link File}.
      *
-     * @throws InvalidKeySpecException If the key could not be loaded.
+     * @throws GeneralSecurityException If the key could not be loaded.
      * @throws PEMException If the PEM format was somehow broken.
      * @throws IOException If an I/O error occurred.
      */
     public static final RSAPublicKey loadPublicKey(URL url)
-    throws InvalidKeySpecException, PEMException, IOException {
+    throws GeneralSecurityException, PEMException, IOException {
 
-        final InputStream stream = url.openStream();
-        final InputStreamReader reader = new InputStreamReader(stream, UTF8);
-        final BufferedReader buffer = new BufferedReader(reader);
+        final PEMEntry<?> entry = new PEMReader(url.openStream()).read().get(0);
 
-        try {
-            String line;
-            StringBuilder builder = null;
-            while ((line = buffer.readLine()) != null) {
-                line = line.trim();
-
-                /* Ignore empty lines */
-                if (line.isEmpty()) continue;
-
-                /* Make sure that we begin properly */
-                if (BEGIN_PUBLIC_KEY.matcher(line).matches()) {
-                    if (builder == null) {
-                        builder = new StringBuilder();
-                        continue;
-                    }
-                    throw new PEMException("Unexpected content \"" + line + "\"", url);
-                }
-
-                /* If we never begun the key, we can't parse it */
-                if (builder == null) {
-                    throw new PEMException("Unexpected content \"" + line + "\"", url);
-                }
-
-                /* We found the end of the block */
-                if (END_PUBLIC_KEY.matcher(line).matches()) {
-                    if (builder.length() == 0) throw new PEMException("Empty public key found", url);
-
-                    /* Parse our Base64 public key */
-                    final byte[] publicKeyBytes;
-                    try {
-                        publicKeyBytes = BASE_64.decode(builder.toString());
-                    } catch (IllegalArgumentException exception) {
-                        throw new PEMException("Error decoding Base64 data", url);
-                    }
-
-                    /* Parse ASN.1 (supported for public) and return the key */
-                    return (RSAPublicKey) KEY_FACTORY.generatePublic(new X509EncodedKeySpec(publicKeyBytes));
-
-                }
-
-                /* In all other case, let's hope this is a Base64 line */
-                builder.append(line);
-
-            }
-
-            /* Check we don't have a hanging public key */
-            if (builder == null) throw new PEMException("Public key not found", url);
-            throw new PEMException("Unterminated public key", url);
-
-        } finally {
-            /* Close all */
-            buffer.close();
-            reader.close();
-            stream.close();
+        if (entry.getType() == Type.RSA_PUBLIC_KEY) {
+            return ((PEMRSAPublicKeyEntry)entry).get();
         }
+
+        /* Check if we read any certificate */
+        throw new PEMException("Invalid type " + entry.getType() + " found", url);
     }
 
     /* ====================================================================== */
@@ -367,163 +202,14 @@ public final class PEM {
      */
     public static final RSAPrivateCrtKey loadPrivateKey(URL url, byte[] password)
     throws GeneralSecurityException, PEMException, IOException {
+        final PEMEntry<?> entry = new PEMReader(url.openStream()).read().get(0);
 
-        final InputStream stream = url.openStream();
-        final InputStreamReader reader = new InputStreamReader(stream, UTF8);
-        final BufferedReader buffer = new BufferedReader(reader);
-
-        try {
-            String line = null;
-            StringBuilder builder = null;
-            String encryptionSalt = null;
-            String encryptionAlgorithm = null;
-            while ((line = buffer.readLine()) != null) {
-                line = line.trim();
-
-                /* Ignore empty lines */
-                if (line.isEmpty()) continue;
-
-                /* Make sure that we begin a private key properly */
-                if (BEGIN_PRIVATE_KEY.matcher(line).matches()) {
-                    if (builder == null) {
-                        builder = new StringBuilder();
-                        continue;
-                    }
-                    throw new PEMException("Unexpected content \"" + line + "\"", url);
-                }
-
-                /* If we never begun the key, we can't parse it */
-                if (builder == null) {
-                    throw new PEMException("Unexpected content \"" + line + "\"", url);
-                }
-
-                /* Skip any header that says "this is encrypted" */
-                if (PRIVATE_KEY_ENCRYPTED.matcher(line).matches()) continue;
-
-                /* Extract the Algortithm and SALT */
-                final Matcher encryptionMatcher = PRIVATE_KEY_ALGORITHM.matcher(line);
-                if (encryptionMatcher.matches()) {
-                    encryptionAlgorithm = encryptionMatcher.group(1);
-                    encryptionSalt = encryptionMatcher.group(2);
-                    continue;
-                }
-
-                /* On end of private keys, parse */
-                if (END_PRIVATE_KEY.matcher(line).matches()) {
-                    if (builder.length() == 0) throw new PEMException("Empty private key found", url);
-
-                    /* Parse our Base64 private key */
-                    final byte[] privateKeyBytes;
-                    try {
-                        privateKeyBytes = BASE_64.decode(builder.toString());
-                    } catch (IllegalArgumentException exception) {
-                        throw new PEMException("Error decoding Base64 data", url);
-                    }
-
-                    /* Potentially decrypt the key */
-                    final byte[] decryptedKey = decrypt(privateKeyBytes, encryptionAlgorithm, encryptionSalt, password);
-
-                    /* Deconstruct the DER-encoded sequence to get our key values */
-                    final RSAPrivateCrtKeySpec privateKeySpec = parsePrivateKey(decryptedKey, url);
-
-                    /* Create our RSA private key, reset our buffer, and go! */
-                    try {
-                        return (RSAPrivateCrtKey) KEY_FACTORY.generatePrivate(privateKeySpec);
-                    } catch (ClassCastException exception) {
-                        throw new PEMException("Exception casting private key", url, exception);
-                    }
-                }
-
-                /* In all other case, let's hope this is a Base64 line */
-                builder.append(line);
-
-            }
-
-            /* Check we don't have a hanging private key */
-            if (builder == null) throw new PEMException("Private key not found", url);
-            throw new PEMException("Unterminated private key", url);
-
-        } finally {
-            /* Close all */
-            buffer.close();
-            reader.close();
-            stream.close();
+        if (entry.getType() == Type.RSA_PRIVATE_KEY) {
+            return ((PEMRSAPrivateKeyEntry)entry).get(password);
         }
 
-    }
-
-    /* ====================================================================== */
-
-    private static final byte[] decrypt(byte[] data, String algorithm, String salt, byte[] password)
-    throws InvalidKeyException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException {
-
-        /* Check if we have to / can decode */
-        if (algorithm == null) return data;
-        if (password == null) throw new InvalidKeyException("No password supplied");
-
-        /* Prepare our data */
-        String cipherType = null;
-        String keyType = null;
-        int keyLength = -1;
-        switch(algorithm.toUpperCase()) {
-            case "DES-CBC"      : cipherType = "DES/CBC/PKCS5Padding";    keyType = "DES";    keyLength =  8; break;
-            case "DES-EDE3-CBC" : cipherType = "DESede/CBC/PKCS5Padding"; keyType = "DESede"; keyLength = 24; break;
-            case "AES-128-CBC"  : cipherType = "AES/CBC/PKCS5Padding";    keyType = "AES";    keyLength = 16; break;
-            case "AES-192-CBC"  : cipherType = "AES/CBC/PKCS5Padding";    keyType = "AES";    keyLength = 24; break;
-            case "AES-256-CBC"  : cipherType = "AES/CBC/PKCS5Padding";    keyType = "AES";    keyLength = 32; break;
-            default: throw new NoSuchAlgorithmException("Decryption with " + algorithm + " unsupported");
-        }
-
-        /* Get our cipher */
-        final Cipher cipher;;
-        try {
-            cipher = Cipher.getInstance(cipherType);
-        } catch (NoSuchPaddingException exception) {
-            throw new NoSuchAlgorithmException("Padding for " + cipherType + " unsupported");
-        }
-
-        /* Prepare the encryption key MD5(key+salt) */
-        final byte[] key =  new OpenSSLKDF(keyLength).deriveKey(password, HEX.decode(salt));
-
-        final SecretKeySpec pKey = new SecretKeySpec(key, 0, keyLength, keyType);
-        final IvParameterSpec ivectorSpecv = new IvParameterSpec(HEX.decode(salt));
-
-        cipher.init(Cipher.DECRYPT_MODE, pKey, ivectorSpecv);
-        return cipher.doFinal(data);
-    }
-
-    /* ====================================================================== */
-
-    private static final RSAPrivateCrtKeySpec parsePrivateKey(byte[] privateKeyBytes, URL url)
-    throws PEMException {
-        try {
-            final sun.security.util.DerInputStream derInputStream = new sun.security.util.DerInputStream(privateKeyBytes);
-            final sun.security.util.DerValue[] values = derInputStream.getSequence(0);
-
-            int version = values[0].getInteger();
-            if (version != 0) throw new PEMException("Invalid version " + version + " for key", url);
-            if (values.length < 9) throw new PEMException("Invalid number of ASN.1 values for key", url);
-
-            final BigInteger modulus = values[1].getBigInteger();
-            final BigInteger publicExponent = values[2].getBigInteger();
-            final BigInteger privateExponent = values[3].getBigInteger();
-            final BigInteger prime1 = values[4].getBigInteger();
-            final BigInteger prime2 = values[5].getBigInteger();
-            final BigInteger exponent1 = values[6].getBigInteger();
-            final BigInteger exponent2 = values[7].getBigInteger();
-            final BigInteger coefficient = values[8].getBigInteger();
-
-            return new RSAPrivateCrtKeySpec(modulus,
-                                            publicExponent,
-                                            privateExponent,
-                                            prime1,
-                                            prime2,
-                                            exponent1,
-                                            exponent2,
-                                            coefficient);
-        } catch (IOException exception) {
-            throw new PEMException("Exception parsing ASN.1 format", url, exception);
-        }
+        /* Check if we read any certificate */
+        throw new PEMException("Invalid type " + entry.getType() + " found", url);
 
     }
 }
