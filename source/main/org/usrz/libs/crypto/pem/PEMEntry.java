@@ -15,6 +15,10 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.pem;
 
+import static java.lang.Integer.toHexString;
+import static org.usrz.libs.crypto.codecs.HexCodec.HEX;
+import static org.usrz.libs.crypto.hash.Hash.SHA1;
+
 import java.security.GeneralSecurityException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -22,6 +26,7 @@ import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
+import java.util.Arrays;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -227,6 +232,10 @@ public abstract class PEMEntry<T> {
     private final byte[] data;
     private final byte[] salt;
 
+    private final String alias;
+    private final String string;
+    private final int hashCode;
+
     PEMEntry(Type type, byte[] data, byte[] salt, Encryption encryption) {
         if (type == null) throw new NullPointerException("Null type");
         if (data == null) throw new NullPointerException("Null data");
@@ -241,9 +250,57 @@ public abstract class PEMEntry<T> {
         this.data = data;
         this.salt = salt;
         this.encryption = encryption;
+
+        /* Calculate our hash code (XORed 4-bytes blocks from SHA) */
+        final byte[] sha = SHA1.digest().update(data).finish();
+        int hash = 0;
+        for (int x = 0; x < sha.length; x += 4) {
+            hash ^= (sha[x    ] & 0x0FF) << 24
+                      | (sha[x + 1] & 0x0FF) << 16
+                      | (sha[x + 2] & 0x0FF) <<  8
+                      | (sha[x + 3] & 0x0FF);
+        }
+        this.hashCode = hash;
+
+        /* Calculate alias (HEX of SHA) and string value */
+        alias = HEX.encode(sha);
+        string = type.name() + "[" + alias + "]@" + toHexString(hashCode);
     }
 
     /* ====================================================================== */
+
+    @Override
+    public final int hashCode() {
+        return hashCode;
+    }
+
+    @Override
+    public final String toString() {
+        return this.string;
+    }
+
+    @Override
+    public final boolean equals(Object object) {
+        try {
+            final PEMEntry<?> entry = (PEMEntry<?>) object;
+            if (entry.type != this.type) return false;
+            return Arrays.equals(entry.data, this.data);
+        } catch (ClassCastException exception) {
+            return false;
+        }
+    }
+
+    /* ====================================================================== */
+
+    /**
+     * Return an <i>alias</i> for this entry.
+     *
+     * <p>This is defined to be the hexadecimal representation of this
+     * {@linkplain PEMEntry entry}'s data.</p>
+     */
+    public final String getAlias() {
+        return alias;
+    }
 
     /**
      * Return the {@link Type} of this {@linkplain PEMEntry entry}.
@@ -276,7 +333,7 @@ public abstract class PEMEntry<T> {
      */
     public final T get(byte[] password)
     throws GeneralSecurityException {
-        if (encryption != null) {
+        if (isEncrypted()) {
             if (password == null) {
                 throw new InvalidKeyException("Password required for encrypted entries");
             } else {
