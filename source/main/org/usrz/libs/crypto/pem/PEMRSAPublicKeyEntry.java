@@ -15,8 +15,8 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.pem;
 
-import java.security.GeneralSecurityException;
 import java.security.interfaces.RSAPublicKey;
+import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 
 /**
@@ -32,7 +32,7 @@ public final class PEMRSAPublicKeyEntry extends PEMEntry<RSAPublicKey> {
 
     @Override
     protected RSAPublicKey doGet(byte[] data)
-    throws GeneralSecurityException {
+    throws InvalidKeySpecException {
         return (RSAPublicKey) RSA_KEY_FACTORY.generatePublic(new X509EncodedKeySpec(data));
     }
 

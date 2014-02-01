@@ -16,7 +16,7 @@
 package org.usrz.libs.crypto.pem;
 
 import java.io.ByteArrayInputStream;
-import java.security.GeneralSecurityException;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 /**
@@ -32,7 +32,7 @@ public final class PEMX509CertificateEntry extends PEMEntry<X509Certificate> {
 
     @Override
     protected X509Certificate doGet(byte[] data)
-    throws GeneralSecurityException {
+    throws CertificateException {
         final ByteArrayInputStream stream = new ByteArrayInputStream(data);
         return ((X509Certificate) CERTIFICATE_FACTORY.generateCertificate(stream));
     }

@@ -17,8 +17,8 @@ package org.usrz.libs.crypto.pem;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.security.GeneralSecurityException;
 import java.security.interfaces.RSAPrivateCrtKey;
+import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPrivateCrtKeySpec;
 
 /**
@@ -34,7 +34,7 @@ public final class PEMRSAPrivateKeyEntry extends PEMEntry<RSAPrivateCrtKey> {
 
     @Override
     protected RSAPrivateCrtKey doGet(byte[] data)
-    throws GeneralSecurityException {
+    throws PEMException, InvalidKeySpecException {
         try {
             final sun.security.util.DerInputStream derInputStream = new sun.security.util.DerInputStream(data);
             final sun.security.util.DerValue[] values = derInputStream.getSequence(0);
