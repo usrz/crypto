@@ -15,19 +15,34 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.pem;
 
-import java.security.Provider;
+import java.security.InvalidKeyException;
+import java.security.KeyPair;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+
+import org.bouncycastle.openssl.PEMKeyPair;
 
 /**
- * A JCE security {@link Provider} adding support for PEM-encoded
- * <a href="http://www.openssl.org/">OpenSSL</a>-style files.
+ * A {@linkplain PEMEntry PEM entry} wrapping an <b>un-</b>encrypted
+ * {@linkplain KeyPair key pair}.
  *
  * @author <a href="mailto:pier@usrz.com">Pier Fumagalli</a>
  */
-public class PEMKeyStoreProvider extends Provider {
+public final class PEMEntryKeyPair extends PEMEntry<KeyPair> {
 
-    public PEMKeyStoreProvider() {
-        super(PEMKeyStoreProvider.class.getSimpleName(), 1.0, "OpenSSL PEM keys and certificates");
-        put("KeyStore.PEM", PEMKeyStoreSpi.class.getName());
+    private final KeyPair keyPair;
+
+    /* Restrict construction of instances to this package */
+    PEMEntryKeyPair(PEMFactory factory, PEMKeyPair key)
+    throws NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
+        super(KeyPair.class, false);
+        keyPair = new KeyPair(factory.getPublicKey(key.getPublicKeyInfo()),
+                              factory.getPrivateKey(key.getPrivateKeyInfo()));
+    }
+
+    @Override
+    public KeyPair get() {
+        return keyPair;
     }
 
 }

@@ -60,10 +60,8 @@ public abstract class PEMEntry<T> {
     public abstract T get();
 
     /**
-     * Return the value of this {@linkplain PEMEntry entry} as a Java object.
-     *
-     * <p>If this entry {@link #isEncrypted() is encrypted}, a password
-     * <b>must</b> specified, if not, it <b>must</b> be <b>null</b>.
+     * Return the value of this encrypyrf {@linkplain PEMEntry entry} as a
+     * Java object.
      */
     public T get(char[] password)
     throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException {

@@ -71,7 +71,7 @@ public class PEMKeyStoreTest {
     @Test
     public void testCertificatesAndChain()
     throws Throwable {
-        Security.addProvider(new PEMKeyStoreProvider());
+        Security.addProvider(new PEMProvider());
 
         final KeyStore keyStore = KeyStore.getInstance("PEM");
         keyStore.load(this.getClass().getResourceAsStream("chains.pem"), null);
@@ -189,7 +189,7 @@ public class PEMKeyStoreTest {
           expectedExceptionsMessageRegExp="^Duplicate key .* found in PEM file")
     public void testKeys()
     throws Throwable {
-        Security.addProvider(new PEMKeyStoreProvider());
+        Security.addProvider(new PEMProvider());
 
         final KeyStore keyStore = KeyStore.getInstance("PEM");
         keyStore.load(this.getClass().getResourceAsStream("keys.pem"), "asdf".toCharArray());
@@ -199,7 +199,7 @@ public class PEMKeyStoreTest {
     @Test
     public void testSelfSigned()
     throws Throwable {
-        Security.addProvider(new PEMKeyStoreProvider());
+        Security.addProvider(new PEMProvider());
 
         final X500Principal principal = new X500Principal("CN=Testing Self-Signed Certificate, OU=Testing Framework, O=USRZ.org, L=Shinjuku, ST=Tokyo, C=JP");
 
@@ -226,7 +226,7 @@ public class PEMKeyStoreTest {
     @Test
     public void testFullSigned()
     throws Throwable {
-        Security.addProvider(new PEMKeyStoreProvider());
+        Security.addProvider(new PEMProvider());
 
         final X500Principal subject = new X500Principal("CN=Testing Certificate, OU=Testing Framework, O=USRZ.org, ST=Tokyo, C=JP");
         final X500Principal issuer = new X500Principal("CN=Testing Intermediate Certificate Authority, OU=Testing Framework, O=USRZ.org, ST=Tokyo, C=JP");
@@ -257,7 +257,7 @@ public class PEMKeyStoreTest {
     @Test
     public void testSSLContext()
     throws Exception {
-        Security.addProvider(new PEMKeyStoreProvider());
+        Security.addProvider(new PEMProvider());
 
         final KeyStore keyStore = KeyStore.getInstance("PEM");
         keyStore.load(this.getClass().getResourceAsStream("selfsigned.pem"), "asdf".toCharArray());

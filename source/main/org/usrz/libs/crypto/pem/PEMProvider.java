@@ -15,25 +15,19 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.pem;
 
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
+import java.security.Provider;
 
-import org.bouncycastle.cert.X509CertificateHolder;
+/**
+ * A JCE security {@link Provider} adding support for PEM-encoded
+ * <a href="http://www.openssl.org/">OpenSSL</a>-style files.
+ *
+ * @author <a href="mailto:pier@usrz.com">Pier Fumagalli</a>
+ */
+public class PEMProvider extends Provider {
 
-public final class PEMX509CertificateEntry extends PEMEntry<X509Certificate> {
-
-    private final X509Certificate certificate;
-
-    PEMX509CertificateEntry(X509CertificateHolder holder)
-    throws CertificateException {
-        super(X509Certificate.class, false);
-        certificate = new PEMFactory().getCertificate(holder);
+    public PEMProvider() {
+        super(PEMProvider.class.getSimpleName(), 1.0, "OpenSSL PEM keys and certificates");
+        put("KeyStore.PEM", PEMKeyStoreSpi.class.getName());
     }
-
-    @Override
-    public X509Certificate get() {
-        return certificate;
-    }
-
 
 }

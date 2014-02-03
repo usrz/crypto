@@ -44,22 +44,27 @@ import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.asn1.x9.X9ObjectIdentifiers;
 import org.bouncycastle.cert.X509CertificateHolder;
 
-public class PEMFactory {
+/**
+ * Utility factory/class for contents of {@linkplain PEMEntry PEM entries}.
+ *
+ * @author <a href="mailto:pier@usrz.com">Pier Fumagalli</a>
+ */
+class PEMFactory {
 
     private final Provider provider;
 
-    public PEMFactory() {
+    PEMFactory() {
         provider = null;
     }
 
-    public PEMFactory(String provider)
+    PEMFactory(String provider)
     throws NoSuchProviderException {
         if (provider == null) throw new NullPointerException("Null provider name");
         this.provider = Security.getProvider(provider);
         if (this.provider == null) throw new NoSuchProviderException("Unknown provider \"" + provider + "\"");
     }
 
-    public PEMFactory(Provider provider) {
+    PEMFactory(Provider provider) {
         if (provider == null) throw new NullPointerException("Null provider");
         this.provider = provider;
     }

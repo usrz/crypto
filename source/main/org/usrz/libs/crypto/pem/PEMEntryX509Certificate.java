@@ -15,27 +15,32 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.pem;
 
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.PublicKey;
-import java.security.spec.InvalidKeySpecException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 
-import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.bouncycastle.cert.X509CertificateHolder;
 
-public final class PEMPublicKeyEntry extends PEMEntry<PublicKey> {
+/**
+ * A {@linkplain PEMEntry PEM entry} wrapping an
+ * {@linkplain X509Certificate X.509 certificate}.
+ *
+ * @author <a href="mailto:pier@usrz.com">Pier Fumagalli</a>
+ */
+public final class PEMEntryX509Certificate extends PEMEntry<X509Certificate> {
 
-    private final PublicKey key;
+    private final X509Certificate certificate;
 
-    PEMPublicKeyEntry(SubjectPublicKeyInfo keyInfo)
-    throws NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
-        super(PublicKey.class, false);
-        key = new PEMFactory().getPublicKey(keyInfo);
-
+    /* Restrict construction of instances to this package */
+    PEMEntryX509Certificate(PEMFactory factory, X509CertificateHolder holder)
+    throws CertificateException {
+        super(X509Certificate.class, false);
+        certificate = factory.getCertificate(holder);
     }
 
     @Override
-    public PublicKey get() {
-        return key;
+    public X509Certificate get() {
+        return certificate;
     }
+
 
 }

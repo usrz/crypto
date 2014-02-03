@@ -22,9 +22,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.nio.charset.Charset;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.Provider;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.List;
@@ -42,35 +43,76 @@ import org.bouncycastle.openssl.PEMParser;
  */
 public class PEMReader implements Closeable {
 
+    private final PEMFactory factory;
     private final PEMParser parser;
 
     /**
      * Create a {@link PEMReader} loading from an {@link InputStream}.
      */
     public PEMReader(InputStream input) {
-        this(new InputStreamReader(input, ASCII));
+        if (input == null) throw new NullPointerException("Null input stream");
+
+        factory = new PEMFactory();
+        parser = new PEMParser(new InputStreamReader(input, ASCII));
     }
 
     /**
-     * Create a {@link PEMReader} loading from an {@link InputStream}.
-     */
-    public PEMReader(InputStream input, String charsetName) {
-        this(new InputStreamReader(input, charsetName == null ? ASCII : Charset.forName(charsetName)));
-    }
-
-    /**
-     * Create a {@link PEMReader} loading from an {@link InputStream}.
-     */
-    public PEMReader(InputStream input, Charset charset) {
-        this(new InputStreamReader(input, charset == null ? ASCII : charset));
-    }
-
-    /**
-     * Create a {@link PEMReader} loading from an {@link Reader}.
+     * Create a {@link PEMReader} loading from a {@link Reader}.
      */
     public PEMReader(Reader reader) {
+        if (reader == null) throw new NullPointerException("Null reader");
+
+        factory = new PEMFactory();
         parser = new PEMParser(reader);
     }
+
+    /**
+     * Create a {@link PEMReader} loading from an {@link InputStream}.
+     */
+    public PEMReader(String provider, InputStream input)
+    throws NoSuchProviderException {
+        if (input == null) throw new NullPointerException("Null input stream");
+        if (provider == null) throw new NullPointerException("Null provider");
+
+        factory = new PEMFactory(provider);
+        parser = new PEMParser(new InputStreamReader(input, ASCII));
+    }
+
+    /**
+     * Create a {@link PEMReader} loading from a {@link Reader}.
+     */
+    public PEMReader(String provider, Reader reader)
+    throws NoSuchProviderException {
+        if (reader == null) throw new NullPointerException("Null reader");
+        if (provider == null) throw new NullPointerException("Null provider");
+
+        factory = new PEMFactory(provider);
+        parser = new PEMParser(reader);
+    }
+
+    /**
+     * Create a {@link PEMReader} loading from an {@link InputStream}.
+     */
+    public PEMReader(Provider provider, InputStream input) {
+        if (input == null) throw new NullPointerException("Null input stream");
+        if (provider == null) throw new NullPointerException("Null provider");
+
+        factory = new PEMFactory(provider);
+        parser = new PEMParser(new InputStreamReader(input, ASCII));
+    }
+
+    /**
+     * Create a {@link PEMReader} loading from a {@link Reader}.
+     */
+    public PEMReader(Provider provider, Reader reader) {
+        if (reader == null) throw new NullPointerException("Null reader");
+        if (provider == null) throw new NullPointerException("Null provider");
+
+        factory = new PEMFactory(provider);
+        parser = new PEMParser(reader);
+    }
+
+    /* ====================================================================== */
 
     /**
      * Reat a {@linkplain List list} of {@linkplain PEMEntry entries} from the
@@ -89,19 +131,19 @@ public class PEMReader implements Closeable {
 
         if (object instanceof X509CertificateHolder) {
             // X509 certificate
-            return(new PEMX509CertificateEntry((X509CertificateHolder) object));
+            return(new PEMEntryX509Certificate(factory, (X509CertificateHolder) object));
 
         } else if (object instanceof PEMEncryptedKeyPair) {
             // Encrypted private key
-            return(new PEMEncryptedKeyEntry((PEMEncryptedKeyPair) object));
+            return(new PEMEntryEncryptedKeyPair(factory, (PEMEncryptedKeyPair) object));
 
         } else if (object instanceof PEMKeyPair) {
             // Non-encrypted private key
-            return(new PEMPrivateKeyEntry((PEMKeyPair) object));
+            return(new PEMEntryKeyPair(factory, (PEMKeyPair) object));
 
         } else if (object instanceof SubjectPublicKeyInfo) {
             // Public Key
-            return(new PEMPublicKeyEntry((SubjectPublicKeyInfo) object));
+            return(new PEMEntryPublicKey(factory, (SubjectPublicKeyInfo) object));
 
         } else {
             // Huh? What's this?

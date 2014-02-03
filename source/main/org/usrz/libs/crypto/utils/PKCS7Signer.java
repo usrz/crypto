@@ -22,6 +22,7 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder;
 import org.bouncycastle.util.Store;
 import org.bouncycastle.util.encoders.Base64;
+import org.usrz.libs.crypto.pem.PEMProvider;
 
 public final class PKCS7Signer {
 
@@ -34,6 +35,10 @@ public final class PKCS7Signer {
     }
 
     KeyStore loadKeyStore() throws Exception {
+        Security.addProvider(new PEMProvider());
+
+
+
 
         KeyStore keystore = KeyStore.getInstance("JKS");
         InputStream is = new FileInputStream(PATH_TO_KEYSTORE);

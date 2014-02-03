@@ -16,27 +16,33 @@
 package org.usrz.libs.crypto.pem;
 
 import java.security.InvalidKeyException;
-import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 
-import org.bouncycastle.openssl.PEMKeyPair;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 
-public final class PEMPrivateKeyEntry extends PEMEntry<KeyPair> {
+/**
+ * A {@linkplain PEMEntry PEM entry} wrapping a
+ * {@linkplain PublicKey public key}.
+ *
+ * @author <a href="mailto:pier@usrz.com">Pier Fumagalli</a>
+ */
+public final class PEMEntryPublicKey extends PEMEntry<PublicKey> {
 
-    private final KeyPair keyPair;
+    private final PublicKey key;
 
-    PEMPrivateKeyEntry(PEMKeyPair key)
+    /* Restrict construction of instances to this package */
+    PEMEntryPublicKey(PEMFactory factory, SubjectPublicKeyInfo keyInfo)
     throws NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
-        super(KeyPair.class, false);
-        final PEMFactory factory = new PEMFactory();
-        keyPair = new KeyPair(factory.getPublicKey(key.getPublicKeyInfo()),
-                              factory.getPrivateKey(key.getPrivateKeyInfo()));
+        super(PublicKey.class, false);
+        key = factory.getPublicKey(keyInfo);
+
     }
 
     @Override
-    public KeyPair get() {
-        return keyPair;
+    public PublicKey get() {
+        return key;
     }
 
 }

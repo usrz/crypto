@@ -25,13 +25,23 @@ import org.bouncycastle.openssl.PEMEncryptedKeyPair;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.jcajce.JcePEMDecryptorProviderBuilder;
 
-public final class PEMEncryptedKeyEntry extends PEMEntry<KeyPair> {
+/**
+ * A {@linkplain PEMEntry PEM entry} wrapping an encrypted
+ * {@linkplain KeyPair key pair}.
+ *
+ * @author <a href="mailto:pier@usrz.com">Pier Fumagalli</a>
+ */
+public final class PEMEntryEncryptedKeyPair extends PEMEntry<KeyPair> {
 
     private static final JcePEMDecryptorProviderBuilder builder = new JcePEMDecryptorProviderBuilder();
-    private final PEMEncryptedKeyPair key;
 
-    PEMEncryptedKeyEntry(PEMEncryptedKeyPair key) {
+    private final PEMEncryptedKeyPair key;
+    private final PEMFactory factory;
+
+    /* Restrict construction of instances to this package */
+    PEMEntryEncryptedKeyPair(PEMFactory factory, PEMEncryptedKeyPair key) {
         super(KeyPair.class, true);
+        this.factory = factory;
         this.key = key;
     }
 
@@ -50,7 +60,6 @@ public final class PEMEncryptedKeyEntry extends PEMEntry<KeyPair> {
             throw new InvalidKeyException("Unable to decrypt key pair", exception);
         }
 
-        final PEMFactory factory = new PEMFactory();
         return new KeyPair(factory.getPublicKey(key.getPublicKeyInfo()),
                            factory.getPrivateKey(key.getPrivateKeyInfo()));
     }

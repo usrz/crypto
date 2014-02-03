@@ -25,6 +25,7 @@ import java.security.GeneralSecurityException;
 import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.KeyPair;
+import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.KeyStoreSpi;
 import java.security.NoSuchAlgorithmException;
@@ -48,6 +49,13 @@ import java.util.logging.Logger;
 
 import javax.security.auth.x500.X500Principal;
 
+/**
+ * A JCE security {@link KeyStoreSpi} adding support for {@link KeyStore}s
+ * initialized from PEM-encoded,
+ * <a href="http://www.openssl.org/">OpenSSL</a>-style files.
+ *
+ * @author <a href="mailto:pier@usrz.com">Pier Fumagalli</a>
+ */
 public class PEMKeyStoreSpi extends KeyStoreSpi {
 
     private static final Logger logger = Logger.getLogger(PEMKeyStoreSpi.class.getName());
@@ -238,8 +246,9 @@ public class PEMKeyStoreSpi extends KeyStoreSpi {
             }
             return null;
         } catch (GeneralSecurityException exception) {
-            throw new UnrecoverableKeyException("Invalid password for key alias " + alias);
-            // TODO
+            final String message = "Invalid password for key alias " + alias;
+            final Throwable throwable = new UnrecoverableKeyException(message);
+            throw (UnrecoverableKeyException) throwable.initCause(exception);
         }
     }
 
