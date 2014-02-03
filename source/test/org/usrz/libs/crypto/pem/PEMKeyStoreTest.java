@@ -15,6 +15,11 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.pem;
 
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.Security;
@@ -26,6 +31,9 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
 import javax.security.auth.x500.X500Principal;
 
 import org.testng.Assert;
@@ -246,29 +254,65 @@ public class PEMKeyStoreTest {
 
     }
 
-//    @Test
-//    public void testSSLContext()
-//    throws Exception {
-//        Security.addProvider(new PEMKeyStoreProvider());
-//
-//        final KeyStore keyStore = KeyStore.getInstance("PEM");
-//        keyStore.load(this.getClass().getResourceAsStream("selfsigned.pem"), "asdf".toCharArray());
-//
-//        final KeyManagerFactory factory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-//        factory.init(keyStore, "asdf".toCharArray());
-//
-//        final SSLContext context = SSLContext.getInstance("TLS");
-//        context.init(factory.getKeyManagers(), null, null);
-//
-//        final ServerSocket socket = context.getServerSocketFactory().createServerSocket(12345);
-//        while (true) try {
-//            final Socket s = socket.accept();
-//            s.getOutputStream().write("HELLO!".getBytes());
-//            s.close();
-//        } catch (Exception exception) {
-//            exception.printStackTrace();
-//        }
-//    }
+    @Test
+    public void testSSLContext()
+    throws Exception {
+        Security.addProvider(new PEMKeyStoreProvider());
 
+        final KeyStore keyStore = KeyStore.getInstance("PEM");
+        keyStore.load(this.getClass().getResourceAsStream("selfsigned.pem"), "asdf".toCharArray());
+
+        final KeyManagerFactory keyFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+        keyFactory.init(keyStore, "asdf".toCharArray());
+
+        final TrustManagerFactory trustFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+        trustFactory.init(keyStore);
+
+        final SSLContext context = SSLContext.getInstance("TLS");
+        context.init(keyFactory.getKeyManagers(), trustFactory.getTrustManagers(), null);
+
+        final InetAddress localhost = InetAddress.getLoopbackAddress();
+        final ServerSocket server = context.getServerSocketFactory().createServerSocket(0, 1, localhost);
+        log.debug("ServerSocket bound to port %s", server.getLocalSocketAddress());
+
+        final Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    final Socket s = server.accept();
+                    log.debug("Accepting connection from %s" + s.getRemoteSocketAddress());
+                    s.getOutputStream().write("HELLO!".getBytes());
+                    s.close();
+                } catch (Exception exception) {
+                    exception.printStackTrace();
+                }
+            }
+        });
+
+        try {
+            thread.start();
+
+            final Socket client = context.getSocketFactory().createSocket(localhost, server.getLocalPort());
+            final ByteArrayOutputStream output = new ByteArrayOutputStream();
+            final InputStream input = client.getInputStream();
+            final byte[] buffer = new byte[128];
+
+            int read = -1;
+            while ((read = input.read(buffer)) >= 0) {
+                if (read > 0) output.write(buffer, 0, read);
+            }
+            input.close();
+            output.close();
+
+            Assert.assertEquals(new String(output.toByteArray()), "HELLO!");
+        } finally {
+            try {
+                server.close();
+            } finally {
+                thread.interrupt();
+            }
+            thread.join();
+        }
+    }
 
 }
