@@ -42,7 +42,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -74,7 +76,7 @@ public class PEMKeyStoreSpi extends KeyStoreSpi {
     public void engineLoad(InputStream stream, char[] password)
     throws IOException, NoSuchAlgorithmException, CertificateException {
 
-        final ConcurrentHashMap<X500Principal, X509Certificate> certificates = new ConcurrentHashMap<>();
+        final Map<X500Principal, X509Certificate> certificates = new HashMap<>();
         final PEMReader reader = new PEMReader(stream);
         try {
             PEMEntry<?> entry = null;
