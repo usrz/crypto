@@ -13,28 +13,72 @@
  * See the License for the specific language governing permissions and        *
  * limitations under the License.                                             *
  * ========================================================================== */
-package org.usrz.libs.crypto.utils;
+package org.usrz.libs.crypto.pem;
 
 import static org.usrz.libs.crypto.codecs.CharsetCodec.UTF8;
 import static org.usrz.libs.crypto.codecs.HexCodec.HEX;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigInteger;
-import java.net.URL;
-import java.security.Principal;
-import java.security.cert.X509Certificate;
+import java.security.GeneralSecurityException;
+import java.security.KeyPair;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.interfaces.DSAPrivateKey;
+import java.security.interfaces.DSAPublicKey;
 import java.security.interfaces.RSAPrivateCrtKey;
 import java.security.interfaces.RSAPublicKey;
-import java.util.List;
 
 import javax.crypto.Cipher;
-import javax.security.auth.x500.X500Principal;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-public class PEMTest {
+public class PEMReaderTest {
 
-    private void checkKey512(RSAPrivateCrtKey privateKey) {
+    private static final PEMEntry<?> loadEntry(String resource)
+    throws IOException, GeneralSecurityException {
+        final InputStream input = PEMReaderTest.class.getResourceAsStream(resource);
+        Assert.assertNotNull(input, "Resource \"" + resource + "\" not found");
+        final PEMReader reader = new PEMReader(input);
+        try {
+            final PEMEntry<?> entry = reader.read();
+            Assert.assertNotNull(entry, "Null entry reading \"" + resource + "\"");
+            return entry;
+        } finally {
+            reader.close();
+        }
+    }
+
+    private static final PrivateKey loadPrivateKey(String resource, String password)
+    throws IOException, GeneralSecurityException {
+        final Object object = password == null ? loadEntry(resource).get() : loadEntry(resource).get(password.toCharArray());
+        Assert.assertNotNull(object, "Null returned getting object reading \"" + resource + "\"");
+        try {
+            return ((KeyPair) object).getPrivate();
+        } catch (ClassCastException exception) {
+            throw new AssertionError("Wrong private key class " + object.getClass().getName(), exception);
+        }
+    }
+
+    private static final PublicKey loadPublicKey(String resource)
+    throws IOException, GeneralSecurityException {
+        final Object object = loadEntry(resource).get();
+        Assert.assertNotNull(object, "Null returned getting object reading \"" + resource + "\"");
+        try {
+            return (PublicKey) object;
+        } catch (ClassCastException exception) {
+            throw new AssertionError("Wrong private key class " + object.getClass().getName(), exception);
+        }
+    }
+
+    /* ====================================================================== */
+
+    private void checkKey512(PrivateKey genericPrivateKey) {
+        Assert.assertTrue(genericPrivateKey instanceof RSAPrivateCrtKey, "Wrong class for key: " + genericPrivateKey.getClass().getName());
+        final RSAPrivateCrtKey privateKey = (RSAPrivateCrtKey) genericPrivateKey;
+
         // Data gathered with -> openssl rsa -text -noout -in ./source/test/org/usrz/libs/crypto/pem/key512.pem
         Assert.assertNotNull(privateKey);
         Assert.assertEquals(privateKey.getModulus(),         new BigInteger("df9298bea3e11acec2e5f3911fee15928206a05e33cf523c7468572c87900b9e439ffbc1106959e2126696e262224de65e6d516210f9f5717f519b278aed2ff1", 16));
@@ -50,54 +94,46 @@ public class PEMTest {
     @Test
     public void testPrivateKey512()
     throws Exception {
-        final URL url = this.getClass().getResource("key512.pem");
-        checkKey512(PEM.loadPrivateKey(url));
+        checkKey512(loadPrivateKey("key512.pem", null));
     }
 
     @Test
     public void testPrivateKey512_DES()
     throws Exception {
-        final URL url = this.getClass().getResource("key512-des.pem");
-        checkKey512(PEM.loadPrivateKey(url, "asdf"));
+        checkKey512(loadPrivateKey("key512-des.pem", "asdf"));
     }
 
     @Test
     public void testPrivateKey512_DES3()
     throws Exception {
-        final URL url = this.getClass().getResource("key512-des3.pem");
-        checkKey512(PEM.loadPrivateKey(url, "asdf"));
+        checkKey512(loadPrivateKey("key512-des3.pem", "asdf"));
     }
 
     @Test
     public void testPrivateKey512_AES128()
     throws Exception {
-        final URL url = this.getClass().getResource("key512-aes128.pem");
-        checkKey512(PEM.loadPrivateKey(url, "asdf"));
+        checkKey512(loadPrivateKey("key512-aes128.pem", "asdf"));
     }
 
     @Test
     public void testPrivateKey512_AES192()
     throws Exception {
-        final URL url = this.getClass().getResource("key512-aes192.pem");
-        checkKey512(PEM.loadPrivateKey(url, "asdf"));
+        checkKey512(loadPrivateKey("key512-aes192.pem", "asdf"));
     }
 
     @Test
     public void testPrivateKey512_AES256()
     throws Exception {
-        final URL url = this.getClass().getResource("key512-aes256.pem");
-        checkKey512(PEM.loadPrivateKey(url, "asdf"));
+        checkKey512(loadPrivateKey("key512-aes256.pem", "asdf"));
     }
 
     @Test
     public void testPublicKey512()
     throws Exception {
-        final URL publicUrl = this.getClass().getResource("key512-public.pem");
-        RSAPublicKey publicKey = PEM.loadPublicKey(publicUrl);
+        RSAPublicKey publicKey = (RSAPublicKey) loadPublicKey("key512-public.pem");
         Assert.assertNotNull(publicKey);
 
-        final URL privateUrl = this.getClass().getResource("key512.pem");
-        RSAPrivateCrtKey privateKey = PEM.loadPrivateKey(privateUrl);
+        RSAPrivateCrtKey privateKey = (RSAPrivateCrtKey) loadPrivateKey("key512.pem", null);
         Assert.assertNotNull(privateKey);
 
         Assert.assertEquals(publicKey.getModulus(),        privateKey.getModulus());
@@ -107,8 +143,7 @@ public class PEMTest {
     @Test
     public void testDecrypt512()
     throws Exception {
-        final URL url = this.getClass().getResource("key512.pem");
-        final RSAPrivateCrtKey privateKey = PEM.loadPrivateKey(url, "asdf");
+        final PrivateKey privateKey = loadPrivateKey("key512.pem", "asdf");
 
         // Generated with -> echo -n "Testing encryption at 512 bits" | openssl rsautl -encrypt -inkey ./source/test/org/usrz/libs/crypto/pem/key512.pem -pkcs
         final byte[] data = HEX.decode("521af34fa9ab2ad13cd8e59375c863ad78711ed2d52aa58303c2c4e63cfd6c345888a93559eb221e2ac1220bbe0939e98717c9dbb80c362d87463bdec4abf398");
@@ -122,7 +157,10 @@ public class PEMTest {
 
     /* ====================================================================== */
 
-    private void checkKey4096(RSAPrivateCrtKey privateKey) {
+    private void checkKey4096(PrivateKey genericPrivateKey) {
+        Assert.assertTrue(genericPrivateKey instanceof RSAPrivateCrtKey, "Wrong class for key: " + genericPrivateKey.getClass().getName());
+        final RSAPrivateCrtKey privateKey = (RSAPrivateCrtKey) genericPrivateKey;
+
         // Data gathered with -> openssl rsa -text -noout -in ./source/test/org/usrz/libs/crypto/pem/key4096.pem
         Assert.assertNotNull(privateKey);
         Assert.assertEquals(privateKey.getModulus(),         new BigInteger("e0e4d6d7bcd15e7928f871792109a0deb1a37fef2230e8e94f6055b675a313ca2aa9e2b12a722dc4c9377d82418af33c2b67fc5e5aae98cb84e04220b9e8a85a8ec8369c93bcf53538a543ca7abccd958f9360a898f0ddf901bff921d27aa8d0fdd3c551893084d7c1301fc2c5cf6c568d728bdcf25ecaad8bf2fd51577267c7ec906046ba1f472431c252c0b6f8d4d0d6f165517e6275f213f3727222db04fa2dcb51892e8a3faf664c4aa224eb39b3777ef072036b3aa2fcdbcd081ab75b9854cb66da0f609f3f0ed940abda35ecaeedd156314ba08486d18482895c4687bcf84447c73db16adddfe30a47f8ef285660318b18a5d6d63b67dbf49ab70a7f75520408d66bb705601ec9c39c5c53194c5661f334fc0037031b5ede010838c673ad722863d39c7adc35adc905976c21a1c76dd1e5e678107539f4919284661d8faf48f816e9ba4692203af917de68351696c2a5ffab6fd4dbc6169ed07324774c6774eff7cc616fc05562b6b948a3551718b2d39d1c444d1d1328f7573aae07b260e53fb539945f748ba2dfdfebf36cc276bb8ea2e30c56a40c2007f90e7ddb170e1cb5afed16bf6cf87d6a40ece161d8fd93fb4a49a5f302fccb56be33d7decde14268565b6a49ba1c16dc5a5169319d24ecfd6d133ada54500e9f0fadda9805b92a1f85b06bbca43dce02de6ba54c2ba50eb90228095d973f9371c734dfdcef", 16));
@@ -138,54 +176,46 @@ public class PEMTest {
     @Test
     public void testPrivateKey4096()
     throws Exception {
-        final URL url = this.getClass().getResource("key4096.pem");
-        checkKey4096(PEM.loadPrivateKey(url));
+        checkKey4096(loadPrivateKey("key4096.pem", null));
     }
 
     @Test
     public void testPrivateKey4096_DES()
     throws Exception {
-        final URL url = this.getClass().getResource("key4096-des.pem");
-        checkKey4096(PEM.loadPrivateKey(url, "asdf"));
+        checkKey4096(loadPrivateKey("key4096-des.pem", "asdf"));
     }
 
     @Test
     public void testPrivateKey4096_DES3()
     throws Exception {
-        final URL url = this.getClass().getResource("key4096-des3.pem");
-        checkKey4096(PEM.loadPrivateKey(url, "asdf"));
+        checkKey4096(loadPrivateKey("key4096-des3.pem", "asdf"));
     }
 
     @Test
     public void testPrivateKey4096_AES128()
     throws Exception {
-        final URL url = this.getClass().getResource("key4096-aes128.pem");
-        checkKey4096(PEM.loadPrivateKey(url, "asdf"));
+        checkKey4096(loadPrivateKey("key4096-aes128.pem", "asdf"));
     }
 
     @Test
     public void testPrivateKey4096_AES192()
     throws Exception {
-        final URL url = this.getClass().getResource("key4096-aes192.pem");
-        checkKey4096(PEM.loadPrivateKey(url, "asdf"));
+        checkKey4096(loadPrivateKey("key4096-aes192.pem", "asdf"));
     }
 
     @Test
     public void testPrivateKey4096_AES256()
     throws Exception {
-        final URL url = this.getClass().getResource("key4096-aes256.pem");
-        checkKey4096(PEM.loadPrivateKey(url, "asdf"));
+        checkKey4096(loadPrivateKey("key4096-aes256.pem", "asdf"));
     }
 
     @Test
     public void testPublicKey4096()
     throws Exception {
-        final URL publicUrl = this.getClass().getResource("key4096-public.pem");
-        RSAPublicKey publicKey = PEM.loadPublicKey(publicUrl);
+        RSAPublicKey publicKey = (RSAPublicKey) loadPublicKey("key4096-public.pem");
         Assert.assertNotNull(publicKey);
 
-        final URL privateUrl = this.getClass().getResource("key4096.pem");
-        RSAPrivateCrtKey privateKey = PEM.loadPrivateKey(privateUrl);
+        RSAPrivateCrtKey privateKey = (RSAPrivateCrtKey) loadPrivateKey("key4096.pem", null);
         Assert.assertNotNull(privateKey);
 
         Assert.assertEquals(publicKey.getModulus(),        privateKey.getModulus());
@@ -195,8 +225,7 @@ public class PEMTest {
     @Test
     public void testDecrypt4096()
     throws Exception {
-        final URL url = this.getClass().getResource("key4096.pem");
-        final RSAPrivateCrtKey privateKey = PEM.loadPrivateKey(url, "asdf");
+        final PrivateKey privateKey = loadPrivateKey("key4096.pem", "asdf");
 
         // Generated with -> echo -n "Testing encryption at 4096 bits" | openssl rsautl -encrypt -inkey ./source/test/org/usrz/libs/crypto/pem/key4096.pem -pkcs
         final byte[] data = HEX.decode("add78391c43565744cec22c61988ff3a25621179195e47ffb61ba2aba069233cbefde5290c8139fe3f2bb7c35f44b387f8765e49a8e60fe668b6a0804697c4aba0b9ea81fcca9462745d0dd6588ab42ccd929b8958708bf44e356b309f16c2699362baae804410956858aa3d799156abd5955dd37965f2c70b74a8eb025d279deed6b308039d19ee52e3f56cd132f5bc029cd75ec51c03c331ae33156765e5be171e1c5d944c654423e654b96702648af41c8ff84ac63cdb4f88b0d241605b24d5d0cdf420160c7ed8c9e33a9cc201043e709760de4a9d475d6bbc1149fb9719b60fd2b0b5cf5ed73270d0638120c4816ee4eb37937d1743c753ff0389119de710671601fd6a3b47959bc6c4b48df872852db4798fde166e34a6d52450149118c77c905390b7622b495c97de72a7b4b61c2545daa442c310098a9e627c49b6de2daa58c77cdf21eac192d5fb1b126b0c51362d8a600f71369127f95e0964dc76ebe0e3bfc87b895b3829094cd631462cb4fbe1fd6faccae793d4c6b1822ce73bb41fe45756105bbb119c3b64eb547bf52ec021938bfef4b7442d07dac934bafa23e1bf1cab4a479358447b1be00d15886938c790ddcc5c4f839515e09929d1dee01ef512817d018ec0ab3e6e136d789789647668afbd181bcd569753a25de0174352631d19357169c7cf1bcb0e4550fd149ad7531a3014ef0f2bb45093081a82");
@@ -210,49 +239,66 @@ public class PEMTest {
 
     /* ====================================================================== */
 
-    private final Principal www_google_com = new X500Principal("CN=www.google.com, O=Google Inc, L=Mountain View, ST=California, C=US");
-    private final Principal google_auth_g2 = new X500Principal("CN=Google Internet Authority G2, O=Google Inc, C=US");
-    private final Principal geotrust_ca    = new X500Principal("CN=GeoTrust Global CA, O=GeoTrust Inc., C=US");
-    private final Principal equifax_ca     = new X500Principal("OU=Equifax Secure Certificate Authority, O=Equifax, C=US");
+    private void checkDSAKey2048(PrivateKey genericPrivateKey) {
+        Assert.assertTrue(genericPrivateKey instanceof DSAPrivateKey, "Wrong class for key: " + genericPrivateKey.getClass().getName());
+        final DSAPrivateKey privateKey = (DSAPrivateKey) genericPrivateKey;
 
-    @Test
-    public void testCertificate()
-    throws Exception {
-        final URL url = this.getClass().getResource("certificate.pem");
-        final List<X509Certificate> certificates = PEM.loadCertificates(url);
-
-        Assert.assertNotNull(certificates);
-        Assert.assertEquals(certificates.size(), 1);
-
-        final X509Certificate certificate = certificates.get(0);
-        Assert.assertNotNull(certificate);
-        Assert.assertEquals(certificate.getSubjectX500Principal(), www_google_com);
-        Assert.assertEquals(certificate.getIssuerX500Principal(), google_auth_g2);
+        // Data gathered with -> openssl rsa -text -noout -in ./source/test/org/usrz/libs/crypto/pem/key4096.pem
+        Assert.assertNotNull(privateKey);
+        Assert.assertEquals(privateKey.getX(),             new BigInteger("8b7ea1d48dc9dc365f957a81e39566efcf48d5ae", 16));
+        Assert.assertEquals(privateKey.getParams().getP(), new BigInteger("e60c09400b41a2bafad6dfdc3ec677bf6b1166cbf768ac3fd4ccafe480c31563529fda21fb1e570da9d9e281787eaa7df937cf72d9b98cd6669cb4a439b94ce42a5065da013887758b5398f4db0e13489e002ef29a037fd24756c274a89be6de08c56b371fa1df798cc2871fc99e795f08c4233c165e82b08daad747f4af4c58aa9bd6b68efa51313e48d5b698860a30eb188cb6a5137485073483782c111465f92eb78cf554c29beabb05f2248c7e78482887dca6bd2d4e0c50926d31e345617f46f665a9d1ab8d63e2790aaaaa2921eea76ff640f7e817f8b3c39bfe9d51441869db063d6d1b1f57c7425310e4037fbd4b451c0a00f996e21ba16c2ede5ce3", 16));
+        Assert.assertEquals(privateKey.getParams().getQ(), new BigInteger("a1870db11fd4a6753474f27c6a6a252d46f4dacf", 16));
+        Assert.assertEquals(privateKey.getParams().getG(), new BigInteger("47e805078e43324969c59e9932279fc11a5d7961bf56a6d947bd5723dbae4bdc65687724cf0b5c1c9ba017bdc5f0fd4db7aaca504cd60b6c5fe78bb9a7b0d529ca2404218f6d4b371a621eba2929069af740ce4bb9052c3972edf4dffe07b0133d102a1f2598a3bc36eab6f17e7ec5a2c5ee4cf72bbb15e59cf7a476e44f604700cdc103e1098151d34c8473a226e22f0d1bdebcca7c4d5d07bfa6fced8624a1ad64944d35ac703ccacc4d229f524e2c21e46d7609127a525de18824f453df9dfb03f0e590bc20978c5471da541d5284c7dabb6ec42eb4c6333be76c203eacf111c985a25c69009d67b9c6b95f8baca977235086190343daaab21b5d760ca5e5", 16));
     }
 
     @Test
-    public void testChain()
+    public void testDSAPrivateKey2048()
     throws Exception {
-        final URL url = this.getClass().getResource("chain.pem");
-        final List<X509Certificate> certificates = PEM.loadCertificates(url);
+        checkDSAKey2048(loadPrivateKey("dsa2048.pem", null));
+    }
 
-        Assert.assertNotNull(certificates);
-        Assert.assertEquals(certificates.size(), 3);
+    @Test
+    public void testDSAPrivateKey2048_DES()
+    throws Exception {
+        checkDSAKey2048(loadPrivateKey("dsa2048-des.pem", "asdf"));
+    }
 
-        final X509Certificate certificate0 = certificates.get(0);
-        Assert.assertNotNull(certificate0);
-        Assert.assertEquals(certificate0.getSubjectX500Principal(), www_google_com);
-        Assert.assertEquals(certificate0.getIssuerX500Principal(), google_auth_g2);
+    @Test
+    public void testDSAPrivateKey2048_DES3()
+    throws Exception {
+        checkDSAKey2048(loadPrivateKey("dsa2048-des3.pem", "asdf"));
+    }
 
-        final X509Certificate certificate1 = certificates.get(1);
-        Assert.assertNotNull(certificate1);
-        Assert.assertEquals(certificate1.getSubjectX500Principal(), google_auth_g2);
-        Assert.assertEquals(certificate1.getIssuerX500Principal(), geotrust_ca);
+    @Test
+    public void testDSAPrivateKey2048_AES128()
+    throws Exception {
+        checkDSAKey2048(loadPrivateKey("dsa2048-aes128.pem", "asdf"));
+    }
 
-        final X509Certificate certificate2 = certificates.get(2);
-        Assert.assertNotNull(certificate2);
-        Assert.assertEquals(certificate2.getSubjectX500Principal(), geotrust_ca);
-        Assert.assertEquals(certificate2.getIssuerX500Principal(), equifax_ca);
+    @Test
+    public void testDSAPrivateKey2048_AES192()
+    throws Exception {
+        checkDSAKey2048(loadPrivateKey("dsa2048-aes192.pem", "asdf"));
+    }
+
+    @Test
+    public void testDSAPrivateKey2048_AES256()
+    throws Exception {
+        checkDSAKey2048(loadPrivateKey("dsa2048-aes256.pem", "asdf"));
+    }
+
+    @Test
+    public void testDSAPublicKey2048()
+    throws Exception {
+        DSAPublicKey publicKey = (DSAPublicKey) loadPublicKey("dsa2048-public.pem");
+        Assert.assertNotNull(publicKey);
+
+        DSAPrivateKey privateKey = (DSAPrivateKey) loadPrivateKey("dsa2048.pem", null);
+        Assert.assertNotNull(privateKey);
+
+        Assert.assertEquals(publicKey.getParams().getP(), privateKey.getParams().getP());
+        Assert.assertEquals(publicKey.getParams().getQ(), privateKey.getParams().getQ());
+        Assert.assertEquals(publicKey.getParams().getG(), privateKey.getParams().getG());
     }
 
 }

@@ -15,7 +15,6 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.pem;
 
-import java.security.Key;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.Security;
@@ -178,38 +177,14 @@ public class PEMKeyStoreTest {
     }
 
 
-    @Test
+    @Test(expectedExceptions=IllegalStateException.class,
+          expectedExceptionsMessageRegExp="^Duplicate key .* found in PEM file")
     public void testKeys()
     throws Throwable {
         Security.addProvider(new PEMKeyStoreProvider());
 
         final KeyStore keyStore = KeyStore.getInstance("PEM");
-        keyStore.load(this.getClass().getResourceAsStream("keys.pem"), null);
-
-        final String publicKeyAlias       = "DFD69AFED13E075465CE6084D30221470A36240A";
-        final String privateKeyAliasPlain = "AA1E28AC6A4AC6FDFDEC0E9EAAC89E8B07E77C62";
-
-        int count = 0;
-        final Enumeration<String> aliases = keyStore.aliases();
-        while (aliases.hasMoreElements()) {
-            count ++;
-            final String alias = aliases.nextElement();
-            switch (alias) {
-                case publicKeyAlias:
-                    final Key publicKey = keyStore.getKey(alias, null);
-                    Assert.assertTrue(RSAPublicKey.class.isInstance(publicKey));
-                    break;
-                case privateKeyAliasPlain:
-                    final Key privateKeyPlain = keyStore.getKey(alias, null);
-                    Assert.assertTrue(RSAPrivateCrtKey.class.isInstance(privateKeyPlain));
-                    break;
-                default:
-                    final Key privateKeyEncrypted = keyStore.getKey(alias, "asdf".toCharArray());
-                    Assert.assertTrue(RSAPrivateCrtKey.class.isInstance(privateKeyEncrypted));
-                    break;
-            }
-        }
-        Assert.assertEquals(count, 7);
+        keyStore.load(this.getClass().getResourceAsStream("keys.pem"), "asdf".toCharArray());
 
     }
 
@@ -221,17 +196,22 @@ public class PEMKeyStoreTest {
         final X500Principal principal = new X500Principal("CN=Testing Self-Signed Certificate, OU=Testing Framework, O=USRZ.org, L=Shinjuku, ST=Tokyo, C=JP");
 
         final KeyStore keyStore = KeyStore.getInstance("PEM");
-        keyStore.load(this.getClass().getResourceAsStream("selfsigned.pem"), null);
+        keyStore.load(this.getClass().getResourceAsStream("selfsigned.pem"), "asdf".toCharArray());
 
-        final RSAPrivateCrtKey key = (RSAPrivateCrtKey) keyStore.getKey("4B579996E03E19A24B39F98DC24A7EF7BE1F1339", "asdf".toCharArray());
+        final RSAPrivateCrtKey key = (RSAPrivateCrtKey) keyStore.getKey("F7A4FD46266A272B145B4F09F6D14CC7A458268B", "asdf".toCharArray());
+        Assert.assertNotNull(key, "Private key is null");
 
-        final X509Certificate certificate = (X509Certificate) keyStore.getCertificate("F2A84351D2A461D49A3DEF45208AAE71EFF51513");
+        final X509Certificate certificate = (X509Certificate) keyStore.getCertificate("F7A4FD46266A272B145B4F09F6D14CC7A458268B");
+        Assert.assertNotNull(certificate, "Certificate is null");
         Assert.assertEquals(certificate.getSubjectX500Principal(), principal);
         Assert.assertEquals(certificate.getIssuerX500Principal(), principal);
 
         final RSAPublicKey publicKey = (RSAPublicKey) certificate.getPublicKey();
+        Assert.assertNotNull(publicKey, "Public key is null");
         Assert.assertEquals(publicKey.getModulus(), key.getModulus());
         Assert.assertEquals(publicKey.getPublicExponent(), key.getPublicExponent());
+
+        validateChain(keyStore, "F7A4FD46266A272B145B4F09F6D14CC7A458268B", certificate);
 
     }
 
@@ -244,24 +224,51 @@ public class PEMKeyStoreTest {
         final X500Principal issuer = new X500Principal("CN=Testing Intermediate Certificate Authority, OU=Testing Framework, O=USRZ.org, ST=Tokyo, C=JP");
 
         final KeyStore keyStore = KeyStore.getInstance("PEM");
-        keyStore.load(this.getClass().getResourceAsStream("full.pem"), null);
+        keyStore.load(this.getClass().getResourceAsStream("full.pem"), "asdf".toCharArray());
 
-        final RSAPrivateCrtKey key = (RSAPrivateCrtKey) keyStore.getKey("8C5BD8690EDE558DC53AF38ACF31A99635878406", "asdf".toCharArray());
+        final RSAPrivateCrtKey key = (RSAPrivateCrtKey) keyStore.getKey("9D31E8423D144DD51E16BBAAB8A7E0C117B32F7E", "asdf".toCharArray());
+        Assert.assertNotNull(key, "Private key is null");
 
-        final X509Certificate certificate = (X509Certificate) keyStore.getCertificate("6F785302EB6422458A082387855BD9E48CE8D06D");
+        final X509Certificate certificate = (X509Certificate) keyStore.getCertificate("9D31E8423D144DD51E16BBAAB8A7E0C117B32F7E");
+        Assert.assertNotNull(certificate, "Certificate is null");
         Assert.assertEquals(certificate.getSubjectX500Principal(), subject);
         Assert.assertEquals(certificate.getIssuerX500Principal(), issuer);
 
         final RSAPublicKey publicKey = (RSAPublicKey) certificate.getPublicKey();
+        Assert.assertNotNull(publicKey, "Public key is null");
         Assert.assertEquals(publicKey.getModulus(), key.getModulus());
         Assert.assertEquals(publicKey.getPublicExponent(), key.getPublicExponent());
 
-        validateChain(keyStore, "6F785302EB6422458A082387855BD9E48CE8D06D",
+        validateChain(keyStore, "9D31E8423D144DD51E16BBAAB8A7E0C117B32F7E",
                       certificate,
-                      (X509Certificate) keyStore.getCertificate("61A1B407DFD0114B9015397509EED62A99E26C48"),
-                      (X509Certificate) keyStore.getCertificate("2807F6186677E835F8A2C84BBDA92DBA3D530BDE"));
+                      (X509Certificate) keyStore.getCertificate("377177A2311D78FEEAAA8D3F67D2B60C4A1E1966"),
+                      (X509Certificate) keyStore.getCertificate("D5F522D0BF37CF9134603060F6D04B235A74CC70"));
 
     }
+
+//    @Test
+//    public void testSSLContext()
+//    throws Exception {
+//        Security.addProvider(new PEMKeyStoreProvider());
+//
+//        final KeyStore keyStore = KeyStore.getInstance("PEM");
+//        keyStore.load(this.getClass().getResourceAsStream("selfsigned.pem"), "asdf".toCharArray());
+//
+//        final KeyManagerFactory factory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+//        factory.init(keyStore, "asdf".toCharArray());
+//
+//        final SSLContext context = SSLContext.getInstance("TLS");
+//        context.init(factory.getKeyManagers(), null, null);
+//
+//        final ServerSocket socket = context.getServerSocketFactory().createServerSocket(12345);
+//        while (true) try {
+//            final Socket s = socket.accept();
+//            s.getOutputStream().write("HELLO!".getBytes());
+//            s.close();
+//        } catch (Exception exception) {
+//            exception.printStackTrace();
+//        }
+//    }
 
 
 }

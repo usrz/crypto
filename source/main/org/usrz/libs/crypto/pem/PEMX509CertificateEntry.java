@@ -15,26 +15,25 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.pem;
 
-import java.io.ByteArrayInputStream;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
-/**
- * A {@link PEMEntry} for {@linkplain X509Certificate X.509 certificates}.
- *
- * @author <a href="mailto:pier@usrz.com">Pier Fumagalli</a>
- */
+import org.bouncycastle.cert.X509CertificateHolder;
+
 public final class PEMX509CertificateEntry extends PEMEntry<X509Certificate> {
 
-    PEMX509CertificateEntry(byte[] data, byte[] salt, Encryption encryption) {
-        super(Type.X509_CERTIFICATE, data, salt, encryption);
+    private final X509Certificate certificate;
+
+    PEMX509CertificateEntry(X509CertificateHolder holder)
+    throws CertificateException {
+        super(X509Certificate.class, false);
+        certificate = new PEMFactory().getCertificate(holder);
     }
 
     @Override
-    protected X509Certificate doGet(byte[] data)
-    throws CertificateException {
-        final ByteArrayInputStream stream = new ByteArrayInputStream(data);
-        return ((X509Certificate) CERTIFICATE_FACTORY.generateCertificate(stream));
+    public X509Certificate get() {
+        return certificate;
     }
+
 
 }

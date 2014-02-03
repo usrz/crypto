@@ -15,36 +15,27 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.pem;
 
-import java.security.interfaces.RSAPrivateCrtKey;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
-import java.security.spec.RSAPrivateCrtKeySpec;
 
-import org.bouncycastle.asn1.pkcs.RSAPrivateKey;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 
-/**
- * A {@link PEMEntry} for {@linkplain RSAPrivateCrtKey RSA private keys}.
- *
- * @author <a href="mailto:pier@usrz.com">Pier Fumagalli</a>
- */
-public final class PEMRSAPrivateKeyEntry extends PEMEntry<RSAPrivateCrtKey> {
+public final class PEMPublicKeyEntry extends PEMEntry<PublicKey> {
 
-    PEMRSAPrivateKeyEntry(byte[] data, byte[] salt, Encryption encryption) {
-        super(Type.RSA_PRIVATE_KEY, data, salt, encryption);
+    private final PublicKey key;
+
+    PEMPublicKeyEntry(SubjectPublicKeyInfo keyInfo)
+    throws NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
+        super(PublicKey.class, false);
+        key = new PEMFactory().getPublicKey(keyInfo);
+
     }
 
     @Override
-    protected RSAPrivateCrtKey doGet(byte[] data)
-    throws PEMException, InvalidKeySpecException {
-        final RSAPrivateKey privateKey = RSAPrivateKey.getInstance(data);
-        return (RSAPrivateCrtKey) RSA_KEY_FACTORY.generatePrivate(
-                new RSAPrivateCrtKeySpec(privateKey.getModulus(),
-                                         privateKey.getPublicExponent(),
-                                         privateKey.getPrivateExponent(),
-                                         privateKey.getPrime1(),
-                                         privateKey.getPrime2(),
-                                         privateKey.getExponent1(),
-                                         privateKey.getExponent2(),
-                                         privateKey.getCoefficient()));
+    public PublicKey get() {
+        return key;
     }
 
 }

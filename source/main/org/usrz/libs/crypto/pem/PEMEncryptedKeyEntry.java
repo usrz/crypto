@@ -15,59 +15,44 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.pem;
 
+import java.io.IOException;
 import java.security.InvalidKeyException;
+import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 
+import org.bouncycastle.openssl.PEMEncryptedKeyPair;
+import org.bouncycastle.openssl.PEMKeyPair;
+import org.bouncycastle.openssl.jcajce.JcePEMDecryptorProviderBuilder;
 
-/**
- * An abstract class representing an entry in a <i>PEM-encoded</i> file.
- *
- * @author <a href="mailto:pier@usrz.com">Pier Fumagalli</a>
- * @param <T> The Java type of the object contained in this entry.
- */
-public abstract class PEMEntry<T> {
+public final class PEMEncryptedKeyEntry extends PEMEntry<KeyPair> {
 
-    private final boolean encrypted;
-    private final Class<T> type;
+    private static final JcePEMDecryptorProviderBuilder builder = new JcePEMDecryptorProviderBuilder();
+    private final PEMEncryptedKeyPair key;
 
-    /* Restrict construction of instances to this package */
-    PEMEntry(Class<T> type, boolean encrypted) {
-        this.encrypted = encrypted;
-        this.type = type;
+    PEMEncryptedKeyEntry(PEMEncryptedKeyPair key) {
+        super(KeyPair.class, true);
+        this.key = key;
     }
 
-    /* ====================================================================== */
-
-    /**
-     * Return the type of objects held by this {@linkplain PEMEntry entry}.
-     */
-    public final Class<T> getType() {
-        return type;
+    @Override
+    public KeyPair get() {
+        throw new UnsupportedOperationException("Password for decryption must be supplied");
     }
 
-    /**
-     * Checks whether this {@linkplain PEMEntry entry} is encrypted or not.
-     */
-    public final boolean isEncrypted() {
-        return this.encrypted;
-    }
-
-    /**
-     * Return the value of this unencrypted {@linkplain PEMEntry entry} as a
-     * Java object.
-     */
-    public abstract T get();
-
-    /**
-     * Return the value of this {@linkplain PEMEntry entry} as a Java object.
-     *
-     * <p>If this entry {@link #isEncrypted() is encrypted}, a password
-     * <b>must</b> specified, if not, it <b>must</b> be <b>null</b>.
-     */
-    public T get(char[] password)
+    @Override
+    public KeyPair get(char[] password)
     throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException {
-        return this.get();
+        final PEMKeyPair key;
+        try {
+            key = this.key.decryptKeyPair(builder.build(password));
+        } catch (IOException exception) {
+            throw new InvalidKeyException("Unable to decrypt key pair", exception);
+        }
+
+        final PEMFactory factory = new PEMFactory();
+        return new KeyPair(factory.getPublicKey(key.getPublicKeyInfo()),
+                           factory.getPrivateKey(key.getPrivateKeyInfo()));
     }
 
 }

@@ -22,21 +22,34 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
+import java.security.KeyPair;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateKey;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
+import org.usrz.libs.crypto.pem.PEMEntry;
+import org.usrz.libs.crypto.pem.PEMReader;
 
 public class PKCS7Test {
 
     @Test
     public void testSignature()
     throws Exception {
-        final RSAPrivateKey key = PEM.loadPrivateKey(getClass().getResource("key.pem"));
-        final List<X509Certificate> certificates = PEM.loadCertificates(getClass().getResource("cert.pem"));
+        final PEMReader keyReader = new PEMReader(getClass().getResourceAsStream("key.pem"));
+        final RSAPrivateKey key = (RSAPrivateKey) ((KeyPair)keyReader.read().get()).getPrivate();
+        keyReader.close();
+
+        final List<X509Certificate> certificates = new ArrayList<>();
+        final PEMReader certificatesReader = new PEMReader(getClass().getResourceAsStream("cert.pem"));
+        PEMEntry<?> entry = null;
+        while ((entry = certificatesReader.read()) != null) {
+            certificates.add((X509Certificate) entry.get());
+        }
+        certificatesReader.close();
 
         final byte[] data = new byte[65536];
         new Random().nextBytes(data);

@@ -15,25 +15,28 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.pem;
 
-import java.security.interfaces.RSAPublicKey;
+import java.security.InvalidKeyException;
+import java.security.KeyPair;
+import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
-import java.security.spec.X509EncodedKeySpec;
 
-/**
- * A {@link PEMEntry} for {@linkplain RSAPublicKey RSA public keys}.
- *
- * @author <a href="mailto:pier@usrz.com">Pier Fumagalli</a>
- */
-public final class PEMRSAPublicKeyEntry extends PEMEntry<RSAPublicKey> {
+import org.bouncycastle.openssl.PEMKeyPair;
 
-    PEMRSAPublicKeyEntry(byte[] data, byte[] salt, Encryption encryption) {
-        super(Type.RSA_PUBLIC_KEY, data, salt, encryption);
+public final class PEMPrivateKeyEntry extends PEMEntry<KeyPair> {
+
+    private final KeyPair keyPair;
+
+    PEMPrivateKeyEntry(PEMKeyPair key)
+    throws NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
+        super(KeyPair.class, false);
+        final PEMFactory factory = new PEMFactory();
+        keyPair = new KeyPair(factory.getPublicKey(key.getPublicKeyInfo()),
+                              factory.getPrivateKey(key.getPrivateKeyInfo()));
     }
 
     @Override
-    protected RSAPublicKey doGet(byte[] data)
-    throws InvalidKeySpecException {
-        return (RSAPublicKey) RSA_KEY_FACTORY.generatePublic(new X509EncodedKeySpec(data));
+    public KeyPair get() {
+        return keyPair;
     }
 
 }
