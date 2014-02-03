@@ -15,11 +15,11 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.pem;
 
-import java.io.IOException;
-import java.math.BigInteger;
 import java.security.interfaces.RSAPrivateCrtKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPrivateCrtKeySpec;
+
+import org.bouncycastle.asn1.pkcs.RSAPrivateKey;
 
 /**
  * A {@link PEMEntry} for {@linkplain RSAPrivateCrtKey RSA private keys}.
@@ -35,36 +35,16 @@ public final class PEMRSAPrivateKeyEntry extends PEMEntry<RSAPrivateCrtKey> {
     @Override
     protected RSAPrivateCrtKey doGet(byte[] data)
     throws PEMException, InvalidKeySpecException {
-        try {
-            final sun.security.util.DerInputStream derInputStream = new sun.security.util.DerInputStream(data);
-            final sun.security.util.DerValue[] values = derInputStream.getSequence(0);
-
-            int version = values[0].getInteger();
-            if (version != 0) throw new PEMException("Invalid version " + version + " for key");
-            if (values.length < 9) throw new PEMException("Invalid number of ASN.1 values for key");
-
-            final BigInteger modulus = values[1].getBigInteger();
-            final BigInteger publicExponent = values[2].getBigInteger();
-            final BigInteger privateExponent = values[3].getBigInteger();
-            final BigInteger prime1 = values[4].getBigInteger();
-            final BigInteger prime2 = values[5].getBigInteger();
-            final BigInteger exponent1 = values[6].getBigInteger();
-            final BigInteger exponent2 = values[7].getBigInteger();
-            final BigInteger coefficient = values[8].getBigInteger();
-
-            return (RSAPrivateCrtKey) RSA_KEY_FACTORY.generatePrivate(
-                    new RSAPrivateCrtKeySpec(modulus,
-                            publicExponent,
-                            privateExponent,
-                            prime1,
-                            prime2,
-                            exponent1,
-                            exponent2,
-                            coefficient));
-
-        } catch (IOException exception) {
-            throw new PEMException("Exception parsing ASN.1 format", exception);
-        }
+        final RSAPrivateKey privateKey = RSAPrivateKey.getInstance(data);
+        return (RSAPrivateCrtKey) RSA_KEY_FACTORY.generatePrivate(
+                new RSAPrivateCrtKeySpec(privateKey.getModulus(),
+                                         privateKey.getPublicExponent(),
+                                         privateKey.getPrivateExponent(),
+                                         privateKey.getPrime1(),
+                                         privateKey.getPrime2(),
+                                         privateKey.getExponent1(),
+                                         privateKey.getExponent2(),
+                                         privateKey.getCoefficient()));
     }
 
 }
