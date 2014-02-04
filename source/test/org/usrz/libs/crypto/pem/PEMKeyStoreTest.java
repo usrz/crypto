@@ -15,8 +15,6 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.pem;
 
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -30,19 +28,21 @@ import java.security.interfaces.RSAPublicKey;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 import javax.security.auth.x500.X500Principal;
 
-import org.testng.Assert;
 import org.testng.annotations.Test;
 import org.usrz.libs.crypto.codecs.HexCodec;
 import org.usrz.libs.logging.Log;
 import org.usrz.libs.logging.Logging;
+import org.usrz.libs.testing.AbstractTest;
+import org.usrz.libs.testing.IO;
 
-public class PEMKeyStoreTest {
+public class PEMKeyStoreTest extends AbstractTest {
 
     static { Logging.init(); }
 
@@ -74,7 +74,7 @@ public class PEMKeyStoreTest {
         Security.addProvider(new PEMProvider());
 
         final KeyStore keyStore = KeyStore.getInstance("PEM");
-        keyStore.load(this.getClass().getResourceAsStream("chains.pem"), null);
+        keyStore.load(IO.resource("chains.pem"), null);
 
         final Map<X500Principal, X509Certificate> certificates = new HashMap<>();
         final Map<X500Principal, String> certificateAliases = new HashMap<>();
@@ -85,7 +85,7 @@ public class PEMKeyStoreTest {
             final X509Certificate certificate = (X509Certificate) keyStore.getCertificate(alias);
             final X500Principal principal = certificate.getSubjectX500Principal();
 
-            Assert.assertEquals(alias, keyStore.getCertificateAlias(certificate), "Alias mismatch");
+            assertEquals(alias, keyStore.getCertificateAlias(certificate), "Alias mismatch");
 
             certificates.put(principal, certificate);
             certificateAliases.put(principal, alias);
@@ -93,19 +93,19 @@ public class PEMKeyStoreTest {
             log.debug("            ASN.1 \"%s\"", HexCodec.HEX.encode(principal.getEncoded()));
         }
 
-        Assert.assertEquals(certificates.size(), 12, "Wrong number of certificates");
-        Assert.assertTrue(certificates.containsKey(EQUIFAX_SECURE),    "Certificate for Equifax Secure not found");
-        Assert.assertTrue(certificates.containsKey(GEOTRUST_GLOBAL),   "Certificate for Geotrust Global not found");
-        Assert.assertTrue(certificates.containsKey(GODADDY_SECURE),    "Certificate for GoDaddy Secure not found");
-        Assert.assertTrue(certificates.containsKey(GOOGLE_AUTHORITY),  "Certificate for Google Authority not found");
-        Assert.assertTrue(certificates.containsKey(VERISIGN_EXTENDED), "Certificate for VeriSign Extended");
-        Assert.assertTrue(certificates.containsKey(VERISIGN_PRIMARY),  "Certificate for VeriSign Primary");
-        Assert.assertTrue(certificates.containsKey(VERISIGN_SERVER),   "Certificate for VeriSign Server");
-        Assert.assertTrue(certificates.containsKey(WWW_APPLE_COM),     "Certificate for WWW.APPLE.COM not found");
-        Assert.assertTrue(certificates.containsKey(WWW_FACEBOOK_COM),  "Certificate for WWW.FACEBOOK.COM not found");
-        Assert.assertTrue(certificates.containsKey(WWW_GILT_COM),      "Certificate for WWW.GILT.COM not found");
-        Assert.assertTrue(certificates.containsKey(WWW_GOOGLE_COM),    "Certificate for WWW.GOOGLE.COM not found");
-        Assert.assertTrue(certificates.containsKey(WWW_YAHOO_COM),     "Certificate for WWW.YAHOO.COM not found");
+        assertEquals(certificates.size(), 12, "Wrong number of certificates");
+        assertTrue(certificates.containsKey(EQUIFAX_SECURE),    "Certificate for Equifax Secure not found");
+        assertTrue(certificates.containsKey(GEOTRUST_GLOBAL),   "Certificate for Geotrust Global not found");
+        assertTrue(certificates.containsKey(GODADDY_SECURE),    "Certificate for GoDaddy Secure not found");
+        assertTrue(certificates.containsKey(GOOGLE_AUTHORITY),  "Certificate for Google Authority not found");
+        assertTrue(certificates.containsKey(VERISIGN_EXTENDED), "Certificate for VeriSign Extended");
+        assertTrue(certificates.containsKey(VERISIGN_PRIMARY),  "Certificate for VeriSign Primary");
+        assertTrue(certificates.containsKey(VERISIGN_SERVER),   "Certificate for VeriSign Server");
+        assertTrue(certificates.containsKey(WWW_APPLE_COM),     "Certificate for WWW.APPLE.COM not found");
+        assertTrue(certificates.containsKey(WWW_FACEBOOK_COM),  "Certificate for WWW.FACEBOOK.COM not found");
+        assertTrue(certificates.containsKey(WWW_GILT_COM),      "Certificate for WWW.GILT.COM not found");
+        assertTrue(certificates.containsKey(WWW_GOOGLE_COM),    "Certificate for WWW.GOOGLE.COM not found");
+        assertTrue(certificates.containsKey(WWW_YAHOO_COM),     "Certificate for WWW.YAHOO.COM not found");
 
         /* Apple's chain */
         validateChain(keyStore, certificateAliases.get(WWW_APPLE_COM),
@@ -169,7 +169,7 @@ public class PEMKeyStoreTest {
         final String chainName = certificates[0].getSubjectX500Principal().toString();
 
         final Certificate[] chain = keyStore.getCertificateChain(alias);
-        Assert.assertNotNull(chain, "Certificate chain for " + chainName + " is null");
+        assertNotNull(chain, "Certificate chain for " + chainName + " is null");
 
         log.debug("Dumping contents for chain %s:", chainName);
         for (int x = 0; x < chain.length; x++) {
@@ -178,9 +178,9 @@ public class PEMKeyStoreTest {
             log.debug("       +--(issuer )--> %s", certificate.getIssuerX500Principal());
         }
 
-        Assert.assertEquals(chain.length, certificates.length, "Wrong number of certificates in chain for " + chainName);
+        assertEquals(chain.length, certificates.length, "Wrong number of certificates in chain for " + chainName);
         for (int x = 0; x < chain.length; x++) {
-            Assert.assertEquals(chain[x], certificates[x], "Wrong certificate at position " + x + " in chain for " + chainName);
+            assertEquals(chain[x], certificates[x], "Wrong certificate at position " + x + " in chain for " + chainName);
         }
     }
 
@@ -192,7 +192,7 @@ public class PEMKeyStoreTest {
         Security.addProvider(new PEMProvider());
 
         final KeyStore keyStore = KeyStore.getInstance("PEM");
-        keyStore.load(this.getClass().getResourceAsStream("keys.pem"), "asdf".toCharArray());
+        keyStore.load(IO.resource("keys.pem"), "asdf".toCharArray());
 
     }
 
@@ -204,20 +204,20 @@ public class PEMKeyStoreTest {
         final X500Principal principal = new X500Principal("CN=Testing Self-Signed Certificate, OU=Testing Framework, O=USRZ.org, L=Shinjuku, ST=Tokyo, C=JP");
 
         final KeyStore keyStore = KeyStore.getInstance("PEM");
-        keyStore.load(this.getClass().getResourceAsStream("selfsigned.pem"), "asdf".toCharArray());
+        keyStore.load(IO.resource("selfsigned.pem"), "asdf".toCharArray());
 
         final RSAPrivateCrtKey key = (RSAPrivateCrtKey) keyStore.getKey("F7A4FD46266A272B145B4F09F6D14CC7A458268B", "asdf".toCharArray());
-        Assert.assertNotNull(key, "Private key is null");
+        assertNotNull(key, "Private key is null");
 
         final X509Certificate certificate = (X509Certificate) keyStore.getCertificate("F7A4FD46266A272B145B4F09F6D14CC7A458268B");
-        Assert.assertNotNull(certificate, "Certificate is null");
-        Assert.assertEquals(certificate.getSubjectX500Principal(), principal);
-        Assert.assertEquals(certificate.getIssuerX500Principal(), principal);
+        assertNotNull(certificate, "Certificate is null");
+        assertEquals(certificate.getSubjectX500Principal(), principal);
+        assertEquals(certificate.getIssuerX500Principal(), principal);
 
         final RSAPublicKey publicKey = (RSAPublicKey) certificate.getPublicKey();
-        Assert.assertNotNull(publicKey, "Public key is null");
-        Assert.assertEquals(publicKey.getModulus(), key.getModulus());
-        Assert.assertEquals(publicKey.getPublicExponent(), key.getPublicExponent());
+        assertNotNull(publicKey, "Public key is null");
+        assertEquals(publicKey.getModulus(), key.getModulus());
+        assertEquals(publicKey.getPublicExponent(), key.getPublicExponent());
 
         validateChain(keyStore, "F7A4FD46266A272B145B4F09F6D14CC7A458268B", certificate);
 
@@ -232,20 +232,20 @@ public class PEMKeyStoreTest {
         final X500Principal issuer = new X500Principal("CN=Testing Intermediate Certificate Authority, OU=Testing Framework, O=USRZ.org, ST=Tokyo, C=JP");
 
         final KeyStore keyStore = KeyStore.getInstance("PEM");
-        keyStore.load(this.getClass().getResourceAsStream("full.pem"), "asdf".toCharArray());
+        keyStore.load(IO.resource("full.pem"), "asdf".toCharArray());
 
         final RSAPrivateCrtKey key = (RSAPrivateCrtKey) keyStore.getKey("9D31E8423D144DD51E16BBAAB8A7E0C117B32F7E", "asdf".toCharArray());
-        Assert.assertNotNull(key, "Private key is null");
+        assertNotNull(key, "Private key is null");
 
         final X509Certificate certificate = (X509Certificate) keyStore.getCertificate("9D31E8423D144DD51E16BBAAB8A7E0C117B32F7E");
-        Assert.assertNotNull(certificate, "Certificate is null");
-        Assert.assertEquals(certificate.getSubjectX500Principal(), subject);
-        Assert.assertEquals(certificate.getIssuerX500Principal(), issuer);
+        assertNotNull(certificate, "Certificate is null");
+        assertEquals(certificate.getSubjectX500Principal(), subject);
+        assertEquals(certificate.getIssuerX500Principal(), issuer);
 
         final RSAPublicKey publicKey = (RSAPublicKey) certificate.getPublicKey();
-        Assert.assertNotNull(publicKey, "Public key is null");
-        Assert.assertEquals(publicKey.getModulus(), key.getModulus());
-        Assert.assertEquals(publicKey.getPublicExponent(), key.getPublicExponent());
+        assertNotNull(publicKey, "Public key is null");
+        assertEquals(publicKey.getModulus(), key.getModulus());
+        assertEquals(publicKey.getPublicExponent(), key.getPublicExponent());
 
         validateChain(keyStore, "9D31E8423D144DD51E16BBAAB8A7E0C117B32F7E",
                       certificate,
@@ -260,11 +260,11 @@ public class PEMKeyStoreTest {
         Security.addProvider(new PEMProvider());
         final KeyStore keyStore = KeyStore.getInstance("PEM");
 
-        keyStore.load(this.getClass().getResourceAsStream("selfsigned.pem"), "asdf".toCharArray());
-        Assert.assertEquals(keyStore.size(), 1); // 1 entry, self signed key/cert
+        keyStore.load(IO.resource("selfsigned.pem"), "asdf".toCharArray());
+        assertEquals(keyStore.size(), 1); // 1 entry, self signed key/cert
 
-        keyStore.load(this.getClass().getResourceAsStream("full.pem"), "asdf".toCharArray());
-        Assert.assertEquals(keyStore.size(), 4); // 4 entries, self signed key/cert, key/cert, intermediate CA, root CA
+        keyStore.load(IO.resource("full.pem"), "asdf".toCharArray());
+        assertEquals(keyStore.size(), 4); // 4 entries, self signed key/cert, key/cert, intermediate CA, root CA
     }
 
     @Test
@@ -273,7 +273,7 @@ public class PEMKeyStoreTest {
         Security.addProvider(new PEMProvider());
 
         final KeyStore keyStore = KeyStore.getInstance("PEM");
-        keyStore.load(this.getClass().getResourceAsStream("selfsigned.pem"), "asdf".toCharArray());
+        keyStore.load(IO.resource("selfsigned.pem"), "asdf".toCharArray());
 
         final KeyManagerFactory keyFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
         keyFactory.init(keyStore, "asdf".toCharArray());
@@ -288,14 +288,16 @@ public class PEMKeyStoreTest {
         final ServerSocket server = context.getServerSocketFactory().createServerSocket(0, 1, localhost);
         log.debug("ServerSocket bound to port %s", server.getLocalSocketAddress());
 
+        final byte[] message = new byte[4096];
+        new Random().nextBytes(message);
+
         final Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    final Socket s = server.accept();
-                    log.debug("Accepting connection from %s" + s.getRemoteSocketAddress());
-                    s.getOutputStream().write("HELLO!".getBytes());
-                    s.close();
+                    final Socket socket = server.accept();
+                    log.debug("Accepting connection from %s" + socket.getRemoteSocketAddress());
+                    IO.copy(message, socket.getOutputStream());
                 } catch (Exception exception) {
                     exception.printStackTrace();
                 }
@@ -306,18 +308,8 @@ public class PEMKeyStoreTest {
             thread.start();
 
             final Socket client = context.getSocketFactory().createSocket(localhost, server.getLocalPort());
-            final ByteArrayOutputStream output = new ByteArrayOutputStream();
-            final InputStream input = client.getInputStream();
-            final byte[] buffer = new byte[128];
-
-            int read = -1;
-            while ((read = input.read(buffer)) >= 0) {
-                if (read > 0) output.write(buffer, 0, read);
-            }
-            input.close();
-            output.close();
-
-            Assert.assertEquals(new String(output.toByteArray()), "HELLO!");
+            byte[] received = IO.read(client.getInputStream());
+            assertEquals(received, message);
         } finally {
             try {
                 server.close();

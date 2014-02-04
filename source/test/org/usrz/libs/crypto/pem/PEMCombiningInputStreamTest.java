@@ -16,26 +16,19 @@
 package org.usrz.libs.crypto.pem;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.testng.Assert;
 import org.testng.annotations.Test;
 import org.usrz.libs.crypto.codecs.CharsetCodec;
+import org.usrz.libs.testing.AbstractTest;
+import org.usrz.libs.testing.IO;
 
-public class PEMCombiningInputStreamTest {
+public class PEMCombiningInputStreamTest extends AbstractTest {
 
     private InputStream readAndTrim(String resource)
     throws IOException {
-        final InputStream input = this.getClass().getResourceAsStream(resource);
-        final ByteArrayOutputStream output = new ByteArrayOutputStream();
-        final byte[] buffer = new byte[4096];
-        int read;
-        while ((read = input.read(buffer)) >= 0) {
-            if (read > 0) output.write(buffer, 0, read);
-        }
-        final String data = new String(output.toByteArray(), CharsetCodec.ASCII).trim();
+        final String data = new String(IO.read(resource), CharsetCodec.ASCII).trim();
         return new ByteArrayInputStream(data.getBytes(CharsetCodec.ASCII));
     }
 
@@ -50,7 +43,7 @@ public class PEMCombiningInputStreamTest {
         try {
             int count = 0;
             while (reader.read() != null) count ++;
-            Assert.assertEquals(count, 20, "Wrong number of entries");
+            assertEquals(count, 20, "Wrong number of entries");
         } finally {
             reader.close();
         }

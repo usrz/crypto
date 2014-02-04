@@ -18,10 +18,10 @@ package org.usrz.libs.crypto.codecs;
 import static org.usrz.libs.crypto.codecs.Base64Codec.BASE_64;
 import static org.usrz.libs.crypto.codecs.CharsetCodec.UTF8;
 
-import org.testng.Assert;
 import org.testng.annotations.Test;
+import org.usrz.libs.testing.AbstractTest;
 
-public class Base64CodecTest {
+public class Base64CodecTest extends AbstractTest {
 
     @Test
     public void testSimpleEncode() {
@@ -38,7 +38,7 @@ public class Base64CodecTest {
                                     (byte) 0x5d, (byte) 0xb7, (byte) 0xe3, (byte) 0x9e,
                                     (byte) 0xbb, (byte) 0xf3, (byte) 0xdf, (byte) 0xbf };
         String string = new Base64Codec().encode(array);
-        Assert.assertEquals(string, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/");
+        assertEquals(string, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/");
     }
 
     @Test
@@ -56,67 +56,67 @@ public class Base64CodecTest {
                                     (byte) 0x5d, (byte) 0xb7, (byte) 0xe3, (byte) 0x9e,
                                     (byte) 0xbb, (byte) 0xf3, (byte) 0xdf, (byte) 0xbf };
         byte result[] = new Base64Codec().decode("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/");
-        Assert.assertEquals(result, array);
+        assertEquals(result, array);
     }
 
     @Test
     public void testDecodeDictionary() {
-        Assert.assertEquals(new Base64Codec().decode("YQ"),              "a".getBytes(UTF8));
-        Assert.assertEquals(new Base64Codec().decode("YWI"),             "ab".getBytes(UTF8));
-        Assert.assertEquals(new Base64Codec().decode("YWJj"),            "abc".getBytes(UTF8));
-        Assert.assertEquals(new Base64Codec().decode("YWJjZA"),          "abcd".getBytes(UTF8));
-        Assert.assertEquals(new Base64Codec().decode("YWJjZGU"),         "abcde".getBytes(UTF8));
-        Assert.assertEquals(new Base64Codec().decode("YWJjZGVm"),        "abcdef".getBytes(UTF8));
-        Assert.assertEquals(new Base64Codec().decode("YWJjZGVmZw"),      "abcdefg".getBytes(UTF8));
-        Assert.assertEquals(new Base64Codec().decode("YWJjZGVmZ2g"),     "abcdefgh".getBytes(UTF8));
-        Assert.assertEquals(new Base64Codec().decode("YWJjZGVmZ2hp"),    "abcdefghi".getBytes(UTF8));
-        Assert.assertEquals(new Base64Codec().decode("YWJjZGVmZ2hpag"),  "abcdefghij".getBytes(UTF8));
-        Assert.assertEquals(new Base64Codec().decode("YWJjZGVmZ2hpams"), "abcdefghijk".getBytes(UTF8));
+        assertEquals(new Base64Codec().decode("YQ"),              "a".getBytes(UTF8));
+        assertEquals(new Base64Codec().decode("YWI"),             "ab".getBytes(UTF8));
+        assertEquals(new Base64Codec().decode("YWJj"),            "abc".getBytes(UTF8));
+        assertEquals(new Base64Codec().decode("YWJjZA"),          "abcd".getBytes(UTF8));
+        assertEquals(new Base64Codec().decode("YWJjZGU"),         "abcde".getBytes(UTF8));
+        assertEquals(new Base64Codec().decode("YWJjZGVm"),        "abcdef".getBytes(UTF8));
+        assertEquals(new Base64Codec().decode("YWJjZGVmZw"),      "abcdefg".getBytes(UTF8));
+        assertEquals(new Base64Codec().decode("YWJjZGVmZ2g"),     "abcdefgh".getBytes(UTF8));
+        assertEquals(new Base64Codec().decode("YWJjZGVmZ2hp"),    "abcdefghi".getBytes(UTF8));
+        assertEquals(new Base64Codec().decode("YWJjZGVmZ2hpag"),  "abcdefghij".getBytes(UTF8));
+        assertEquals(new Base64Codec().decode("YWJjZGVmZ2hpams"), "abcdefghijk".getBytes(UTF8));
     }
 
     @Test
     public void testEncodeDictionary() {
-        Assert.assertEquals(new Base64Codec(false).encode("a".getBytes(UTF8)),           "YQ");
-        Assert.assertEquals(new Base64Codec(false).encode("ab".getBytes(UTF8)),          "YWI");
-        Assert.assertEquals(new Base64Codec(false).encode("abc".getBytes(UTF8)),         "YWJj");
-        Assert.assertEquals(new Base64Codec(false).encode("abcd".getBytes(UTF8)),        "YWJjZA");
-        Assert.assertEquals(new Base64Codec(false).encode("abcde".getBytes(UTF8)),       "YWJjZGU");
-        Assert.assertEquals(new Base64Codec(false).encode("abcdef".getBytes(UTF8)),      "YWJjZGVm");
-        Assert.assertEquals(new Base64Codec(false).encode("abcdefg".getBytes(UTF8)),     "YWJjZGVmZw");
-        Assert.assertEquals(new Base64Codec(false).encode("abcdefgh".getBytes(UTF8)),    "YWJjZGVmZ2g");
-        Assert.assertEquals(new Base64Codec(false).encode("abcdefghi".getBytes(UTF8)),   "YWJjZGVmZ2hp");
-        Assert.assertEquals(new Base64Codec(false).encode("abcdefghij".getBytes(UTF8)),  "YWJjZGVmZ2hpag");
-        Assert.assertEquals(new Base64Codec(false).encode("abcdefghijk".getBytes(UTF8)), "YWJjZGVmZ2hpams");
+        assertEquals(new Base64Codec(false).encode("a".getBytes(UTF8)),           "YQ");
+        assertEquals(new Base64Codec(false).encode("ab".getBytes(UTF8)),          "YWI");
+        assertEquals(new Base64Codec(false).encode("abc".getBytes(UTF8)),         "YWJj");
+        assertEquals(new Base64Codec(false).encode("abcd".getBytes(UTF8)),        "YWJjZA");
+        assertEquals(new Base64Codec(false).encode("abcde".getBytes(UTF8)),       "YWJjZGU");
+        assertEquals(new Base64Codec(false).encode("abcdef".getBytes(UTF8)),      "YWJjZGVm");
+        assertEquals(new Base64Codec(false).encode("abcdefg".getBytes(UTF8)),     "YWJjZGVmZw");
+        assertEquals(new Base64Codec(false).encode("abcdefgh".getBytes(UTF8)),    "YWJjZGVmZ2g");
+        assertEquals(new Base64Codec(false).encode("abcdefghi".getBytes(UTF8)),   "YWJjZGVmZ2hp");
+        assertEquals(new Base64Codec(false).encode("abcdefghij".getBytes(UTF8)),  "YWJjZGVmZ2hpag");
+        assertEquals(new Base64Codec(false).encode("abcdefghijk".getBytes(UTF8)), "YWJjZGVmZ2hpams");
     }
 
     @Test
     public void testDecodePadding() {
-        Assert.assertEquals(new Base64Codec().decode("YQ=="),             "a".getBytes(UTF8));
-        Assert.assertEquals(new Base64Codec().decode("YWI="),             "ab".getBytes(UTF8));
-        Assert.assertEquals(new Base64Codec().decode("YWJj"),             "abc".getBytes(UTF8));
-        Assert.assertEquals(new Base64Codec().decode("YWJjZA=="),         "abcd".getBytes(UTF8));
-        Assert.assertEquals(new Base64Codec().decode("YWJjZGU="),         "abcde".getBytes(UTF8));
-        Assert.assertEquals(new Base64Codec().decode("YWJjZGVm"),         "abcdef".getBytes(UTF8));
-        Assert.assertEquals(new Base64Codec().decode("YWJjZGVmZw=="),     "abcdefg".getBytes(UTF8));
-        Assert.assertEquals(new Base64Codec().decode("YWJjZGVmZ2g="),     "abcdefgh".getBytes(UTF8));
-        Assert.assertEquals(new Base64Codec().decode("YWJjZGVmZ2hp"),     "abcdefghi".getBytes(UTF8));
-        Assert.assertEquals(new Base64Codec().decode("YWJjZGVmZ2hpag=="), "abcdefghij".getBytes(UTF8));
-        Assert.assertEquals(new Base64Codec().decode("YWJjZGVmZ2hpams="), "abcdefghijk".getBytes(UTF8));
+        assertEquals(new Base64Codec().decode("YQ=="),             "a".getBytes(UTF8));
+        assertEquals(new Base64Codec().decode("YWI="),             "ab".getBytes(UTF8));
+        assertEquals(new Base64Codec().decode("YWJj"),             "abc".getBytes(UTF8));
+        assertEquals(new Base64Codec().decode("YWJjZA=="),         "abcd".getBytes(UTF8));
+        assertEquals(new Base64Codec().decode("YWJjZGU="),         "abcde".getBytes(UTF8));
+        assertEquals(new Base64Codec().decode("YWJjZGVm"),         "abcdef".getBytes(UTF8));
+        assertEquals(new Base64Codec().decode("YWJjZGVmZw=="),     "abcdefg".getBytes(UTF8));
+        assertEquals(new Base64Codec().decode("YWJjZGVmZ2g="),     "abcdefgh".getBytes(UTF8));
+        assertEquals(new Base64Codec().decode("YWJjZGVmZ2hp"),     "abcdefghi".getBytes(UTF8));
+        assertEquals(new Base64Codec().decode("YWJjZGVmZ2hpag=="), "abcdefghij".getBytes(UTF8));
+        assertEquals(new Base64Codec().decode("YWJjZGVmZ2hpams="), "abcdefghijk".getBytes(UTF8));
     }
 
     @Test
     public void testEncodePadding() {
-        Assert.assertEquals(new Base64Codec(true).encode("a".getBytes(UTF8)),           "YQ==");
-        Assert.assertEquals(new Base64Codec(true).encode("ab".getBytes(UTF8)),          "YWI=");
-        Assert.assertEquals(new Base64Codec(true).encode("abc".getBytes(UTF8)),         "YWJj");
-        Assert.assertEquals(new Base64Codec(true).encode("abcd".getBytes(UTF8)),        "YWJjZA==");
-        Assert.assertEquals(new Base64Codec(true).encode("abcde".getBytes(UTF8)),       "YWJjZGU=");
-        Assert.assertEquals(new Base64Codec(true).encode("abcdef".getBytes(UTF8)),      "YWJjZGVm");
-        Assert.assertEquals(new Base64Codec(true).encode("abcdefg".getBytes(UTF8)),     "YWJjZGVmZw==");
-        Assert.assertEquals(new Base64Codec(true).encode("abcdefgh".getBytes(UTF8)),    "YWJjZGVmZ2g=");
-        Assert.assertEquals(new Base64Codec(true).encode("abcdefghi".getBytes(UTF8)),   "YWJjZGVmZ2hp");
-        Assert.assertEquals(new Base64Codec(true).encode("abcdefghij".getBytes(UTF8)),  "YWJjZGVmZ2hpag==");
-        Assert.assertEquals(new Base64Codec(true).encode("abcdefghijk".getBytes(UTF8)), "YWJjZGVmZ2hpams=");
+        assertEquals(new Base64Codec(true).encode("a".getBytes(UTF8)),           "YQ==");
+        assertEquals(new Base64Codec(true).encode("ab".getBytes(UTF8)),          "YWI=");
+        assertEquals(new Base64Codec(true).encode("abc".getBytes(UTF8)),         "YWJj");
+        assertEquals(new Base64Codec(true).encode("abcd".getBytes(UTF8)),        "YWJjZA==");
+        assertEquals(new Base64Codec(true).encode("abcde".getBytes(UTF8)),       "YWJjZGU=");
+        assertEquals(new Base64Codec(true).encode("abcdef".getBytes(UTF8)),      "YWJjZGVm");
+        assertEquals(new Base64Codec(true).encode("abcdefg".getBytes(UTF8)),     "YWJjZGVmZw==");
+        assertEquals(new Base64Codec(true).encode("abcdefgh".getBytes(UTF8)),    "YWJjZGVmZ2g=");
+        assertEquals(new Base64Codec(true).encode("abcdefghi".getBytes(UTF8)),   "YWJjZGVmZ2hp");
+        assertEquals(new Base64Codec(true).encode("abcdefghij".getBytes(UTF8)),  "YWJjZGVmZ2hpag==");
+        assertEquals(new Base64Codec(true).encode("abcdefghijk".getBytes(UTF8)), "YWJjZGVmZ2hpams=");
     }
 
     @Test(groups="local")
@@ -136,7 +136,7 @@ public class Base64CodecTest {
 
                 /* Encode and decode the array, it should yeld the same result */
                 byte result[] = BASE_64.decode(BASE_64.encode(array));
-                Assert.assertEquals(result, array);
+                assertEquals(result, array);
                 count ++;
             }
         }

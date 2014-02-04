@@ -15,10 +15,10 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.codecs;
 
-import org.testng.Assert;
 import org.testng.annotations.Test;
+import org.usrz.libs.testing.AbstractTest;
 
-public class HexCodecTest {
+public class HexCodecTest extends AbstractTest {
 
     @Test
     public void testEncodeAll() {
@@ -30,7 +30,7 @@ public class HexCodecTest {
             builder.append(Integer.toHexString(x & 0x0ff).toUpperCase());
         }
         String encoded = new HexCodec().encode(bytes);
-        Assert.assertEquals(encoded, builder.toString());
+        assertEquals(encoded, builder.toString());
     }
 
     @Test
@@ -40,7 +40,7 @@ public class HexCodecTest {
             bytes[x + 128] = (byte) x;
         }
         byte[] result = new HexCodec().decode(new HexCodec().encode(bytes));
-        Assert.assertEquals(result, bytes);
+        assertEquals(result, bytes);
     }
 
     @Test
@@ -53,7 +53,7 @@ public class HexCodecTest {
             builder.append(Integer.toHexString(x & 0x0ff).toUpperCase());
         }
         byte[] decoded = new HexCodec().decode(builder.toString());
-        Assert.assertEquals(decoded, bytes);
+        assertEquals(decoded, bytes);
     }
 
     @Test
@@ -66,7 +66,7 @@ public class HexCodecTest {
             builder.append(Integer.toHexString(x & 0x0ff).toUpperCase());
         }
         byte[] decoded = new HexCodec().decode(builder.toString());
-        Assert.assertEquals(decoded, bytes);
+        assertEquals(decoded, bytes);
     }
 
     @Test
@@ -78,7 +78,7 @@ public class HexCodecTest {
         }
         String data = builder.toString();
         String result = new HexCodec().encode(new HexCodec().decode(data));
-        Assert.assertEquals(result, data);
+        assertEquals(result, data);
     }
 
     @Test(expectedExceptions=IllegalArgumentException.class)
@@ -113,7 +113,7 @@ public class HexCodecTest {
 
                 /* Encode and decode the array, it should yeld the same result */
                 byte result[] = new HexCodec().decode(new HexCodec().encode(array));
-                Assert.assertEquals(result, array);
+                assertEquals(result, array);
                 count ++;
             }
         }

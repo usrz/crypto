@@ -18,28 +18,29 @@ package org.usrz.libs.crypto.pem;
 import java.io.InputStream;
 import java.security.cert.CertStore;
 
-import org.testng.Assert;
 import org.testng.annotations.Test;
+import org.usrz.libs.testing.AbstractTest;
+import org.usrz.libs.testing.IO;
 
-public class PEMCertStoreParametersTest {
+public class PEMCertStoreParametersTest extends AbstractTest {
 
     @Test
     public void testCertStore()
     throws Exception {
-        final InputStream input = this.getClass().getResourceAsStream("chains.pem");
+        final InputStream input = IO.resource("chains.pem");
 
         final PEMCertStoreParameters params = new PEMCertStoreParameters(input);
         final CertStore certStore = CertStore.getInstance("Collection", params);
 
-        Assert.assertEquals(certStore.getCertificates(null).size(), 12, "Wrong number of certificates found");
-        Assert.assertEquals(certStore.getCRLs(null).size(), 0, "Wrong number of CRLs");
+        assertEquals(certStore.getCertificates(null).size(), 12, "Wrong number of certificates found");
+        assertEquals(certStore.getCRLs(null).size(), 0, "Wrong number of CRLs");
 
-        params.read(this.getClass().getResourceAsStream("full.pem"));
-        Assert.assertEquals(certStore.getCertificates(null).size(), 15, "Wrong number of certificates found");
-        Assert.assertEquals(certStore.getCRLs(null).size(), 0, "Wrong number of CRLs");
+        params.read(IO.resource("full.pem"));
+        assertEquals(certStore.getCertificates(null).size(), 15, "Wrong number of certificates found");
+        assertEquals(certStore.getCRLs(null).size(), 0, "Wrong number of CRLs");
 
-        params.read(this.getClass().getResourceAsStream("crl.pem"));
-        Assert.assertEquals(certStore.getCertificates(null).size(), 15, "Wrong number of certificates found");
-        Assert.assertEquals(certStore.getCRLs(null).size(), 1, "Wrong number of CRLs");
+        params.read(IO.resource("crl.pem"));
+        assertEquals(certStore.getCertificates(null).size(), 15, "Wrong number of certificates found");
+        assertEquals(certStore.getCRLs(null).size(), 1, "Wrong number of CRLs");
     }
 }
