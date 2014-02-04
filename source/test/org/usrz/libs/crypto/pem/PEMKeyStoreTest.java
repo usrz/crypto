@@ -255,6 +255,19 @@ public class PEMKeyStoreTest {
     }
 
     @Test
+    public void testMultipleInitializations()
+    throws Exception {
+        Security.addProvider(new PEMProvider());
+        final KeyStore keyStore = KeyStore.getInstance("PEM");
+
+        keyStore.load(this.getClass().getResourceAsStream("selfsigned.pem"), "asdf".toCharArray());
+        Assert.assertEquals(keyStore.size(), 1); // 1 entry, self signed key/cert
+
+        keyStore.load(this.getClass().getResourceAsStream("full.pem"), "asdf".toCharArray());
+        Assert.assertEquals(keyStore.size(), 4); // 4 entries, self signed key/cert, key/cert, intermediate CA, root CA
+    }
+
+    @Test
     public void testSSLContext()
     throws Exception {
         Security.addProvider(new PEMProvider());

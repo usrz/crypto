@@ -26,11 +26,14 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.Provider;
+import java.security.cert.CRLException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.List;
+import java.util.logging.Logger;
 
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.bouncycastle.cert.X509CRLHolder;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.openssl.PEMEncryptedKeyPair;
 import org.bouncycastle.openssl.PEMKeyPair;
@@ -42,6 +45,8 @@ import org.bouncycastle.openssl.PEMParser;
  * @author <a href="mailto:pier@usrz.com">Pier Fumagalli</a>
  */
 public class PEMReader implements Closeable {
+
+    private static final Logger logger = Logger.getLogger(PEMReader.class.getName());
 
     private final PEMFactory factory;
     private final PEMParser parser;
@@ -124,32 +129,41 @@ public class PEMReader implements Closeable {
      * @throws InvalidKeyException
      */
     public PEMEntry<?> read()
-    throws IOException, CertificateException, InvalidKeyException,
+    throws IOException, CertificateException, CRLException, InvalidKeyException,
            NoSuchAlgorithmException, InvalidKeySpecException {
-        final Object object = parser.readObject();
-        if (object == null) return null;
 
-        if (object instanceof X509CertificateHolder) {
-            // X509 certificate
-            return(new PEMEntryX509Certificate(factory, (X509CertificateHolder) object));
+        Object object = parser.readObject();
+        while (object != null) {
 
-        } else if (object instanceof PEMEncryptedKeyPair) {
-            // Encrypted private key
-            return(new PEMEntryEncryptedKeyPair(factory, (PEMEncryptedKeyPair) object));
+            if (object instanceof X509CertificateHolder) {
+                // X509 certificate
+                return(new PEMEntryX509Certificate(factory, (X509CertificateHolder) object));
 
-        } else if (object instanceof PEMKeyPair) {
-            // Non-encrypted private key
-            return(new PEMEntryKeyPair(factory, (PEMKeyPair) object));
+            } else if (object instanceof X509CRLHolder) {
+                // X509 CRL
+                return(new PEMEntryCRL(factory, (X509CRLHolder) object));
 
-        } else if (object instanceof SubjectPublicKeyInfo) {
-            // Public Key
-            return(new PEMEntryPublicKey(factory, (SubjectPublicKeyInfo) object));
+            } else if (object instanceof PEMEncryptedKeyPair) {
+                // Encrypted private key
+                return(new PEMEntryEncryptedKeyPair(factory, (PEMEncryptedKeyPair) object));
 
-        } else {
-            // Huh? What's this?
-            throw new IOException("Unrecognized object " + object.getClass().getName());
+            } else if (object instanceof PEMKeyPair) {
+                // Non-encrypted private key
+                return(new PEMEntryKeyPair(factory, (PEMKeyPair) object));
 
+            } else if (object instanceof SubjectPublicKeyInfo) {
+                // Public Key
+                return(new PEMEntryPublicKey(factory, (SubjectPublicKeyInfo) object));
+
+            } else {
+                // Huh? What's this? Warn and off to the next object!
+                logger.warning("Unrecognized PEM object " + object.getClass().getName() + ", skipping...");
+                object = parser.readObject();
+                continue;
+            }
         }
+
+        return null;
     }
 
     @Override

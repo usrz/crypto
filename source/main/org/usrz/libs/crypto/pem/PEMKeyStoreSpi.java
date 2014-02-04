@@ -34,6 +34,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SignatureException;
 import java.security.UnrecoverableKeyException;
+import java.security.cert.CRLException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -84,7 +85,7 @@ public class PEMKeyStoreSpi extends KeyStoreSpi {
             while ((entry = reader.read()) != null) {
                 if (logger.isLoggable(Level.FINER)) logger.finer("Found " + entry);
 
-                if (X509Certificate.class.isAssignableFrom(entry.getType())) {
+                if (Certificate.class.isAssignableFrom(entry.getType())) {
                     final X509Certificate certificate = (X509Certificate) entry.get(password);
                     certificates.put(certificate.getSubjectX500Principal(), certificate);
 
@@ -127,7 +128,7 @@ public class PEMKeyStoreSpi extends KeyStoreSpi {
                 logger.warning("Ignoring entry for " + entry.getType().getName());
             }
 
-        } catch (InvalidKeyException | InvalidKeySpecException exception) {
+        } catch (CRLException | InvalidKeyException | InvalidKeySpecException exception) {
             throw new IllegalArgumentException("Unable to decrypt data", exception);
         } finally {
             reader.close();

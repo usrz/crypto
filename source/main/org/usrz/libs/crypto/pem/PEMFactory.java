@@ -26,8 +26,10 @@ import java.security.PrivateKey;
 import java.security.Provider;
 import java.security.PublicKey;
 import java.security.Security;
+import java.security.cert.CRLException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
+import java.security.cert.X509CRL;
 import java.security.cert.X509Certificate;
 import java.security.spec.DSAPrivateKeySpec;
 import java.security.spec.InvalidKeySpecException;
@@ -42,6 +44,7 @@ import org.bouncycastle.asn1.pkcs.RSAPrivateKey;
 import org.bouncycastle.asn1.x509.DSAParameter;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.asn1.x9.X9ObjectIdentifiers;
+import org.bouncycastle.cert.X509CRLHolder;
 import org.bouncycastle.cert.X509CertificateHolder;
 
 /**
@@ -164,6 +167,17 @@ class PEMFactory {
             final byte[] encoded = holder.getEncoded();
             final ByteArrayInputStream stream = new ByteArrayInputStream(encoded);
             return (X509Certificate) getCertificateFactory().generateCertificate(stream);
+        } catch (IOException exception) {
+            throw new CertificateException("Unable to get encoded certificate", exception);
+        }
+    }
+
+    public X509CRL getCRL(X509CRLHolder holder)
+    throws CertificateException, CRLException {
+        try {
+            final byte[] encoded = holder.getEncoded();
+            final ByteArrayInputStream stream = new ByteArrayInputStream(encoded);
+            return (X509CRL) getCertificateFactory().generateCRL(stream);
         } catch (IOException exception) {
             throw new CertificateException("Unable to get encoded certificate", exception);
         }
