@@ -25,7 +25,7 @@ import org.usrz.libs.testing.AbstractTest;
 
 public class SCryptTest extends AbstractTest {
 
-    @Test
+    @Test(groups="local")
     public void testParallelThreads()
     throws InterruptedException {
 
