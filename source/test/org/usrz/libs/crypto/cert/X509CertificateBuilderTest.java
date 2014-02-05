@@ -84,7 +84,7 @@ public class X509CertificateBuilderTest extends AbstractTest {
                                 false}, // decipherOnly
                     "Wrong basic key usage");
         assertEqualsNoOrder(certificate.getExtendedKeyUsage().toArray(),
-                            new Object[] { "1.3.6.1.5.5.7.3.1", "1.3.6.1.5.5.7.3.2" },
+                            new Object[] { "1.3.6.1.5.5.7.3.1" },
                             "Wrong extended key usage: " + certificate.getExtendedKeyUsage());
 
         final Set<String> alternativeNames = new HashSet<>();
@@ -159,7 +159,10 @@ public class X509CertificateBuilderTest extends AbstractTest {
                                 false,  // encipherOnly
                                 false}, // decipherOnly
                     "Wrong basic key usage");
-        assertNull(certificate.getExtendedKeyUsage(), "Wrong extended key usage: " + certificate.getExtendedKeyUsage());
+        assertEqualsNoOrder(certificate.getExtendedKeyUsage().toArray(),
+                    new Object[] { "1.3.6.1.5.5.7.3.9" },
+                    "Wrong extended key usage: " + certificate.getExtendedKeyUsage());
+
         assertNull(certificate.getSubjectAlternativeNames(), "Wrong alternative names: " + certificate.getSubjectAlternativeNames());
 
         assertEquals(certificate.getExtensionValue("2.5.29.31"),
