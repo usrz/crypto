@@ -104,11 +104,13 @@ public class X509CertificateBuilder {
     }
 
     public enum ExtendedKeyUsage {
+        ANY              (KeyPurposeId.anyExtendedKeyUsage),
         SERVER_AUTH      (KeyPurposeId.id_kp_serverAuth),
         CLIENT_AUTH      (KeyPurposeId.id_kp_clientAuth),
         CODE_SIGNING     (KeyPurposeId.id_kp_codeSigning),
         EMAIL_PROTECTION (KeyPurposeId.id_kp_emailProtection),
-        TIME_STAMPING    (KeyPurposeId.id_kp_timeStamping);
+        TIME_STAMPING    (KeyPurposeId.id_kp_timeStamping),
+        OCSP_SIGNING     (KeyPurposeId.id_kp_OCSPSigning);
 
         private final KeyPurposeId id;
 
@@ -124,11 +126,14 @@ public class X509CertificateBuilder {
     }
 
     public enum Mode {
+        CLIENT(new BasicKeyUsage[] { BasicKeyUsage.DIGITAL_SIGNATURE, BasicKeyUsage.KEY_ENCIPHERMENT },
+               new ExtendedKeyUsage[]{ ExtendedKeyUsage.CLIENT_AUTH }),
+
         SERVER(new BasicKeyUsage[] { BasicKeyUsage.DIGITAL_SIGNATURE, BasicKeyUsage.KEY_ENCIPHERMENT },
-               new ExtendedKeyUsage[]{ ExtendedKeyUsage.SERVER_AUTH, ExtendedKeyUsage.CLIENT_AUTH }),
+               new ExtendedKeyUsage[]{ ExtendedKeyUsage.SERVER_AUTH }),
 
         AUTHORITY(new BasicKeyUsage[] { BasicKeyUsage.KEY_CERT_SIGN, BasicKeyUsage.CRL_SIGN },
-                  new ExtendedKeyUsage[]{ });
+                  new ExtendedKeyUsage[]{ ExtendedKeyUsage.OCSP_SIGNING });
 
         private Set<BasicKeyUsage> basic;
         private Set<ExtendedKeyUsage> extended;
