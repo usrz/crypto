@@ -74,28 +74,101 @@ import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 
+/**
+ * A simple builder to create {@linkplain X509Certificate X.509 certificates}.
+ *
+ * @author <a href="mailto:pier@usrz.com">Pier Fumagalli</a>
+ */
 public class X509CertificateBuilder {
 
-    public enum BasicKeyUsage {
+    /**
+     * An enumeration containing the possible <i>Standard key usages</i> supported
+     * by a {@link X509CertificateBuilder}.
+     *
+     * <p>Key usage extensions define the purpose of the public key contained
+     * in a certificate. You can use them to restrict the public key to as few
+     * or as many operations as needed. For example, if you have a key used
+     * only for signing or verifying a signature, enable the digital signature
+     * and/or non-repudiation extensions. Alternatively, if a key is used only
+     * for key management, enable key encipherment.</p>
+     *
+     * @see <a target="_blank" href="http://publib.boulder.ibm.com/infocenter/domhelp/v8r0/index.jsp?topic=%2Fcom.ibm.help.domino.admin.doc%2FDOC%2FH_KEY_USAGE_EXTENSIONS_FOR_INTERNET_CERTIFICATES_1521_OVER.html">IBM's reference</a>
+     */
+    public enum StandardKeyUsage {
+        /**
+         * Use when the public key is used with a digital signature mechanism
+         * to support security services other than non-repudiation,
+         * certificate signing, or CRL signing. A digital signature is often
+         * used for entity authentication and data origin authentication with
+         * integrity.
+         */
         DIGITAL_SIGNATURE (KeyUsage.digitalSignature),
+
+        /**
+         * Use when the public key is used to verify digital signatures used
+         * to provide a non-repudiation service. Non-repudiation protects
+         * against the signing entity falsely denying some action (excluding
+         * certificate or CRL signing).
+         */
         NON_REPUDIATION   (KeyUsage.nonRepudiation),
+
+        /**
+         * Use when a certificate will be used with a protocol that encrypts
+         * keys. An example is S/MIME enveloping, where a fast (symmetric) key
+         * is encrypted with the public key from the certificate. SSL protocol
+         * also performs key encipherment.
+         */
         KEY_ENCIPHERMENT  (KeyUsage.keyEncipherment),
+
+        /**
+         * Use when the public key is used for encrypting user data, other
+         * than cryptographic keys.
+         */
         DATA_ENCIPHERMENT (KeyUsage.keyEncipherment),
+
+        /**
+         * Use when the sender and receiver of the public key need to derive
+         * the key without using encryption. This key can then can be used to
+         * encrypt messages between the sender and receiver. Key agreement is
+         * typically used with Diffie-Hellman ciphers.
+         */
         KEY_AGREEMENT     (KeyUsage.keyAgreement),
+
+        /**
+         * Use when the subject public key is used to verify a signature on
+         * certificates. This extension can be used only in CA certificates.
+         */
         KEY_CERT_SIGN     (KeyUsage.keyCertSign),
+
+        /**
+         * Use when the subject public key is to verify a signature on
+         * revocation information, such as a CRL.
+         */
         CRL_SIGN          (KeyUsage.cRLSign),
+
+        /**
+         * Use only when key agreement is also enabled. This enables the
+         * public key to be used only for enciphering data while performing
+         * key agreement.
+         */
         ENCIPHER_ONLY     (KeyUsage.encipherOnly),
+
+        /**
+         * Use only when key agreement is also enabled. This enables the
+         * public key to be used only for deciphering data while performing
+         * key agreement.
+         */
         DECIPHER_ONLY     (KeyUsage.decipherOnly);
 
         private int usage;
 
-        private BasicKeyUsage(int usage) {
+        private StandardKeyUsage(int usage) {
             this.usage = usage;
         }
 
-        private static int combine(Collection<? extends BasicKeyUsage> collection) {
+        private static int combine(Collection<? extends StandardKeyUsage> collection) {
             int usage = 0;
-            for (BasicKeyUsage flag: collection) {
+            for (StandardKeyUsage flag: collection) {
                 usage |= flag.usage;
             }
             return usage;
@@ -103,13 +176,47 @@ public class X509CertificateBuilder {
 
     }
 
+    /**
+     * An enumeration containing the possible <i>extended key usages</i>
+     * supported by a {@link X509CertificateBuilder}.
+     *
+     * <p>Extended key usage further refines key usage extensions. An extended
+     * key is either critical or non-critical. If the extension is critical,
+     * the certificate must be used only for the indicated purpose or purposes.
+     * If the certificate is used for another purpose, it is in violation of
+     * the CA's policy.</p>
+     *
+     * <p>If the extension is non-critical, it indicates the intended purpose
+     * or purposes of the key and may be used in finding the correct
+     * key/certificate of an entity that has multiple keys/certificates.
+     * The extension is then only an informational field and does not imply
+     * that the CA restricts use of the key to the purpose indicated.
+     * Nevertheless, applications that use certificates may require that a
+     * particular purpose be indicated in order for the certificate to be
+     * acceptable.</p>
+     *
+     * <p>If a certificate contains both a critical key usage field and a
+     * critical extended key usage field, both fields must be processed
+     * independently, and the certificate be used only for a purpose
+     * consistent with both fields. If there is no purpose consistent with
+     * both fields, the certificate must not be used for any purpose.</p>
+     *
+     * @see <a target="_blank" href="http://publib.boulder.ibm.com/infocenter/domhelp/v8r0/index.jsp?topic=%2Fcom.ibm.help.domino.admin.doc%2FDOC%2FH_KEY_USAGE_EXTENSIONS_FOR_INTERNET_CERTIFICATES_1521_OVER.html">IBM's reference</a>
+     */
     public enum ExtendedKeyUsage {
+        /** Any extended key usage */
         ANY              (KeyPurposeId.anyExtendedKeyUsage),
+        /** TLS web server authentication. */
         SERVER_AUTH      (KeyPurposeId.id_kp_serverAuth),
+        /** TLS web client authentication. */
         CLIENT_AUTH      (KeyPurposeId.id_kp_clientAuth),
+        /** Sign (downloadable) executable code. */
         CODE_SIGNING     (KeyPurposeId.id_kp_codeSigning),
+        /** Email protection. */
         EMAIL_PROTECTION (KeyPurposeId.id_kp_emailProtection),
+        /** Timestamping. */
         TIME_STAMPING    (KeyPurposeId.id_kp_timeStamping),
+        /** Sign OCSP <i>(Online Certificate Status Protocol)</i> responses. */
         OCSP_SIGNING     (KeyPurposeId.id_kp_OCSPSigning);
 
         private final KeyPurposeId id;
@@ -125,21 +232,46 @@ public class X509CertificateBuilder {
         }
     }
 
+    /**
+     * Standard <em>modes</em> for certificates.
+     *
+     * @author <a href="mailto:pier@usrz.com">Pier Fumagalli</a>
+     */
     public enum Mode {
-        CLIENT(new BasicKeyUsage[] { BasicKeyUsage.DIGITAL_SIGNATURE, BasicKeyUsage.KEY_ENCIPHERMENT },
-               new ExtendedKeyUsage[]{ ExtendedKeyUsage.CLIENT_AUTH }),
+        /**
+         * Client mode:
+         * {@linkplain StandardKeyUsage#DIGITAL_SIGNATURE digital signature},
+         * {@linkplain StandardKeyUsage#KEY_ENCIPHERMENT key encipherment} and
+         * {@linkplain ExtendedKeyUsage#CLIENT_AUTH TLS web client authentication}.
+         */
+        CLIENT(new StandardKeyUsage[] { StandardKeyUsage.DIGITAL_SIGNATURE, StandardKeyUsage.KEY_ENCIPHERMENT },
+               new ExtendedKeyUsage[] { ExtendedKeyUsage.CLIENT_AUTH }),
 
-        SERVER(new BasicKeyUsage[] { BasicKeyUsage.DIGITAL_SIGNATURE, BasicKeyUsage.KEY_ENCIPHERMENT },
-               new ExtendedKeyUsage[]{ ExtendedKeyUsage.SERVER_AUTH }),
+        /**
+         * Server mode:
+         * {@linkplain StandardKeyUsage#DIGITAL_SIGNATURE digital signature},
+         * {@linkplain StandardKeyUsage#KEY_ENCIPHERMENT key encipherment} and
+         * {@linkplain ExtendedKeyUsage#SERVER_AUTH TLS web server authentication}.
+         */
+        SERVER(new StandardKeyUsage[] { StandardKeyUsage.DIGITAL_SIGNATURE, StandardKeyUsage.KEY_ENCIPHERMENT },
+               new ExtendedKeyUsage[] { ExtendedKeyUsage.SERVER_AUTH }),
 
-        AUTHORITY(new BasicKeyUsage[] { BasicKeyUsage.KEY_CERT_SIGN, BasicKeyUsage.CRL_SIGN },
-                  new ExtendedKeyUsage[]{ ExtendedKeyUsage.OCSP_SIGNING });
+        /**
+         * Certificate Authority mode:
+         * {@linkplain StandardKeyUsage#KEY_CERT_SIGN certificate signatures},
+         * {@linkplain StandardKeyUsage#CRL_SIGN crl signatures},
+         * {@linkplain ExtendedKeyUsage#OCSP_SIGNING OCSP response signing} and
+         * will enable the <i>certificate authority</i> flag in the Standard
+         * constraints of the certificate.
+         */
+        AUTHORITY(new StandardKeyUsage[] { StandardKeyUsage.KEY_CERT_SIGN, StandardKeyUsage.CRL_SIGN },
+                  new ExtendedKeyUsage[] { ExtendedKeyUsage.OCSP_SIGNING });
 
-        private Set<BasicKeyUsage> basic;
+        private Set<StandardKeyUsage> Standard;
         private Set<ExtendedKeyUsage> extended;
 
-        private Mode(BasicKeyUsage[] basic, ExtendedKeyUsage[] extended) {
-            this.basic = basic.length == 0 ? Collections.<BasicKeyUsage>emptySet() : EnumSet.of(basic[0], basic);
+        private Mode(StandardKeyUsage[] Standard, ExtendedKeyUsage[] extended) {
+            this.Standard = Standard.length == 0 ? Collections.<StandardKeyUsage>emptySet() : EnumSet.of(Standard[0], Standard);
             this.extended = extended.length == 0 ? Collections.<ExtendedKeyUsage>emptySet() : EnumSet.of(extended[0], extended);
         }
     }
@@ -156,17 +288,28 @@ public class X509CertificateBuilder {
     private PublicKey subjectPublicKey;
     private Mode mode;
 
-    private final Set<BasicKeyUsage> basicKeyUsage = new HashSet<>();
+    private final Set<StandardKeyUsage> standardKeyUsage = new HashSet<>();
     private final Set<ExtendedKeyUsage> extendedKeyUsage = new HashSet<>();
     private final List<GeneralName> alternativeNames = new ArrayList<>();
     private final Set<GeneralName> crlDistributionPoints = new HashSet<>();
 
     /* ====================================================================== */
 
+    /**
+     * Create a new {@link X509CertificateBuilder} with validity
+     * {@linkplain #notBefore from} <i>now</i> and
+     * {@linkplain #notAfter(long, TimeUnit) duration} of one year.
+     */
     public X509CertificateBuilder() {
         this(null);
     }
 
+    /**
+     * Create a new {@link X509CertificateBuilder} in the specified
+     * {@link Mode} with validity
+     * {@linkplain #notBefore from} <i>now</i> and
+     * {@linkplain #notAfter(long, TimeUnit) duration} of one year.
+     */
     public X509CertificateBuilder(Mode mode) {
 
         /* Default "notBefore" to now, "notAfter" to one year later! */
@@ -183,8 +326,10 @@ public class X509CertificateBuilder {
 
     /* ====================================================================== */
 
-    public X509Certificate build()
-    throws CertificateException {
+    /**
+     * Build the final {@link X509Certificate} instance.
+     */
+    public X509Certificate build() {
         if (subject == null) throw new IllegalStateException("Subject not specified");
         if (issuer == null) throw new IllegalStateException("Issuer not specified");
         if (serial == null) throw new IllegalStateException("Serial not specified");
@@ -192,7 +337,7 @@ public class X509CertificateBuilder {
         if (issuerPrivateKey == null) throw new IllegalStateException("Issuer private key not specified");
         if (subjectPublicKey == null) throw new IllegalStateException("Sobject public key not specified");
 
-        /* Basic subject public key and X500 names */
+        /* Standard subject public key and X500 names */
         final SubjectPublicKeyInfo subjectPublicKeyInfo = SubjectPublicKeyInfo.getInstance(subjectPublicKey.getEncoded());
         final X500Name subjectName = X500Name.getInstance(subject.getEncoded());
         final X500Name issuerName = X500Name.getInstance(issuer.getEncoded());
@@ -217,9 +362,9 @@ public class X509CertificateBuilder {
             /* Add our subject key identifier */
             certificateBuilder.addExtension(Extension.subjectKeyIdentifier, false, utils.createSubjectKeyIdentifier(subjectPublicKeyInfo));
 
-            /* Do we have basic key usages? */
-            if (!basicKeyUsage.isEmpty())
-                certificateBuilder.addExtension(Extension.keyUsage, false, new KeyUsage(BasicKeyUsage.combine(basicKeyUsage)));
+            /* Do we have Standard key usages? */
+            if (!standardKeyUsage.isEmpty())
+                certificateBuilder.addExtension(Extension.keyUsage, false, new KeyUsage(StandardKeyUsage.combine(standardKeyUsage)));
 
             /* Do we have extended key usages? */
             if (!extendedKeyUsage.isEmpty())
@@ -250,7 +395,7 @@ public class X509CertificateBuilder {
             }
 
         } catch (CertIOException | NoSuchAlgorithmException exception) {
-            throw new CertificateException("Exception adding extensions", exception);
+            throw new IllegalStateException("Exception adding extensions", exception);
         }
 
         try {
@@ -259,40 +404,60 @@ public class X509CertificateBuilder {
             final X509CertificateHolder certificateHolder = certificateBuilder.build(signer);
             return (X509Certificate) factory.generateCertificate(new ByteArrayInputStream(certificateHolder.getEncoded()));
         } catch (OperatorCreationException exception) {
-            throw new CertificateException("Unable to create certificate signature", exception);
+            throw new IllegalStateException("Unable to create certificate signature", exception);
         } catch (IOException exception) {
-            throw new CertificateException("Unable to generate certificate data", exception);
+            throw new IllegalStateException("Unable to generate certificate data", exception);
+        } catch (CertificateException exception) {
+            throw new IllegalStateException("Unable to generate certificate", exception);
         }
     }
 
     /* ====================================================================== */
 
+    /**
+     * Set the Standard {@link Mode} of this {@link X509CertificateBuilder}.
+     *
+     * <p>This will reset both {@linkplain #clearStandardKeyUsage() Standard}
+     * and {@linkplain #clearExtendedKeyUsage() extended} key usage flags.
+     */
     public X509CertificateBuilder mode(Mode mode) {
-        resetBasicKeyUsage();
-        resetExtendedKeyUsage();
+        clearStandardKeyUsage();
+        clearExtendedKeyUsage();
         if (mode != null) {
-            basicKeyUsage.addAll(mode.basic);
+            standardKeyUsage.addAll(mode.Standard);
             extendedKeyUsage.addAll(mode.extended);
         }
         this.mode = mode;
         return this;
     }
 
-    public X509CertificateBuilder resetBasicKeyUsage() {
-        basicKeyUsage.clear();
+    /**
+     * Clear all {@linkplain StandardKeyUsage standard key usage} flags.
+     */
+    public X509CertificateBuilder clearStandardKeyUsage() {
+        standardKeyUsage.clear();
         return this;
     }
 
-    public X509CertificateBuilder basicKeyUsage(BasicKeyUsage... basicUsages) {
-        basicKeyUsage.addAll(Arrays.asList(basicUsages));
+    /**
+     * Add the specified {@linkplain StandardKeyUsage standard key usage} flags.
+     */
+    public X509CertificateBuilder standardKeyUsage(StandardKeyUsage... standardUsages) {
+        standardKeyUsage.addAll(Arrays.asList(standardUsages));
         return this;
     }
 
-    public X509CertificateBuilder resetExtendedKeyUsage() {
+    /**
+     * Clear all {@linkplain ExtendedKeyUsage standard key usage} flags.
+     */
+    public X509CertificateBuilder clearExtendedKeyUsage() {
         extendedKeyUsage.clear();
         return this;
     }
 
+    /**
+     * Add the specified {@linkplain ExtendedKeyUsage standard key usage} flags.
+     */
     public X509CertificateBuilder extendedKeyUsage(ExtendedKeyUsage... extendedUsages) {
         extendedKeyUsage.addAll(Arrays.asList(extendedUsages));
         return this;
@@ -300,12 +465,19 @@ public class X509CertificateBuilder {
 
     /* ====================================================================== */
 
+    /**
+     * Set the certificate's subject {@linkplain X500Principal principal}.
+     */
     public X509CertificateBuilder subject(X500Principal subject) {
         if (subject == null) throw new NullPointerException("Null subject");
         this.subject = subject;
         return this;
     }
 
+    /**
+     * Set the certificate's subject {@linkplain X500Principal principal} by
+     * {@linkplain X500Principal#X500Principal(String) parsing} a string.
+     */
     public X509CertificateBuilder subject(String subject) {
         if (subject == null) throw new NullPointerException("Null subject");
         return this.subject(new X500Principal(subject));
@@ -313,10 +485,21 @@ public class X509CertificateBuilder {
 
     /* ====================================================================== */
 
+    /**
+     * Set the {@linkplain X509Certificate certificate} of the authority
+     * issuing the certificate.
+     *
+     * <p>This method will set the issuer's
+     * {@linkplain #issuer(X500Principal) principal},
+     * {@linkplain #issuerPublicKey(Key) public key}
+     * and will attempt to copy the issuer's
+     * {@linkplain #crlDistributionPoint(URI) CRL distribution points}
+     * in the issued certificate.</p>
+     */
     public X509CertificateBuilder issuer(X509Certificate issuer) {
         if (issuer == null) throw new NullPointerException("Null issuer");
-        this.issuer = issuer.getSubjectX500Principal();
-        issuerPublicKey = issuer.getPublicKey();
+        this.issuer(issuer.getSubjectX500Principal());
+        issuerPublicKey(issuer.getPublicKey());
 
         final byte[] crl = issuer.getExtensionValue(Extension.cRLDistributionPoints.toString());
         if (crl != null) try {
@@ -336,12 +519,19 @@ public class X509CertificateBuilder {
         return this;
     }
 
+    /**
+     * Set the certificate's issuer {@linkplain X500Principal principal}.
+     */
     public X509CertificateBuilder issuer(X500Principal issuer) {
         if (issuer == null) throw new NullPointerException("Null issuer");
         this.issuer = issuer;
         return this;
     }
 
+    /**
+     * Set the certificate's issuer {@linkplain X500Principal principal} by
+     * {@linkplain X500Principal#X500Principal(String) parsing} a string.
+     */
     public X509CertificateBuilder issuer(String issuer) {
         if (issuer == null) throw new NullPointerException("Null issuer");
         return this.issuer(new X500Principal(issuer));
@@ -349,6 +539,9 @@ public class X509CertificateBuilder {
 
     /* ====================================================================== */
 
+    /**
+     * Set the serial number of the issued certificate.
+     */
     public X509CertificateBuilder serial(BigInteger serial) {
         if (serial == null) throw new NullPointerException("Null serial");
         if (serial.signum() != 1) throw new NullPointerException("Serial must be positive");
@@ -356,34 +549,59 @@ public class X509CertificateBuilder {
         return this;
     }
 
+    /**
+     * Set the serial number of the issued certificate.
+     */
     public X509CertificateBuilder serial(long serial) {
         return this.serial(BigInteger.valueOf(serial));
     }
 
     /* ====================================================================== */
 
+    /**
+     * Set the <em>not-valid-before</em> date of the issued certificate.
+     */
     public X509CertificateBuilder notBefore(Date notBefore) {
         if (notBefore == null) throw new NullPointerException("Null \"not-before\" date");
         this.notBefore = notBefore;
         return this;
     }
 
+    /**
+     * Set the <em>not-valid-before</em> date of the issued certificate (in
+     * milliseconds from the Epoch).
+     */
     public X509CertificateBuilder notBefore(long notBefore) {
         return this.notBefore(new Date(notBefore));
     }
 
     /* ====================================================================== */
 
+    /**
+     * Set the <em>not-valid-after</em> date of the issued certificate.
+     */
     public X509CertificateBuilder notAfter(Date notAfter) {
         if (notAfter == null) throw new NullPointerException("Null \"not-after\" date");
         this.notAfter = notAfter;
         return this;
     }
 
+    /**
+     * Set the <em>not-valid-after</em> date of the issued certificate (in
+     * milliseconds from the Epoch).
+     */
     public X509CertificateBuilder notAfter(long notAfter) {
         return this.notAfter(new Date(notAfter));
     }
 
+    /**
+     * Set the <em>not-valid-after</em> date of the issued certificate deriving
+     * it from the <em>{@linkplain #notBefore(Date) not-valid-before}</em> date
+     * and, a duration and {@linkplain TimeUnit time unit}.
+     *
+     * <p>Obviously the <em>{@linkplain #notBefore(Date) not-valid-before}</em>
+     * date must be set <b>prior</b> to calling this method.</p>
+     */
     public X509CertificateBuilder notAfter(long duration, TimeUnit unit) {
         if (notBefore == null) throw new IllegalStateException("Date \"not-before\" not yet specified");
         return this.notAfter(notBefore.getTime() + MILLISECONDS.convert(duration, unit));
@@ -391,6 +609,9 @@ public class X509CertificateBuilder {
 
     /* ====================================================================== */
 
+    /**
+     * Set the issuer private key that will be used to sign the certificate.
+     */
     public X509CertificateBuilder issuerPrivateKey(Key key) {
         if (key == null) throw new NullPointerException("Null issuer private key");
         try {
@@ -401,6 +622,10 @@ public class X509CertificateBuilder {
         }
     }
 
+    /**
+     * Set the (optional) issuer public key that will be included in the
+     * generated certificate.
+     */
     public X509CertificateBuilder issuerPublicKey(Key key) {
         if (key == null) throw new NullPointerException("Null issuer public key");
         try {
@@ -411,6 +636,10 @@ public class X509CertificateBuilder {
         }
     }
 
+    /**
+     * Set both the issuer {@linkplain #issuerPrivateKey(Key) private} and
+     * {@linkplain #issuerPublicKey(Key) public} keys from a {@link KeyPair}.
+     */
     public X509CertificateBuilder issuerKeyPair(KeyPair keyPair) {
         if (keyPair == null) throw new NullPointerException("Null issuer key pair");
         issuerPrivateKey(keyPair.getPrivate());
@@ -418,6 +647,10 @@ public class X509CertificateBuilder {
         return this;
     }
 
+    /**
+     * Set the subject public key that will be included in the generated
+     * certificate.
+     */
     public X509CertificateBuilder subjectPublicKey(Key key) {
         if (key == null) throw new NullPointerException("Null subject public key");
         try {
@@ -430,28 +663,47 @@ public class X509CertificateBuilder {
 
     /* ====================================================================== */
 
-    public X509CertificateBuilder resetAlternativeNames() {
+    /**
+     * Clear all alternative names that were set up until now.
+     */
+    public X509CertificateBuilder clearAlternativeNames() {
         alternativeNames.clear();
         return this;
     }
 
+    /**
+     * Add an alternative name in the form of an email address to the
+     * generated certificate.
+     */
     public X509CertificateBuilder alternativeNameEmail(String email) {
         if (email == null) throw new NullPointerException("Null email");
         alternativeNames.add(new GeneralName(GeneralName.rfc822Name, email));
         return this;
     }
 
+    /**
+     * Add an alternative name in the form of a DNS name (a host name) to the
+     * generated certificate.
+     */
     public X509CertificateBuilder alternativeNameDNS(String dnsName) {
         if (dnsName == null) throw new NullPointerException("Null DNS name");
         alternativeNames.add(new GeneralName(GeneralName.dNSName, dnsName));
         return this;
     }
 
+    /**
+     * Add an alternative name in the form of an {@link URI} to the
+     * generated certificate.
+     */
     public X509CertificateBuilder alternativeNameURI(String uri) {
         if (uri == null) throw new NullPointerException("Null URI");
         return alternativeNameURI(URI.create(uri));
     }
 
+    /**
+     * Add an alternative name in the form of an {@link URI} to the
+     * generated certificate.
+     */
     public X509CertificateBuilder alternativeNameURI(URL url) {
         if (url == null) throw new NullPointerException("Null URL");
         try {
@@ -461,6 +713,10 @@ public class X509CertificateBuilder {
         }
     }
 
+    /**
+     * Add an alternative name in the form of an {@link URI} to the
+     * generated certificate.
+     */
     public X509CertificateBuilder alternativeNameURI(URI uri) {
         if (uri == null) throw new NullPointerException("Null URI");
         final String string = uri.toASCIIString();
@@ -468,11 +724,22 @@ public class X509CertificateBuilder {
         return this;
     }
 
+    /**
+     * Add an alternative name in the form of an IP address to the
+     * generated certificate.
+     */
     public X509CertificateBuilder alternativeNameIPAddress(InetAddress address) {
         if (address == null) throw new NullPointerException("Null address");
         return this.alternativeNameIPAddress(address.getHostAddress());
     }
 
+    /**
+     * Add an alternative name in the form of an IP address to the
+     * generated certificate.
+     *
+     * <p>Both IPv4 and IPv6 are supported, and network masks can be specified
+     * after a slash character in the string.</p>
+     */
     public X509CertificateBuilder alternativeNameIPAddress(String address) {
         if (address == null) throw new NullPointerException("Null address");
         alternativeNames.add(new GeneralName(GeneralName.iPAddress, address));
@@ -481,16 +748,25 @@ public class X509CertificateBuilder {
 
     /* ====================================================================== */
 
-    public X509CertificateBuilder resetCRLDistributionPuints() {
+    /**
+     * Clear all CRL distribution points that were set up until now.
+     */
+    public X509CertificateBuilder clearCRLDistributionPoints() {
         crlDistributionPoints.clear();
         return this;
     }
 
+    /**
+     * Add a new CRL distribution point to the generated certificate.
+     */
     public X509CertificateBuilder crlDistributionPoint(String uri) {
         if (uri == null) throw new NullPointerException("Null CRL distribution point");
         return this.crlDistributionPoint(URI.create(uri));
     }
 
+    /**
+     * Add a new CRL distribution point to the generated certificate.
+     */
     public X509CertificateBuilder crlDistributionPoint(URL url) {
         if (url == null) throw new NullPointerException("Null CRL distribution point");
         try {
@@ -500,6 +776,9 @@ public class X509CertificateBuilder {
         }
     }
 
+    /**
+     * Add a new CRL distribution point to the generated certificate.
+     */
     public X509CertificateBuilder crlDistributionPoint(URI uri) {
         if (uri == null) throw new NullPointerException("Null CRL distribution point");
         final String string = uri.toASCIIString();
@@ -509,6 +788,19 @@ public class X509CertificateBuilder {
 
     /* ====================================================================== */
 
+    /**
+     * Set up this {@link X509CertificateBuilder} to prepare a self-signed
+     * certificate.
+     *
+     * <p>This method will set up the current builder in
+     * {@linkplain Mode#SERVER server mode}, use the same
+     * {@linkplain X500Principal principal} both for the
+     * {@linkplain #issuer(X500Principal) issuer} and
+     * {@linkplain #issuer(X500Principal) subject} and
+     * will use the various needed keys from the specified {@link KeyPair},
+     * while the serial number will be set to the {@linkplain CRC32 CRC32 hash}
+     * of the {@linkplain X500Principal#getEncoded() encoded principal}.</p>
+     */
     public X509CertificateBuilder selfSigned(X500Principal principal, KeyPair keyPair) {
         if (principal == null) throw new NullPointerException("Null principal for self-signed certificate");
         if (keyPair == null) throw new NullPointerException("Null key pair for self-signed certificate");
@@ -533,6 +825,12 @@ public class X509CertificateBuilder {
         return this;
     }
 
+    /**
+     * Set up this {@link X509CertificateBuilder} to prepare a self-signed
+     * certificate.
+     *
+     * @see #selfSigned(X500Principal, KeyPair)
+     */
     public X509CertificateBuilder selfSigned(String principal, KeyPair keyPair) {
         if (subject == null) throw new NullPointerException("Null subject");
         return this.selfSigned(new X500Principal(principal), keyPair);
