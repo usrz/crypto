@@ -57,7 +57,6 @@ public class X500PrincipalBuilder {
     /* Order! */
     private static final ASN1ObjectIdentifier[] ORDER = new ASN1ObjectIdentifier[]
             { COUNTRY, STATE, LOCALITY, ORGANISATION, ORGANISATIONAL_UNIT, COMMON_NAME, EMAIL_ADDRESS };
-//          { EMAIL_ADDRESS, COMMON_NAME, ORGANISATIONAL_UNIT, ORGANISATION, LOCALITY, STATE, COUNTRY };
 
     private final Map<ASN1ObjectIdentifier, ASN1Primitive> attributes;
 
