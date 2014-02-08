@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and        *
  * limitations under the License.                                             *
  * ========================================================================== */
-package org.usrz.libs.crypto.cert;
+package org.usrz.libs.crypto.utils;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -31,10 +31,20 @@ public class KeyPairBuilder {
 
     /**
      * Create a new {@link KeyPairBuilder} using the default <em>RSA</em>
-     * algorithm and producing keys of 1024 bits;
+     * algorithm and producing keys of 1024 bits.
      */
     public KeyPairBuilder() {
         /* Nothing to do, initialized to sensible defaults */
+    }
+
+    /**
+     * Create a new {@link KeyPairBuilder} with the specified algorithm
+     * and producing keys of 1024 bits.
+     *
+     * @see #algorithm(String)
+     */
+    public KeyPairBuilder(String algorithm) {
+        algorithm(algorithm);
     }
 
     /**
@@ -52,7 +62,7 @@ public class KeyPairBuilder {
     }
 
     /**
-     * Specify the name algorithm to be used by this {@link KeyPairBuilder}.
+     * Specify the name of the algorithm used by this {@link KeyPairBuilder}.
      */
     public KeyPairBuilder algorithm(String algorithm) {
         if (algorithm == null) throw new NullPointerException("Null algorithm");

@@ -29,6 +29,7 @@ import javax.security.auth.x500.X500Principal;
 import org.testng.annotations.Test;
 import org.usrz.libs.crypto.cert.X509CertificateBuilder.Mode;
 import org.usrz.libs.crypto.codecs.HexCodec;
+import org.usrz.libs.crypto.utils.KeyPairBuilder;
 import org.usrz.libs.testing.AbstractTest;
 import org.usrz.libs.testing.Exec;
 import org.usrz.libs.testing.Exec.CapturingProcess;
