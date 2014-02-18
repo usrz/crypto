@@ -176,7 +176,6 @@ public class X509CertificateBuilderTest extends AbstractTest {
 
         final File file = IO.makeTempFile(".der");
         IO.copy(certificate.getEncoded(), file);
-        IO.copy(certificate.getEncoded(), new File("temp.der"));
         assertEquals(Exec.exec(new String[] {
                     "openssl", "x509", "-inform", "DER", "-text",
                     "-in", file.getAbsolutePath() }).waitFor(),
