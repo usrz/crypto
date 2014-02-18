@@ -38,13 +38,10 @@ import javax.security.auth.x500.X500Principal;
 import org.testng.annotations.Test;
 import org.usrz.libs.crypto.codecs.HexCodec;
 import org.usrz.libs.logging.Log;
-import org.usrz.libs.logging.Logging;
 import org.usrz.libs.testing.AbstractTest;
 import org.usrz.libs.testing.IO;
 
 public class PEMKeyStoreTest extends AbstractTest {
-
-    static { Logging.init(); }
 
     private static final Log log = new Log();
 
