@@ -87,7 +87,7 @@ public class PBKDF2Test extends AbstractTest {
         assertEquals(result, HEX.decode("4b007901b765489abead49d926f721d065a429c1"));
     }
 
-    @Test(groups="local")
+    @Test
     public void testRFC6070_16777216() throws Exception {
         byte[] result = new PBKDF2(Hash.SHA1, 16777216).deriveKey(password, salt);
         assertEquals(result, HEX.decode("eefe3d61cd4da4e4e9945b3d6ba2158c2634e984"));

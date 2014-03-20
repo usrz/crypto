@@ -96,7 +96,7 @@ public class HexCodecTest extends AbstractTest {
         new HexCodec().decode("FFF\u3041");
     }
 
-    @Test(groups="local")
+    @Test
     public void testIteratively() {
         long time = System.currentTimeMillis();
         long count = 0;

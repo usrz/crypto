@@ -119,7 +119,7 @@ public class Base64CodecTest extends AbstractTest {
         assertEquals(new Base64Codec(true).encode("abcdefghijk".getBytes(UTF8)), "YWJjZGVmZ2hpams=");
     }
 
-    @Test(groups="local")
+    @Test
     public void testIteratively() {
         long time = System.currentTimeMillis();
         long count = 0;
