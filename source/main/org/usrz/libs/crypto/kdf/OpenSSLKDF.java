@@ -15,8 +15,13 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.kdf;
 
+import static org.usrz.libs.crypto.kdf.KDF.Type.OPENSSL;
+import static org.usrz.libs.crypto.kdf.KDFSpec.DERIVED_KEY_LENGTH;
+
 import org.usrz.libs.crypto.hash.Hash;
 import org.usrz.libs.crypto.hash.MD;
+import org.usrz.libs.utils.configurations.Configurations;
+import org.usrz.libs.utils.configurations.ConfigurationsBuilder;
 
 /**
  * A {@link KDF} using the same (simple) key derivation algorithm used
@@ -30,16 +35,31 @@ import org.usrz.libs.crypto.hash.MD;
  */
 public class OpenSSLKDF extends AbstractKDF {
 
+    private final Hash hash;
+
     /**
      * Create an {@link OpenSSLKDF} producing keys of the specified length.
      */
     public OpenSSLKDF(int derivedKeyLength) {
-        super(derivedKeyLength);
+        this(new KDFSpec(OPENSSL, new ConfigurationsBuilder()
+                                      .put(DERIVED_KEY_LENGTH, derivedKeyLength)
+                                      .build()));
     }
+
+    /**
+     * Create an {@link OpenSSLKDF} from the specified {@link Configurations}
+     * or {@link KDFSpec}.
+     */
+    public OpenSSLKDF(KDFSpec kdfSpec) {
+        super(kdfSpec.validateType(OPENSSL));
+        hash = kdfSpec.getHash();
+    }
+
+    /* ====================================================================== */
 
     @Override
     protected void computeKey(byte[] password, byte[] salt, byte[] output, int offset) {
-        final MD digest = Hash.MD5.digest();
+        final MD digest = hash.digest();
         final int length = digest.getHashLength();
 
         final byte[] buffer = new  byte[length];

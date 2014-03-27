@@ -17,8 +17,14 @@ package org.usrz.libs.crypto.kdf;
 
 import static java.lang.Integer.MAX_VALUE;
 import static java.lang.System.arraycopy;
+import static org.usrz.libs.crypto.kdf.KDF.Type.SCRYPT;
+import static org.usrz.libs.crypto.kdf.KDFSpec.BLOCK_SIZE;
+import static org.usrz.libs.crypto.kdf.KDFSpec.CPU_MEMORY_COST;
+import static org.usrz.libs.crypto.kdf.KDFSpec.DERIVED_KEY_LENGTH;
+import static org.usrz.libs.crypto.kdf.KDFSpec.PARALLELIZATION;
 
 import org.usrz.libs.crypto.hash.Hash;
+import org.usrz.libs.utils.configurations.ConfigurationsBuilder;
 
 /**
  * The implementation of <i>Colin Percival</i>'s SCrypt key derivation function.
@@ -58,7 +64,22 @@ public class SCrypt extends AbstractKDF {
                   int blockSize,
                   int parallelization,
                   int derivedKeyLength) {
-        super(derivedKeyLength);
+        this(new KDFSpec(SCRYPT, new ConfigurationsBuilder()
+                    .put(CPU_MEMORY_COST, cpuMemoryCost)
+                    .put(BLOCK_SIZE, blockSize)
+                    .put(PARALLELIZATION, parallelization)
+                    .put(DERIVED_KEY_LENGTH, derivedKeyLength)
+                    .build()));
+    }
+
+    public SCrypt(KDFSpec kdfSpec) {
+        super(kdfSpec.validateType(SCRYPT));
+
+        /* Store our parameters */
+        cpuMemoryCost = kdfSpec.requireInteger(CPU_MEMORY_COST);
+        blockSize = kdfSpec.requireInteger(BLOCK_SIZE);
+        parallelization = kdfSpec.requireInteger(PARALLELIZATION);
+        blockSizeTimes128 = blockSize * 128;
 
         /* Validate parameters */
         if (cpuMemoryCost < 2 || (cpuMemoryCost & (cpuMemoryCost - 1)) != 0)
@@ -68,17 +89,14 @@ public class SCrypt extends AbstractKDF {
         if (blockSize > MAX_VALUE / 128 / parallelization)
             throw new IllegalArgumentException("Block size too large for given parallelization");
 
-        /* Store our parameters */
-        this.cpuMemoryCost = cpuMemoryCost;
-        this.blockSize = blockSize;
-        this.parallelization = parallelization;
-        blockSizeTimes128 = blockSize * 128;
-
-        /* Build our PKCS2[SHA256] instances */
-        kdf1 = new PBKDF2(Hash.SHA256, 1, parallelization * blockSizeTimes128); // initial pwd/salt
-        kdf2 = new PBKDF2(Hash.SHA256, 1, derivedKeyLength); // build final key
+        /* Build our PKCS2[SHA256] (or whatever else) instances */
+        final Hash hash = kdfSpec.getHash();
+        kdf1 = new PBKDF2(hash, 1, parallelization * blockSizeTimes128); // initial pwd/salt
+        kdf2 = new PBKDF2(hash, 1, derivedKeyLength); // build final key
 
     }
+
+    /* ====================================================================== */
 
     @Override
     protected void computeKey(byte[] password, byte[] salt, byte[] output, int offset) {

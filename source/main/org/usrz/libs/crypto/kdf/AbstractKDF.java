@@ -15,6 +15,10 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.kdf;
 
+import static org.usrz.libs.crypto.kdf.KDFSpec.DERIVED_KEY_LENGTH;
+
+import java.util.Objects;
+
 /**
  * An abstract implementation of the {@link KDF} interface.
  *
@@ -22,21 +26,24 @@ package org.usrz.libs.crypto.kdf;
  */
 public abstract class AbstractKDF implements KDF {
 
-    /* The derived key length to return. */
-    private final int derivedKeyLength;
+    /** The derived key length to return. */
+    protected final int derivedKeyLength;
+    /** The {@link KDFSpec} associated with this instance */
+    protected final KDFSpec kdfSpec;
 
     /**
      * Create a new {@link AbstractKDF} instance.
      */
-    public AbstractKDF(int derivedKeyLength) {
+    public AbstractKDF(KDFSpec kdfSpec) {
+        this.kdfSpec = Objects.requireNonNull(kdfSpec, "Null KDFSpec");
+        derivedKeyLength = kdfSpec.requireInteger(DERIVED_KEY_LENGTH);
         if (derivedKeyLength < 1)
             throw new IllegalArgumentException("Derived key length less than zero");
-        this.derivedKeyLength = derivedKeyLength;
     }
 
     @Override
-    public final int getDerivedKeyLength() {
-        return derivedKeyLength;
+    public final KDFSpec getKDFSpec() {
+        return kdfSpec;
     }
 
     @Override

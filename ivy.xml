@@ -20,6 +20,7 @@
     <dependency org="org.bouncycastle" name="bcprov" rev="latest.release" conf="default"/>
     <dependency org="org.bouncycastle" name="bcpkix" rev="latest.release" conf="default"/>
     <dependency org="com.fasterxml" name="jackson-databind" rev="latest.release" conf="default"/>
+    <dependency org="com.google" name="guava" rev="latest.release" conf="default"/>
 
     <dependency org="org.usrz.libs" name="testing" rev="latest.release" conf="testing-&gt;logging"/>
     <dependency org="org.testng" name="testng" rev="latest.release" conf="testing-&gt;default"/>

@@ -15,6 +15,14 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.kdf;
 
+import static org.usrz.libs.crypto.hash.Hash.MD5;
+import static org.usrz.libs.crypto.hash.Hash.SHA1;
+import static org.usrz.libs.crypto.hash.Hash.SHA256;
+
+import java.util.Objects;
+
+import org.usrz.libs.crypto.hash.Hash;
+
 /**
  * The {@link KDF} interface defines a component capable of derivating a
  * key from a password and <i>salt</i>.
@@ -26,9 +34,42 @@ package org.usrz.libs.crypto.kdf;
 public interface KDF {
 
     /**
-     * Return the length (in bytes) of the derived key.
+     * The types of all known {@link KDF} functions.
+     *
+     * @author <a href="mailto:pier@usrz.com">Pier Fumagalli</a>
      */
-    public int getDerivedKeyLength();
+    public enum Type {
+
+        /** OpenSSL's own (internal) KDF. */
+        OPENSSL(MD5),
+        /**  Password-Based Key Derivation Function 2. */
+        PBKDF2(SHA1),
+        /** <i>Colin Percival</i>'s SCrypt key derivation function. */
+        SCRYPT(SHA256);
+
+        /* The default hash */
+        private final Hash hash;
+
+        /* Construct */
+        private Type(Hash hash) {
+            this.hash = Objects.requireNonNull(hash, "Null hash");
+        }
+
+        /**
+         * Return the default kind of {@link Hash} used by {@link KDF}s of
+         * this {@link Type}.
+         */
+        public Hash getDefaultHash() {
+            return hash;
+        }
+    };
+
+    /* ====================================================================== */
+
+    /**
+     * Return the {@link KDFSpec} associated with this instance.
+     */
+    public KDFSpec getKDFSpec();
 
     /**
      * Derive a key from the specified password and <i>salt</i>, and return it

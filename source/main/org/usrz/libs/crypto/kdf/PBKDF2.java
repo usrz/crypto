@@ -16,9 +16,15 @@
 package org.usrz.libs.crypto.kdf;
 
 import static java.lang.System.arraycopy;
+import static org.usrz.libs.crypto.kdf.KDF.Type.PBKDF2;
+import static org.usrz.libs.crypto.kdf.KDFSpec.DERIVED_KEY_LENGTH;
+import static org.usrz.libs.crypto.kdf.KDFSpec.HASH_FUNCTION;
+import static org.usrz.libs.crypto.kdf.KDFSpec.ITERATIONS;
 
 import org.usrz.libs.crypto.hash.HMAC;
 import org.usrz.libs.crypto.hash.Hash;
+import org.usrz.libs.utils.configurations.Configurations;
+import org.usrz.libs.utils.configurations.ConfigurationsBuilder;
 
 /**
  * The implementation of the Password-Based Key Derivation Function 2.
@@ -48,42 +54,34 @@ public class PBKDF2 extends AbstractKDF {
     }
 
     /**
-     * Create a new {@link PBKDF2} instance wih the specified {@link Hash},
+     * Create a new {@link PBKDF2} instance with the specified {@link Hash},
      * number of iterations and derived key length.
      */
     public PBKDF2(Hash hash, int iterations, int derivedKeyLength) {
-        super(derivedKeyLength);
-
-        if (hash == null)
-            throw new NullPointerException("Null hash specified");
-        if (iterations < 1)
-            throw new IllegalArgumentException("Iterations must be greater than zero");
-        if (derivedKeyLength < 1)
-            throw new IllegalArgumentException("Derived key length must be greater than zero");
-
-        this.hash = hash;
-        this.iterations = iterations;
+        this(new KDFSpec(PBKDF2, new ConfigurationsBuilder()
+                    .put(DERIVED_KEY_LENGTH, derivedKeyLength)
+                    .put(HASH_FUNCTION, hash.name())
+                    .put(ITERATIONS, iterations)
+                    .build()));
     }
 
     /**
-     * Return the {@link Hash} associated with this instance.
+     * Create a new {@link PBKDF2} from the specified {@link Configurations}
+     * or {@link KDFSpec}.
      */
-    public final Hash getHash() {
-        return hash;
-    }
+    public PBKDF2(KDFSpec kdfSpec) {
+        super(kdfSpec.validateType(PBKDF2));
 
-    /**
-     * Return the number of iterations used by this instance.
-     */
-    public final int getIterations() {
-        return iterations;
+        hash = kdfSpec.getHash();
+        iterations = kdfSpec.requireInteger(ITERATIONS);
+
+        if (iterations < 1) throw new IllegalArgumentException("Iterations must be greater than zero");
     }
 
     /* ====================================================================== */
 
     @Override
     public void computeKey(byte[] password, byte[] salt, byte[] output, int offset) {
-        final int derivedKeyLength = getDerivedKeyLength();
 
         /* Get a hold on our HMAC instance */
         final HMAC hmac = hash.hmac(password);
