@@ -165,7 +165,7 @@ public enum Hash {
     }
 
     /**
-     * Return an {@link MD} {@linkplain HashFunction function} digesting data
+     * Return an {@link MD} {@linkplain Function function} digesting data
      * with this {@link Hash}.
      */
     public MD digest() {
@@ -173,7 +173,7 @@ public enum Hash {
     }
 
     /**
-     * Return an {@link HMAC} {@linkplain HashFunction function} initialized
+     * Return an {@link HMAC} {@linkplain Function function} initialized
      * with the specified key digesting data with this {@link Hash}.
      * <p>
      * If the specified key is empty or <b>null</b> the {@link HMAC} will be

@@ -15,18 +15,22 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.hash;
 
+import java.util.Objects;
+
 import javax.crypto.Mac;
 import javax.crypto.ShortBufferException;
 
 /**
- * A {@link HashFunction} producing hash-based message authentication codes.
+ * A {@link Function} producing hash-based message authentication codes.
  *
  * @see <a href="http://en.wikipedia.org/wiki/Hash-based_message_authentication_code">Hash-based
  *      message authentication code</a>
  * @author <a href="mailto:pier@usrz.com">Pier Fumagalli</a>
  */
-public class HMAC extends AbstractFunction<HMAC> {
+public class HMAC implements Function<HMAC> {
 
+    /* The {@link Hash} wrapped by this instance. */
+    private final Hash hash;
     /* The {@link Mac} wrapped by this instance. */
     private final Mac mac;
 
@@ -35,12 +39,16 @@ public class HMAC extends AbstractFunction<HMAC> {
      * and {@link Mac}.
      */
     protected HMAC(Hash hash, Mac mac) {
-        super(hash);
-        assert (mac != null): "Null Mac";
-        this.mac = mac;
+        this.hash = Objects.requireNonNull(hash, "Null hash");
+        this.mac = Objects.requireNonNull(mac, "Null mac");
     }
 
     /* ====================================================================== */
+
+    @Override
+    public Hash getHash() {
+        return hash;
+    }
 
     /**
      * Return the underlying {@link Mac} associated with this instance.

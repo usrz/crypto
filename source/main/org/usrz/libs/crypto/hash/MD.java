@@ -17,16 +17,19 @@ package org.usrz.libs.crypto.hash;
 
 import java.security.DigestException;
 import java.security.MessageDigest;
+import java.util.Objects;
 
 /**
- * A {@link HashFunction} for simple cryptographic hash function.
+ * A {@link Function} for simple cryptographic hash function.
  *
  * @see <a href="http://en.wikipedia.org/wiki/Cryptographic_hash_function">Cryptographic
  *      hash function</a>
  * @author <a href="mailto:pier@usrz.com">Pier Fumagalli</a>
  */
-public class MD extends AbstractFunction<MD> {
+public class MD implements Function<MD> {
 
+    /* The {@link Hash} wrapped by this instance. */
+    private final Hash hash;
     /* The {@link MessageDigest} wrapped by this instance. */
     private final MessageDigest digest;
 
@@ -35,12 +38,16 @@ public class MD extends AbstractFunction<MD> {
      * and {@link MessageDigest}.
      */
     protected MD(Hash hash, MessageDigest digest) {
-        super(hash);
-        assert (digest != null): "Null MessageDigest";
-        this.digest = digest;
+        this.hash = Objects.requireNonNull(hash, "Null hash");
+        this.digest = Objects.requireNonNull(digest, "Null message digest");
     }
 
     /* ====================================================================== */
+
+    @Override
+    public Hash getHash() {
+        return hash;
+    }
 
     /**
      * Return the underlying {@link MessageDigest} associated with this instance.

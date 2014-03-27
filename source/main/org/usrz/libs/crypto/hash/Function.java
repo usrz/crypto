@@ -19,9 +19,9 @@ package org.usrz.libs.crypto.hash;
  * A component capable of producing a hash for a <code>byte[]</code>.
  *
  * @author <a href="mailto:pier@usrz.com">Pier Fumagalli</a>
- * @param <F> The concrete type of {@link HashFunction} implemented.
+ * @param <F> The concrete type of {@link Function} implemented.
  */
-public interface HashFunction<F extends HashFunction<F>> {
+public interface Function<F extends Function<F>> {
 
     /**
      * Return the {@link Hash} associated with this instance.
@@ -31,17 +31,23 @@ public interface HashFunction<F extends HashFunction<F>> {
     /**
      * Return the length, in bytes, of the hashes produced  by this instance.
      */
-    public int getHashLength();
+    default int getHashLength() {
+        return getHash().getHashLength();
+    }
 
     /**
      * Updates the hash value using the specified byte.
      */
-    public F update(byte input);
+    public default F update(byte input) {
+        return update(new byte[] { input }, 0, 1);
+    }
 
     /**
      * Updates the hash value using the specified <code>byte[]</code>.
      */
-    public F update(byte[] input);
+    public default F update(byte[] input) {
+        return update(input, 0, input.length);
+    }
 
     /**
      * Updates the hash value using a part of the specified <code>byte[]</code>.
@@ -53,7 +59,11 @@ public interface HashFunction<F extends HashFunction<F>> {
      * <p>
      * This instance is {@linkplain #reset() reset} after calling this method.
      */
-    public byte[] finish();
+    public default byte[] finish() {
+        final byte[] result = new byte[getHashLength()];
+        finish(result, 0);
+        return result;
+    };
 
     /**
      * Compute the final hash value and write it in the specified
