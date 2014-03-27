@@ -15,12 +15,13 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.pem;
 
+import static org.usrz.libs.utils.Charsets.ASCII;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
 import org.testng.annotations.Test;
-import org.usrz.libs.crypto.codecs.CharsetCodec;
 import org.usrz.libs.testing.AbstractTest;
 import org.usrz.libs.testing.IO;
 
@@ -28,8 +29,8 @@ public class PEMCombiningInputStreamTest extends AbstractTest {
 
     private InputStream readAndTrim(String resource)
     throws IOException {
-        final String data = new String(IO.read(resource), CharsetCodec.ASCII).trim();
-        return new ByteArrayInputStream(data.getBytes(CharsetCodec.ASCII));
+        final String data = new String(IO.read(resource), ASCII).trim();
+        return new ByteArrayInputStream(data.getBytes(ASCII));
     }
 
     @Test

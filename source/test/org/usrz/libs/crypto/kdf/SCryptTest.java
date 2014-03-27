@@ -15,8 +15,8 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.kdf;
 
-import static org.usrz.libs.crypto.codecs.CharsetCodec.UTF8;
-import static org.usrz.libs.crypto.codecs.HexCodec.HEX;
+import static org.usrz.libs.utils.Charsets.UTF8;
+import static org.usrz.libs.utils.codecs.HexCodec.HEX;
 
 import java.util.Random;
 

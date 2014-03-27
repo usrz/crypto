@@ -15,13 +15,13 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.json;
 
-import static org.usrz.libs.crypto.codecs.Base64Codec.Alphabet.URL_SAFE;
-import static org.usrz.libs.crypto.codecs.CharsetCodec.UTF8;
+import static org.usrz.libs.utils.Charsets.UTF8;
+import static org.usrz.libs.utils.codecs.Base64Codec.Alphabet.URL_SAFE;
 
 import org.testng.annotations.Test;
-import org.usrz.libs.crypto.codecs.Base64Codec;
 import org.usrz.libs.crypto.hash.Hash;
 import org.usrz.libs.testing.AbstractTest;
+import org.usrz.libs.utils.codecs.Base64Codec;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;

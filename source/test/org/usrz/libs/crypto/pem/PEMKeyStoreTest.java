@@ -36,10 +36,10 @@ import javax.net.ssl.TrustManagerFactory;
 import javax.security.auth.x500.X500Principal;
 
 import org.testng.annotations.Test;
-import org.usrz.libs.crypto.codecs.HexCodec;
 import org.usrz.libs.logging.Log;
 import org.usrz.libs.testing.AbstractTest;
 import org.usrz.libs.testing.IO;
+import org.usrz.libs.utils.codecs.HexCodec;
 
 public class PEMKeyStoreTest extends AbstractTest {
 

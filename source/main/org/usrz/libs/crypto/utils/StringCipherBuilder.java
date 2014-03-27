@@ -17,6 +17,7 @@ package org.usrz.libs.crypto.utils;
 
 import static javax.crypto.Cipher.DECRYPT_MODE;
 import static javax.crypto.Cipher.ENCRYPT_MODE;
+import static org.usrz.libs.utils.Charsets.UTF8;
 
 import java.security.GeneralSecurityException;
 import java.security.Key;
@@ -30,9 +31,9 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 
-import org.usrz.libs.crypto.codecs.CharsetCodec;
-import org.usrz.libs.crypto.codecs.Codec;
-import org.usrz.libs.crypto.codecs.HexCodec;
+import org.usrz.libs.utils.codecs.CharsetCodec;
+import org.usrz.libs.utils.codecs.Codec;
+import org.usrz.libs.utils.codecs.HexCodec;
 
 /**
  * A simple utility class to produce {@link StringCipher}s, capable of
@@ -71,7 +72,7 @@ public class StringCipherBuilder {
      */
     public StringCipher encipher() {
         if (key == null) throw new IllegalStateException("Key not specified");
-        if (inputCodec == null) inputCodec = new CharsetCodec(CharsetCodec.UTF8);
+        if (inputCodec == null) inputCodec = new CharsetCodec(UTF8);
         if (outputCodec == null) outputCodec = new HexCodec();
         try {
             return new StringCipherImpl(this, ENCRYPT_MODE);
@@ -85,7 +86,7 @@ public class StringCipherBuilder {
      */
     public StringCipher decipher() {
         if (key == null) throw new IllegalStateException("Key not specified");
-        if (outputCodec == null) outputCodec = new CharsetCodec(CharsetCodec.UTF8);
+        if (outputCodec == null) outputCodec = new CharsetCodec(UTF8);
         if (inputCodec == null) inputCodec = new HexCodec();
         try {
             return new StringCipherImpl(this, DECRYPT_MODE);

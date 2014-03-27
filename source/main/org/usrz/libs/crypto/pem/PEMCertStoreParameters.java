@@ -15,6 +15,8 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.pem;
 
+import static org.usrz.libs.utils.Charsets.ASCII;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -29,8 +31,6 @@ import java.security.cert.CollectionCertStoreParameters;
 import java.security.spec.InvalidKeySpecException;
 import java.util.HashSet;
 import java.util.Set;
-
-import org.usrz.libs.crypto.codecs.CharsetCodec;
 
 /**
  * A {@link CollectionCertStoreParameters} instance reading
@@ -82,7 +82,7 @@ extends CollectionCertStoreParameters {
     public void read(InputStream input)
     throws IOException, InvalidKeyException, CRLException, CertificateException,
            NoSuchAlgorithmException, InvalidKeySpecException {
-        this.read(new InputStreamReader(input, CharsetCodec.ASCII));
+        this.read(new InputStreamReader(input, ASCII));
     }
 
     /**

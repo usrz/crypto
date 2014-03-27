@@ -15,8 +15,8 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.pem;
 
-import static org.usrz.libs.crypto.codecs.HexCodec.HEX;
 import static org.usrz.libs.crypto.hash.Hash.SHA1;
+import static org.usrz.libs.utils.codecs.HexCodec.HEX;
 
 import java.io.IOException;
 import java.io.InputStream;

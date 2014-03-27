@@ -15,7 +15,7 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.hash;
 
-import static org.usrz.libs.crypto.codecs.HexCodec.HEX;
+import static org.usrz.libs.utils.codecs.HexCodec.HEX;
 
 import org.testng.annotations.Test;
 import org.usrz.libs.testing.AbstractTest;

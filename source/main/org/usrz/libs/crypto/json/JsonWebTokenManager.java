@@ -15,8 +15,8 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.json;
 
-import static org.usrz.libs.crypto.codecs.Base64Codec.Alphabet.URL_SAFE;
-import static org.usrz.libs.crypto.codecs.CharsetCodec.UTF8;
+import static org.usrz.libs.utils.Charsets.UTF8;
+import static org.usrz.libs.utils.codecs.Base64Codec.Alphabet.URL_SAFE;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -24,8 +24,8 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.StringTokenizer;
 
-import org.usrz.libs.crypto.codecs.Base64Codec;
 import org.usrz.libs.crypto.hash.Hash;
+import org.usrz.libs.utils.codecs.Base64Codec;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -119,6 +119,4 @@ public class JsonWebTokenManager {
             throw new IllegalArgumentException("Unable to verify signature for token \"" + token + "\"");
         }
     }
-
-    /* ====================================================================== */
 }

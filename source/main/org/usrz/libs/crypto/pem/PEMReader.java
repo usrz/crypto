@@ -15,7 +15,7 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.pem;
 
-import static org.usrz.libs.crypto.codecs.CharsetCodec.ASCII;
+import static org.usrz.libs.utils.Charsets.ASCII;
 
 import java.io.Closeable;
 import java.io.IOException;
