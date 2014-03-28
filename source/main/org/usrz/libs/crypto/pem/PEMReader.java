@@ -120,13 +120,8 @@ public class PEMReader implements Closeable {
     /* ====================================================================== */
 
     /**
-     * Reat a {@linkplain List list} of {@linkplain PEMEntry entries} from the
+     * Read a {@linkplain List list} of {@linkplain PEMEntry entries} from the
      * input specified at construction.
-     *
-     * @throws InvalidKeySpecException
-     * @throws NoSuchAlgorithmException
-     * @throws CertificateException
-     * @throws InvalidKeyException
      */
     public PEMEntry<?> read()
     throws IOException, CertificateException, CRLException, InvalidKeyException,
