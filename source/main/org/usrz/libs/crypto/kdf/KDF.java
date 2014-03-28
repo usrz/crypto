@@ -40,11 +40,23 @@ public interface KDF {
      */
     public enum Type {
 
-        /** OpenSSL's own (internal) KDF. */
+        /**
+         * OpenSSL's own (internal) KDF:
+         * defaults to {@link Hash#MD5 MD5} hash,
+         * 16 bytes (128 bits) of derived key length.
+         */
         OPENSSL(MD5),
-        /**  Password-Based Key Derivation Function 2. */
+        /**
+         * Password-Based Key Derivation Function 2:
+         * defaults to {@link Hash#SHA1 SHA1} hash,
+         * 20 bytes (160 bits) of derived key length.
+         */
         PBKDF2(SHA1),
-        /** <i>Colin Percival</i>'s SCrypt key derivation function. */
+        /**
+         * <i>Colin Percival</i>'s SCrypt key derivation function:
+         * defaults to {@link Hash#SHA256 SHA256} hash,
+         * 32 bytes (256 bits) of derived key length.
+         */
         SCRYPT(SHA256);
 
         /* The default hash */
