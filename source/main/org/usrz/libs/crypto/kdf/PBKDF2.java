@@ -38,10 +38,17 @@ public class PBKDF2 extends AbstractKDF {
     /* ====================================================================== */
 
     /**
-     * Create a new {@link PBKDF2} instance wih the specified {@link Hash} and
+     * Create a new {@link PBKDF2} with the specified number of iterations.
+     */
+    public PBKDF2(int iterations) {
+        this(null, iterations, -1);
+    }
+
+    /**
+     * Create a new {@link PBKDF2} instance with the specified {@link Hash} and
      * number of iterations.
      * <p>
-     * The <em>derived key lengt</em> will be the same as the
+     * The <em>derived key length</em> will be the same as the
      * {@linkplain Hash#getHashLength() hash length}.
      */
     public PBKDF2(Hash hash, int iterations) {

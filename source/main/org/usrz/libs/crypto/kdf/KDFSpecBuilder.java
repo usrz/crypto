@@ -44,8 +44,6 @@ public class KDFSpecBuilder {
     public static final String DERIVED_KEY_LENGTH = "derivedKeyLength";
     /** The key defining the <em>number of iterations</em> of this KDF. */
     public static final String ITERATIONS = "iterations";
-    /** The key defining the <em>cpu/memory cost</em> of this KDF. */
-    public static final String CPU_MEMORY_COST = "cpuMemoryCost";
     /** The key defining the <em>block size</em> of this KDF. */
     public static final String BLOCK_SIZE = "blockSize";
     /** The key defining the <em>parallelization</em> of this KDF. */
@@ -57,9 +55,8 @@ public class KDFSpecBuilder {
     private Hash hash = null;
     private int derivedKeyLength = -1;
     private int iterations = -1;
-    private int cpuMemoryCost;
-    private int blockSize;
-    private int parallelization;
+    private int blockSize = -1;
+    private int parallelization = -1;
 
     /* ====================================================================== */
 
@@ -126,7 +123,7 @@ public class KDFSpecBuilder {
         switch (type) {
             case OPENSSL: return new OpenSSLKDFSpec(hash, derivedKeyLength);
             case PBKDF2:  return new PBKDF2Spec(hash, derivedKeyLength, iterations);
-            case SCRYPT:  return new SCryptSpec(hash, derivedKeyLength, cpuMemoryCost, blockSize, parallelization);
+            case SCRYPT:  return new SCryptSpec(hash, derivedKeyLength, iterations, blockSize, parallelization);
             default: throw new IllegalStateException("Unsupported KDF type " + type);
         }
     }
@@ -166,18 +163,11 @@ public class KDFSpecBuilder {
     }
 
     /**
-     * Specify the number of iterations used by {@link PBKDF2}.
+     * Specify the number of iterations used by {@link PBKDF2} and
+     * {@link SCrypt} (also known as <em>CPU/memory cost</em> parameter).
      */
     public KDFSpecBuilder withIterations(int iterations) {
         this.iterations = iterations;
-        return this;
-    }
-
-    /**
-     * Specify the cpu/memory cost used by {@link SCrypt}.
-     */
-    public KDFSpecBuilder withCpuMemoryCost(int cpuMemoryCost) {
-        this.cpuMemoryCost = cpuMemoryCost;
         return this;
     }
 
@@ -209,7 +199,6 @@ public class KDFSpecBuilder {
 
         derivedKeyLength = configurations.get(DERIVED_KEY_LENGTH, derivedKeyLength);
         iterations       = configurations.get(ITERATIONS,         iterations);
-        cpuMemoryCost    = configurations.get(CPU_MEMORY_COST,    cpuMemoryCost);
         blockSize        = configurations.get(BLOCK_SIZE,         blockSize);
         parallelization  = configurations.get(PARALLELIZATION,    parallelization);
         return this;

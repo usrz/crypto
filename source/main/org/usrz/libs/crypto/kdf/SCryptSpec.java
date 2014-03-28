@@ -27,49 +27,53 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
  *
  * @author <a href="mailto:pier@usrz.com">Pier Fumagalli</a>
  */
-@JsonPropertyOrder({"type","hash","derivedKeyLength","cpuMemoryCost","blockSize","parallelization"})
+@JsonPropertyOrder({"type","hash","derivedKeyLength","iterations","blockSize","parallelization"})
 public class SCryptSpec extends AbstractKDFSpec {
 
-    private final int cpuMemoryCost;
+    private final int iterations;
     private final int blockSize;
     private final int parallelization;
 
-    public SCryptSpec(int cpuMemoryCost,
+    public SCryptSpec(int iterations,
                       int blockSize,
                       int parallelization) {
-        this(null, 0, cpuMemoryCost, blockSize, parallelization);
+        this(null, 0, iterations, blockSize, parallelization);
     }
 
-    public SCryptSpec(int cpuMemoryCost,
+    public SCryptSpec(int iterations,
                       int blockSize,
                       int parallelization,
                       int derivedKeyLength) {
-        this(null, derivedKeyLength, cpuMemoryCost, blockSize, parallelization);
+        this(null, derivedKeyLength, iterations, blockSize, parallelization);
     }
 
     public SCryptSpec(Hash hash,
                       int derivedKeyLength,
-                      int cpuMemoryCost,
+                      int iterations,
                       int blockSize,
                       int parallelization) {
         super(Type.SCRYPT, hash, derivedKeyLength);
 
+        /* Defaults */
+        if (blockSize < 1) blockSize = 8;
+        if (parallelization < 1) parallelization = 1;
+
         /* Validate parameters */
-        if (cpuMemoryCost < 2 || (cpuMemoryCost & (cpuMemoryCost - 1)) != 0)
-            throw new IllegalArgumentException("CPU/Memory cost must be a power of 2 greater than 1");
-        if (cpuMemoryCost > MAX_VALUE / 128 / blockSize)
-            throw new IllegalArgumentException("Parameter CPU/Memory cost is too large for given block size");
+        if (iterations < 2 || (iterations & (iterations - 1)) != 0)
+            throw new IllegalArgumentException("Iterations (CPU/Memory cost) must be a power of 2 greater than 1");
+        if (iterations > MAX_VALUE / 128 / blockSize)
+            throw new IllegalArgumentException("Iterations (CPU/Memory cost) is too large for given block size");
         if (blockSize > MAX_VALUE / 128 / parallelization)
             throw new IllegalArgumentException("Block size too large for given parallelization");
 
         /* Store parameters */
-        this.cpuMemoryCost = cpuMemoryCost;
+        this.iterations = iterations;
         this.blockSize = blockSize;
         this.parallelization = parallelization;
     }
 
-    public final int getCpuMemoryCost() {
-        return cpuMemoryCost;
+    public final int getIterations() {
+        return iterations;
     }
 
     public final int getBlockSize() {
@@ -82,14 +86,17 @@ public class SCryptSpec extends AbstractKDFSpec {
 
     @Override
     public int hashCode() {
-        return (super.hashCode() ^ ((blockSize << 16) ^ parallelization)) * cpuMemoryCost;
+        int h = (31 * super.hashCode()) + iterations;
+        h = (31 * h) + blockSize;
+        h = (31 * h) + parallelization;
+        return h;
     }
 
     @Override
     public boolean equals(Object object) {
         if (super.equals(object)) try {
             final SCryptSpec spec = (SCryptSpec) object;
-            return cpuMemoryCost == spec.cpuMemoryCost
+            return iterations == spec.iterations
                 && blockSize == spec.blockSize
                 && parallelization == spec.parallelization;
         } catch (ClassCastException exception) {

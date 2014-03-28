@@ -47,7 +47,7 @@ public class PBKDF2Spec extends AbstractKDFSpec {
 
     @Override
     public int hashCode() {
-        return super.hashCode() * iterations;
+        return (31 * super.hashCode()) + iterations;
     }
 
     @Override

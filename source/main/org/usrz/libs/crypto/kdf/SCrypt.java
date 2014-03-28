@@ -34,8 +34,8 @@ import org.usrz.libs.crypto.hash.Hash;
  */
 public class SCrypt extends AbstractKDF {
 
-    /* Our CPU and memory cost index */
-    private final int cpuMemoryCost;
+    /* Our number of iterations (or CPU and memory cost index) */
+    private final int iterations;
     /* Our block size */
     private final int blockSize;
     /* Our parallelization factor */
@@ -50,16 +50,16 @@ public class SCrypt extends AbstractKDF {
     /**
      * Create a {@link SCrypt} with its specified initialization parameters.
      *
-     * @param cpuMemoryCost The CPU and memory cost parameter.
-     * @param blockSize The block size parameter.
-     * @param parallelization The parallelization parameter.
+     * @param iterations The CPU and memory cost parameter {@code N}.
+     * @param blockSize The block size parameter {@code r}.
+     * @param parallelization The parallelization parameter {@code p}.
      * @param derivedKeyLength The length for the derived key.
      */
-    public SCrypt(int cpuMemoryCost,
+    public SCrypt(int iterations,
                   int blockSize,
                   int parallelization,
                   int derivedKeyLength) {
-        this(new SCryptSpec(cpuMemoryCost,
+        this(new SCryptSpec(iterations,
                             blockSize,
                             parallelization,
                             derivedKeyLength));
@@ -72,16 +72,16 @@ public class SCrypt extends AbstractKDF {
         super(SCRYPT, kdfSpec);
 
         /* Store our parameters */
-        cpuMemoryCost = kdfSpec.getCpuMemoryCost();
+        iterations = kdfSpec.getIterations();
         blockSize = kdfSpec.getBlockSize();
         parallelization = kdfSpec.getParallelization();
         blockSizeTimes128 = blockSize * 128;
 
         /* Validate parameters */
-        if (cpuMemoryCost < 2 || (cpuMemoryCost & (cpuMemoryCost - 1)) != 0)
-            throw new IllegalArgumentException("CPU/Memory cost must be a power of 2 greater than 1");
-        if (cpuMemoryCost > MAX_VALUE / 128 / blockSize)
-            throw new IllegalArgumentException("Parameter CPU/Memory cost is too large for given block size");
+        if (iterations < 2 || (iterations & (iterations - 1)) != 0)
+            throw new IllegalArgumentException("Iterations (CPU/Memory cost) must be a power of 2 greater than 1");
+        if (iterations > MAX_VALUE / 128 / blockSize)
+            throw new IllegalArgumentException("Iterations (CPU/Memory cost) is too large for given block size");
         if (blockSize > MAX_VALUE / 128 / parallelization)
             throw new IllegalArgumentException("Block size too large for given parallelization");
 
@@ -111,7 +111,7 @@ public class SCrypt extends AbstractKDF {
      * Evaluate (roughly) how much memory will be used to compute the key.
      */
     protected int getComputationMemoryRequirement() {
-        return (blockSizeTimes128 * cpuMemoryCost) // bufferV
+        return (blockSizeTimes128 * iterations) // bufferV
              + (blockSizeTimes128 * 2) // buffer1;
              + 192; // buffer2 + bufferCopy + tempBuffer
     }
@@ -139,7 +139,7 @@ public class SCrypt extends AbstractKDF {
         /* ------------------------------------------------------------------ */
 
         /* Byte buffers required by scryptROMix(...) / scryptBlockMix() */
-        private final byte[] bufferV = new byte[blockSizeTimes128 * cpuMemoryCost]; // <- LARGE!!!
+        private final byte[] bufferV = new byte[blockSizeTimes128 * iterations]; // <- LARGE!!!
         private final byte[] buffer1 = new byte[blockSizeTimes128 * 2];
         private final byte[] buffer2 = new byte[64];
 
@@ -150,18 +150,18 @@ public class SCrypt extends AbstractKDF {
         private final void scryptROMix(byte[] buffer, int index) {
             arraycopy(buffer, index, buffer1, 0, blockSizeTimes128);
 
-            for (int i = 0; i < cpuMemoryCost; i++) {
+            for (int i = 0; i < iterations; i++) {
                 arraycopy(buffer1, 0, bufferV, i * (blockSizeTimes128), blockSizeTimes128);
                 scryptBlockMix();
             }
 
-            for (int i = 0; i < cpuMemoryCost; i++) {
+            for (int i = 0; i < iterations; i++) {
                 // inline integerification
                 int integerified = ( (buffer1[intIndex    ] & 0xff)
-                                 | (buffer1[intIndex + 1] & 0xff) <<  8
-                                 | (buffer1[intIndex + 2] & 0xff) << 16
-                                 | (buffer1[intIndex + 3] & 0xff) << 24
-                                 ) & (cpuMemoryCost - 1);
+                                   | (buffer1[intIndex + 1] & 0xff) <<  8
+                                   | (buffer1[intIndex + 2] & 0xff) << 16
+                                   | (buffer1[intIndex + 3] & 0xff) << 24
+                                   ) & (iterations - 1);
                 blockxor(bufferV, integerified * (blockSizeTimes128), buffer1, 0, blockSizeTimes128);
                 scryptBlockMix();
             }
