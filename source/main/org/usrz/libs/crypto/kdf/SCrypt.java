@@ -18,13 +18,8 @@ package org.usrz.libs.crypto.kdf;
 import static java.lang.Integer.MAX_VALUE;
 import static java.lang.System.arraycopy;
 import static org.usrz.libs.crypto.kdf.KDF.Type.SCRYPT;
-import static org.usrz.libs.crypto.kdf.KDFSpec.BLOCK_SIZE;
-import static org.usrz.libs.crypto.kdf.KDFSpec.CPU_MEMORY_COST;
-import static org.usrz.libs.crypto.kdf.KDFSpec.DERIVED_KEY_LENGTH;
-import static org.usrz.libs.crypto.kdf.KDFSpec.PARALLELIZATION;
 
 import org.usrz.libs.crypto.hash.Hash;
-import org.usrz.libs.utils.configurations.ConfigurationsBuilder;
 
 /**
  * The implementation of <i>Colin Percival</i>'s SCrypt key derivation function.
@@ -64,21 +59,22 @@ public class SCrypt extends AbstractKDF {
                   int blockSize,
                   int parallelization,
                   int derivedKeyLength) {
-        this(new KDFSpec(SCRYPT, new ConfigurationsBuilder()
-                    .put(CPU_MEMORY_COST, cpuMemoryCost)
-                    .put(BLOCK_SIZE, blockSize)
-                    .put(PARALLELIZATION, parallelization)
-                    .put(DERIVED_KEY_LENGTH, derivedKeyLength)
-                    .build()));
+        this(new SCryptSpec(cpuMemoryCost,
+                            blockSize,
+                            parallelization,
+                            derivedKeyLength));
     }
 
-    public SCrypt(KDFSpec kdfSpec) {
-        super(kdfSpec.validateType(SCRYPT));
+    /**
+     * Create a new {@link SCrypt} from the specified {@link SCryptSpec}.
+     */
+    public SCrypt(SCryptSpec kdfSpec) {
+        super(SCRYPT, kdfSpec);
 
         /* Store our parameters */
-        cpuMemoryCost = kdfSpec.requireInteger(CPU_MEMORY_COST);
-        blockSize = kdfSpec.requireInteger(BLOCK_SIZE);
-        parallelization = kdfSpec.requireInteger(PARALLELIZATION);
+        cpuMemoryCost = kdfSpec.getCpuMemoryCost();
+        blockSize = kdfSpec.getBlockSize();
+        parallelization = kdfSpec.getParallelization();
         blockSizeTimes128 = blockSize * 128;
 
         /* Validate parameters */

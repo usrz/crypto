@@ -15,26 +15,50 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.kdf;
 
-/**
- * A basic implementation of a {@link KDFManager} creating instances when
- * required.
- */
-public class BasicKDFManager implements KDFManager {
+import static org.usrz.libs.crypto.kdf.KDF.Type.PBKDF2;
 
-    /**
-     * Create a {@link BasicKDFManager} instance.
-     */
-    public BasicKDFManager() {
-        /* Nothing to do */
+import org.usrz.libs.crypto.hash.Hash;
+
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+
+/**
+ * A {@link KDFSpec} for the {@link PBKDF2} KDF.
+ *
+ * @author <a href="mailto:pier@usrz.com">Pier Fumagalli</a>
+ */
+@JsonPropertyOrder({"type","hash","derivedKeyLength","iterations"})
+public class PBKDF2Spec extends AbstractKDFSpec {
+
+    private final int iterations;
+
+    public PBKDF2Spec(int iterations) {
+        this(null, 0, iterations);
+    }
+
+    public PBKDF2Spec(Hash hash, int derivedKeyLength, int iterations) {
+        super(PBKDF2, hash, derivedKeyLength);
+        if (iterations < 1) throw new IllegalArgumentException("Invalid number of iterations " + iterations);
+        this.iterations = iterations;
+    }
+
+    public final int getIterations() {
+        return iterations;
     }
 
     @Override
-    public KDF getKDF(KDFSpec spec) {
-        switch (spec.getType()) {
-            case OPENSSL: return new OpenSSLKDF((OpenSSLKDFSpec) spec);
-            case PBKDF2:  return new PBKDF2((PBKDF2Spec) spec);
-            case SCRYPT:  return new SCrypt((SCryptSpec) spec);
-        }
-        throw new UnsupportedOperationException("Invalid KDF type " + spec.getType());
+    public int hashCode() {
+        return super.hashCode() * iterations;
     }
+
+    @Override
+    public boolean equals(Object object) {
+        if (super.equals(object)) try {
+            final PBKDF2Spec spec = (PBKDF2Spec) object;
+            return getIterations() == spec.getIterations();
+        } catch (ClassCastException exception) {
+            /* Ignore */
+        }
+        return false;
+    }
+
 }

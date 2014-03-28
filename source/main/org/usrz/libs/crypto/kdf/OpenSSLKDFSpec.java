@@ -15,26 +15,28 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.kdf;
 
+import static org.usrz.libs.crypto.kdf.KDF.Type.OPENSSL;
+
+import org.usrz.libs.crypto.hash.Hash;
+
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+
 /**
- * A basic implementation of a {@link KDFManager} creating instances when
- * required.
+ * A {@link KDFSpec} for the {@link OpenSSLKDF} KDF.
+ *
+ * @author <a href="mailto:pier@usrz.com">Pier Fumagalli</a>
  */
-public class BasicKDFManager implements KDFManager {
+@JsonPropertyOrder({"type","hash","derivedKeyLength"})
+public class OpenSSLKDFSpec extends AbstractKDFSpec {
 
-    /**
-     * Create a {@link BasicKDFManager} instance.
-     */
-    public BasicKDFManager() {
-        /* Nothing to do */
+    public OpenSSLKDFSpec() {
+        this(null, 0);
     }
 
-    @Override
-    public KDF getKDF(KDFSpec spec) {
-        switch (spec.getType()) {
-            case OPENSSL: return new OpenSSLKDF((OpenSSLKDFSpec) spec);
-            case PBKDF2:  return new PBKDF2((PBKDF2Spec) spec);
-            case SCRYPT:  return new SCrypt((SCryptSpec) spec);
-        }
-        throw new UnsupportedOperationException("Invalid KDF type " + spec.getType());
+    public OpenSSLKDFSpec(Hash hash, int derivedKeyLength) {
+        super(OPENSSL, hash, derivedKeyLength);
     }
+
+    /* No extra properties for OpenSSL */
+
 }

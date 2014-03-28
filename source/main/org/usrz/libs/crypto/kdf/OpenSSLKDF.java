@@ -15,13 +15,11 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.kdf;
 
+import static org.usrz.libs.crypto.hash.Hash.MD5;
 import static org.usrz.libs.crypto.kdf.KDF.Type.OPENSSL;
-import static org.usrz.libs.crypto.kdf.KDFSpec.DERIVED_KEY_LENGTH;
 
 import org.usrz.libs.crypto.hash.Hash;
 import org.usrz.libs.crypto.hash.MD;
-import org.usrz.libs.utils.configurations.Configurations;
-import org.usrz.libs.utils.configurations.ConfigurationsBuilder;
 
 /**
  * A {@link KDF} using the same (simple) key derivation algorithm used
@@ -41,17 +39,14 @@ public class OpenSSLKDF extends AbstractKDF {
      * Create an {@link OpenSSLKDF} producing keys of the specified length.
      */
     public OpenSSLKDF(int derivedKeyLength) {
-        this(new KDFSpec(OPENSSL, new ConfigurationsBuilder()
-                                      .put(DERIVED_KEY_LENGTH, derivedKeyLength)
-                                      .build()));
+        this(new OpenSSLKDFSpec(MD5, derivedKeyLength));
     }
 
     /**
-     * Create an {@link OpenSSLKDF} from the specified {@link Configurations}
-     * or {@link KDFSpec}.
+     * Create an {@link OpenSSLKDF} from the specified {@link OpenSSLKDFSpec}.
      */
-    public OpenSSLKDF(KDFSpec kdfSpec) {
-        super(kdfSpec.validateType(OPENSSL));
+    public OpenSSLKDF(OpenSSLKDFSpec kdfSpec) {
+        super(OPENSSL, kdfSpec);
         hash = kdfSpec.getHash();
     }
 

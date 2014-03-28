@@ -35,7 +35,7 @@ public interface KDFManager {
      * for its creation from a {@link Configurations} instance.
      */
     default KDF getKDF(Configurations configurations) {
-        return this.getKDF(new KDFSpec(configurations));
+        return this.getKDF(new KDFSpecBuilder(configurations).build());
     }
 
 }

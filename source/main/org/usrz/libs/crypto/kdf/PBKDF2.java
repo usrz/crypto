@@ -17,14 +17,9 @@ package org.usrz.libs.crypto.kdf;
 
 import static java.lang.System.arraycopy;
 import static org.usrz.libs.crypto.kdf.KDF.Type.PBKDF2;
-import static org.usrz.libs.crypto.kdf.KDFSpec.DERIVED_KEY_LENGTH;
-import static org.usrz.libs.crypto.kdf.KDFSpec.HASH_FUNCTION;
-import static org.usrz.libs.crypto.kdf.KDFSpec.ITERATIONS;
 
 import org.usrz.libs.crypto.hash.HMAC;
 import org.usrz.libs.crypto.hash.Hash;
-import org.usrz.libs.utils.configurations.Configurations;
-import org.usrz.libs.utils.configurations.ConfigurationsBuilder;
 
 /**
  * The implementation of the Password-Based Key Derivation Function 2.
@@ -46,8 +41,8 @@ public class PBKDF2 extends AbstractKDF {
      * Create a new {@link PBKDF2} instance wih the specified {@link Hash} and
      * number of iterations.
      * <p>
-     * The {@linkplain #getDerivedKeyLength() derived key length} will be
-     * the same as the {@linkplain Hash#getHashLength() hash length}.
+     * The <em>derived key lengt</em> will be the same as the
+     * {@linkplain Hash#getHashLength() hash length}.
      */
     public PBKDF2(Hash hash, int iterations) {
         this(hash, iterations, hash == null ? -1 : hash.getHashLength());
@@ -58,22 +53,17 @@ public class PBKDF2 extends AbstractKDF {
      * number of iterations and derived key length.
      */
     public PBKDF2(Hash hash, int iterations, int derivedKeyLength) {
-        this(new KDFSpec(PBKDF2, new ConfigurationsBuilder()
-                    .put(DERIVED_KEY_LENGTH, derivedKeyLength)
-                    .put(HASH_FUNCTION, hash.name())
-                    .put(ITERATIONS, iterations)
-                    .build()));
+        this(new PBKDF2Spec(hash, derivedKeyLength, iterations));
     }
 
     /**
-     * Create a new {@link PBKDF2} from the specified {@link Configurations}
-     * or {@link KDFSpec}.
+     * Create a new {@link PBKDF2} from the specified {@link PBKDF2Spec}.
      */
-    public PBKDF2(KDFSpec kdfSpec) {
-        super(kdfSpec.validateType(PBKDF2));
+    public PBKDF2(PBKDF2Spec kdfSpec) {
+        super(PBKDF2, kdfSpec);
 
         hash = kdfSpec.getHash();
-        iterations = kdfSpec.requireInteger(ITERATIONS);
+        iterations = kdfSpec.getIterations();
 
         if (iterations < 1) throw new IllegalArgumentException("Iterations must be greater than zero");
     }
