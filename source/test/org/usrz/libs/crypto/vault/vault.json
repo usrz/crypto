@@ -1,0 +1,8 @@
+{
+  "type": "aes",
+  "codec": "base64/urlsafe/unpadded",
+  "kdf": {
+    "type": "scrypt",
+    "iterations": 16384
+  }
+}
