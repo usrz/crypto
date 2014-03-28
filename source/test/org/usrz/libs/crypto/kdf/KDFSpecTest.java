@@ -141,23 +141,23 @@ public class KDFSpecTest extends AbstractTest {
     @Test
     public void testJSON_SCrypt()
     throws IOException {
-        final String json = "{\"type\": \"SCRYPT\", \"hash\": \"SHA512\", \"derivedKeyLength\": \"128\",\"cpuMemoryCost\":\"16\",\"blockSize\":\"32\",\"parallelization\":\"64\"}";
+        final String json = "{\"type\": \"SCRYPT\", \"hash\": \"SHA512\", \"derivedKeyLength\": \"128\",\"iterations\":\"16384\",\"blockSize\":\"8\",\"parallelization\":\"1\"}";
         final SCryptSpec spec = (SCryptSpec) mapper.readValue(json, KDFSpec.class);
         assertEquals(spec.getType(), Type.SCRYPT);
         assertEquals(spec.getHash(), Hash.SHA512);
         assertEquals(spec.getDerivedKeyLength(), 128);
-        assertEquals(spec.getCpuMemoryCost(), 16);
-        assertEquals(spec.getBlockSize(), 32);
-        assertEquals(spec.getParallelization(), 64);
+        assertEquals(spec.getIterations(), 16384);
+        assertEquals(spec.getBlockSize(), 8);
+        assertEquals(spec.getParallelization(), 1);
 
         final String json2 = mapper.writeValueAsString(spec);
         final SCryptSpec spec2 = (SCryptSpec) mapper.readValue(json2, KDFSpec.class);
         assertEquals(spec2.getType(), Type.SCRYPT);
         assertEquals(spec2.getHash(), Hash.SHA512);
         assertEquals(spec2.getDerivedKeyLength(), 128);
-        assertEquals(spec2.getCpuMemoryCost(), 16);
-        assertEquals(spec2.getBlockSize(), 32);
-        assertEquals(spec2.getParallelization(), 64);
+        assertEquals(spec2.getIterations(), 16384);
+        assertEquals(spec2.getBlockSize(), 8);
+        assertEquals(spec2.getParallelization(), 1);
 
         assertNotSame(spec2, spec);
         assertEquals(spec2, spec);
@@ -167,24 +167,24 @@ public class KDFSpecTest extends AbstractTest {
     @Test
     public void testJSON_SCrypt_Defaults()
     throws IOException {
-        final String json = "{\"type\": \"SCRYPT\",\"cpuMemoryCost\":\"16\",\"blockSize\":\"32\",\"parallelization\":\"64\"}";
+        final String json = "{\"type\": \"SCRYPT\",\"iterations\":\"16384\"}";
         final SCryptSpec spec = (SCryptSpec) mapper.readValue(json, KDFSpec.class);
         assertEquals(spec.getType(), Type.SCRYPT);
         assertEquals(spec.getHash(), Hash.SHA256);
         assertEquals(spec.getDerivedKeyLength(), 32);
-        assertEquals(mapper.writeValueAsString(spec), "{\"type\":\"SCRYPT\",\"hash\":\"SHA256\",\"derivedKeyLength\":32,\"cpuMemoryCost\":16,\"blockSize\":32,\"parallelization\":64}");
+        assertEquals(mapper.writeValueAsString(spec), "{\"type\":\"SCRYPT\",\"hash\":\"SHA256\",\"derivedKeyLength\":32,\"iterations\":16384,\"blockSize\":8,\"parallelization\":1}");
     }
 
     @Test
     public void testJSON_SCrypt_Equality()
     throws IOException {
         /* Here we also mix cases for type and hash, just to check */
-        equalityTest(new String[] { "{\"type\":\"SCRYPT\",\"hash\":\"SHA256\",\"derivedKeyLength\":32,\"cpuMemoryCost\":16,\"blockSize\":32,\"parallelization\":64}"
-                                  , "{\"type\":\"scrypt\",\"hash\":\"SHA512\",\"derivedKeyLength\":32,\"cpuMemoryCost\":16,\"blockSize\":32,\"parallelization\":64}"
-                                  , "{\"type\":\"SCRYPT\",\"hash\":\"sha256\",\"derivedKeyLength\":64,\"cpuMemoryCost\":16,\"blockSize\":32,\"parallelization\":64}"
-                                  , "{\"type\":\"scrypt\",\"hash\":\"SHA256\",\"derivedKeyLength\":32,\"cpuMemoryCost\":32,\"blockSize\":32,\"parallelization\":64}"
-                                  , "{\"type\":\"SCRYPT\",\"hash\":\"sha256\",\"derivedKeyLength\":32,\"cpuMemoryCost\":16,\"blockSize\":64,\"parallelization\":64}"
-                                  , "{\"type\":\"scrypt\",\"hash\":\"SHA256\",\"derivedKeyLength\":32,\"cpuMemoryCost\":16,\"blockSize\":32,\"parallelization\":32}"
+        equalityTest(new String[] { "{\"type\":\"SCRYPT\",\"hash\":\"SHA256\",\"derivedKeyLength\":32,\"iterations\":16384,\"blockSize\":8, \"parallelization\":1}"
+                                  , "{\"type\":\"scrypt\",\"hash\":\"SHA512\",\"derivedKeyLength\":32,\"iterations\":16384,\"blockSize\":8, \"parallelization\":1}"
+                                  , "{\"type\":\"SCRYPT\",\"hash\":\"sha256\",\"derivedKeyLength\":64,\"iterations\":16384,\"blockSize\":8, \"parallelization\":1}"
+                                  , "{\"type\":\"scrypt\",\"hash\":\"SHA256\",\"derivedKeyLength\":32,\"iterations\":65536,\"blockSize\":8, \"parallelization\":1}"
+                                  , "{\"type\":\"SCRYPT\",\"hash\":\"sha256\",\"derivedKeyLength\":32,\"iterations\":16384,\"blockSize\":16,\"parallelization\":1}"
+                                  , "{\"type\":\"scrypt\",\"hash\":\"SHA256\",\"derivedKeyLength\":32,\"iterations\":16384,\"blockSize\":8, \"parallelization\":2}"
                                   });
     }
 }
