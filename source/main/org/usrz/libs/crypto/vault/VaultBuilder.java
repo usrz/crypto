@@ -19,6 +19,7 @@ import java.security.SecureRandom;
 import java.util.Objects;
 import java.util.function.Supplier;
 
+import org.usrz.libs.configurations.Configurations;
 import org.usrz.libs.crypto.kdf.BasicKDFManager;
 import org.usrz.libs.crypto.kdf.KDF;
 import org.usrz.libs.crypto.kdf.KDFSpec;
@@ -26,7 +27,6 @@ import org.usrz.libs.crypto.kdf.KDFSpecBuilder;
 import org.usrz.libs.crypto.vault.Vault.Type;
 import org.usrz.libs.utils.codecs.Codec;
 import org.usrz.libs.utils.codecs.CodecManager;
-import org.usrz.libs.utils.configurations.Configurations;
 
 public class VaultBuilder {
 

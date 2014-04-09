@@ -15,7 +15,7 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.kdf;
 
-import org.usrz.libs.utils.configurations.Configurations;
+import org.usrz.libs.configurations.Configurations;
 
 /**
  * A simple factory to create {@link KDF} instances out of specifications.

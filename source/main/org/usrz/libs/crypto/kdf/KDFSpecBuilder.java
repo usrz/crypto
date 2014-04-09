@@ -18,10 +18,10 @@ package org.usrz.libs.crypto.kdf;
 import java.util.Map;
 import java.util.Objects;
 
+import org.usrz.libs.configurations.Configurations;
+import org.usrz.libs.configurations.MappedConfigurations;
 import org.usrz.libs.crypto.hash.Hash;
 import org.usrz.libs.crypto.kdf.KDF.Type;
-import org.usrz.libs.utils.configurations.Configurations;
-import org.usrz.libs.utils.configurations.MappedConfigurations;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;

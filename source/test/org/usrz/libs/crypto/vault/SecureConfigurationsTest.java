@@ -16,9 +16,9 @@
 package org.usrz.libs.crypto.vault;
 
 import org.testng.annotations.Test;
+import org.usrz.libs.configurations.Configurations;
+import org.usrz.libs.configurations.ResourceConfigurations;
 import org.usrz.libs.testing.AbstractTest;
-import org.usrz.libs.utils.configurations.Configurations;
-import org.usrz.libs.utils.configurations.ResourceConfigurations;
 
 public class SecureConfigurationsTest extends AbstractTest {
 

@@ -21,7 +21,7 @@ import java.util.Iterator;
 import java.util.Objects;
 import java.util.Set;
 
-import org.usrz.libs.utils.configurations.Configurations;
+import org.usrz.libs.configurations.Configurations;
 
 public class SecureConfigurations extends Configurations {
 
