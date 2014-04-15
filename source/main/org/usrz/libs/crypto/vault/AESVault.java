@@ -16,6 +16,7 @@
 package org.usrz.libs.crypto.vault;
 
 import static org.usrz.libs.utils.Charsets.UTF8;
+import static org.usrz.libs.utils.Check.notNull;
 
 import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
@@ -57,8 +58,10 @@ public class AESVault implements Vault {
     }
 
     @Override
-    public String encrypt(String string)
+    public String encrypt(byte[] data)
     throws GeneralSecurityException {
+        notNull(data, "Null data to encrypt");
+
         final Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
 
         final byte[] salt = new byte[cipher.getBlockSize()];
@@ -70,7 +73,7 @@ public class AESVault implements Vault {
         final SecretKey secretKey = new SecretKeySpec(key, "AES");
 
         cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivParameterSpec);
-        final byte[] encrypted = cipher.doFinal(string.getBytes(UTF8));
+        final byte[] encrypted = cipher.doFinal(data);
 
         final byte[] result = new byte[salt.length + encrypted.length];
         System.arraycopy(salt, 0, result, 0, salt.length);
@@ -80,8 +83,10 @@ public class AESVault implements Vault {
     }
 
     @Override
-    public String decrypt(String string)
+    public byte[] decrypt(String string)
     throws GeneralSecurityException {
+        notNull(string, "Null string to decrypt");
+
         final byte[] decoded = codec.decode(string);
 
         final Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
@@ -95,9 +100,12 @@ public class AESVault implements Vault {
         final SecretKey secretKey = new SecretKeySpec(key, "AES");
 
         cipher.init(Cipher.DECRYPT_MODE, secretKey, ivParameterSpec);
-        final byte[] decrypted = cipher.doFinal(decoded, salt.length, decoded.length - salt.length);
+        return cipher.doFinal(decoded, salt.length, decoded.length - salt.length);
+    }
 
-        return new String(decrypted, UTF8);
+    @Override
+    public Codec getCodec() {
+        return codec;
     }
 
 }

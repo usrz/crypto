@@ -30,11 +30,11 @@ public class VaultBuilderTest extends AbstractTest {
 
         /* Symmetric encryption/decryption */
         final String encrypted = vault.encrypt("hello, world!");
-        final String decrypted = vault.decrypt(encrypted);
+        final String decrypted = vault.decode(encrypted);
         assertEquals(decrypted, "hello, world!");
 
         /* Well known value with password "foobar" */
-        assertEquals(vault.decrypt("ZFGDwOaXLILommCHFbB4-cOR0toqVTaibspiy65aqkBZZ2tN40wK4t70V2iIqGcx"), "this is a well-known value");
+        assertEquals(vault.decode("ZFGDwOaXLILommCHFbB4-cOR0toqVTaibspiy65aqkBZZ2tN40wK4t70V2iIqGcx"), "this is a well-known value");
     }
 
 }

@@ -38,7 +38,7 @@ public class SecureConfigurations extends Configurations {
         final String value = configurations.getString(key);
         if (value == null) return defaultValue;
         try {
-            return vault.decrypt(value);
+            return vault.decode(value);
         } catch (GeneralSecurityException exception) {
             throw new IllegalStateException("Unable to decrypt \"" + key + "\"", exception);
         }
@@ -72,7 +72,7 @@ public class SecureConfigurations extends Configurations {
                             @Override
                             public String getValue() {
                                 try {
-                                    return vault.decrypt(entry.getValue());
+                                    return vault.decode(entry.getValue());
                                 } catch (GeneralSecurityException exception) {
                                     throw new IllegalStateException("Unable to decrypt \"" + getKey() + "\"", exception);
                                 }

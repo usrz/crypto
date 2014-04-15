@@ -15,7 +15,12 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.vault;
 
+import static org.usrz.libs.utils.Charsets.UTF8;
+import static org.usrz.libs.utils.Check.notNull;
+
 import java.security.GeneralSecurityException;
+
+import org.usrz.libs.utils.codecs.Codec;
 
 public interface Vault {
 
@@ -25,10 +30,22 @@ public interface Vault {
 
     public boolean canDecrypt();
 
-    public String encrypt(String string)
+    default String encrypt(String string)
+    throws GeneralSecurityException {
+        return this.encrypt(notNull(string, "Null string to encrypt").getBytes(UTF8));
+    }
+
+    public String encrypt(byte[] data)
     throws GeneralSecurityException;
 
-    public String decrypt(String string)
+    public byte[] decrypt(String string)
     throws GeneralSecurityException;
+
+    default String decode(String string)
+    throws GeneralSecurityException {
+        return new String(decrypt(string), UTF8);
+    }
+
+    public Codec getCodec();
 
 }
