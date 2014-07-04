@@ -32,6 +32,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.List;
 import java.util.logging.Logger;
 
+import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.cert.X509CRLHolder;
 import org.bouncycastle.cert.X509CertificateHolder;
@@ -145,6 +146,10 @@ public class PEMReader implements Closeable {
             } else if (object instanceof PEMKeyPair) {
                 // Non-encrypted private key
                 return(new PEMEntryKeyPair(factory, (PEMKeyPair) object));
+
+            } else if (object instanceof PrivateKeyInfo) {
+                // Private key (hopefully with public exponent)
+                return(new PEMEntryKeyPair(factory, (PrivateKeyInfo) object));
 
             } else if (object instanceof SubjectPublicKeyInfo) {
                 // Public Key
