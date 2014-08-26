@@ -1,0 +1,16 @@
+{
+  $encryption: {
+    type:  "aes",
+    codec: "base64/urlsafe/unpadded",
+    kdf: {
+      type:       "scrypt",
+      iterations: 16384
+    }
+  },
+  foo: {
+    string:  { $encrypted: "QuMmNeKzTBS6gRo-C9vIx3Z49p-iRotGf53KaDozs0-1WcJXGsrXWKkDZR-nDGRu" },
+    number:  { $encrypted: "nvuxcsO_W0LAnXsTWKoTfyzslbcAeHVaWg4jryo_Glk" },
+    boolean: { $encrypted: "3DDBYoFv56buJ701yYAAE6ocwI8i-ONXKfBEmWwiPgs" },
+    unencrypted: "this is not encrypted"
+  }
+}

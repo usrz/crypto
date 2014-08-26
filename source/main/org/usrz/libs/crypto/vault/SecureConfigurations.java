@@ -17,6 +17,7 @@ package org.usrz.libs.crypto.vault;
 
 import java.security.GeneralSecurityException;
 import java.util.AbstractSet;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Set;
@@ -28,6 +29,12 @@ public class SecureConfigurations extends Configurations {
     private final Configurations configurations;
     private final Vault vault;
 
+    public SecureConfigurations(Configurations configurations, String password) {
+        final VaultBuilder builder = new VaultBuilder(configurations.strip("$encryption"));
+        vault = builder.withPassword(password).build();
+        this.configurations = configurations;
+    }
+
     public SecureConfigurations(Configurations configurations, Vault vault) {
         this.configurations = Objects.requireNonNull(configurations, "Null configurations");
         this.vault = Objects.requireNonNull(vault, "Null vault");
@@ -35,10 +42,14 @@ public class SecureConfigurations extends Configurations {
 
     @Override
     public String getString(Object key, String defaultValue) {
-        final String value = configurations.getString(key);
-        if (value == null) return defaultValue;
+
+        /* Check if we have an un-encrypted value */
+        final String encrypted = configurations.getString(key + ".$encrypted");
+        if (encrypted == null) return configurations.getString(key, defaultValue);
+
+        /* We have an encrypted value, try to descrypt it */
         try {
-            return vault.decode(value);
+            return vault.decode(encrypted);
         } catch (GeneralSecurityException exception) {
             throw new IllegalStateException("Unable to decrypt \"" + key + "\"", exception);
         }
@@ -46,12 +57,21 @@ public class SecureConfigurations extends Configurations {
 
     @Override
     public Set<Entry<String, String>> entrySet() {
-        final Set<Entry<String, String>> set = configurations.entrySet();
+
+        final Set<String> keys = new HashSet<>();
+        configurations.keySet().forEach((key) -> {
+            if (! key.startsWith("$encryption.")) {
+                keys.add(key.endsWith(".$encrypted")
+                         ? key.substring(0,  key.length() - 11)
+                         : key);
+            }
+        });
+
         return new AbstractSet<Entry<String, String>>() {
 
             @Override
             public Iterator<Entry<String, String>> iterator() {
-                final Iterator<Entry<String, String>> iterator = set.iterator();
+                final Iterator<String> iterator = keys.iterator();
                 return new Iterator<Entry<String, String>>() {
 
                     @Override
@@ -61,21 +81,17 @@ public class SecureConfigurations extends Configurations {
 
                     @Override
                     public Entry<String, String> next() {
-                        final Entry<String, String> entry = iterator.next();
+                        final String key = iterator.next();
                         return new Entry<String, String>() {
 
                             @Override
                             public String getKey() {
-                                return entry.getKey();
+                                return key;
                             }
 
                             @Override
                             public String getValue() {
-                                try {
-                                    return vault.decode(entry.getValue());
-                                } catch (GeneralSecurityException exception) {
-                                    throw new IllegalStateException("Unable to decrypt \"" + getKey() + "\"", exception);
-                                }
+                                return SecureConfigurations.this.getString(key);
                             }
 
                             @Override
@@ -89,7 +105,7 @@ public class SecureConfigurations extends Configurations {
 
             @Override
             public int size() {
-                return set.size();
+                return keys.size();
             }
         };
     }
