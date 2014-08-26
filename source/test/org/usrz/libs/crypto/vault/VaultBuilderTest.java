@@ -26,7 +26,7 @@ public class VaultBuilderTest extends AbstractTest {
     public void testVaultBuilder() throws Exception {
         final Configurations configurations = new ResourceConfigurations("vault.json");
         final VaultBuilder builder = new VaultBuilder(configurations);
-        final Vault vault = builder.withPassword("foobar").build();
+        final Vault vault = builder.withPassword("foobar".toCharArray()).build();
 
         /* Symmetric encryption/decryption */
         final String encrypted = vault.encrypt("hello, world!");

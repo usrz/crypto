@@ -24,12 +24,14 @@ import java.util.Set;
 
 import org.usrz.libs.configurations.Configurations;
 
+
+
 public class SecureConfigurations extends Configurations {
 
     private final Configurations configurations;
     private final Vault vault;
 
-    public SecureConfigurations(Configurations configurations, String password) {
+    public SecureConfigurations(Configurations configurations, char[] password) {
         final VaultBuilder builder = new VaultBuilder(configurations.strip("$encryption"));
         vault = builder.withPassword(password).build();
         this.configurations = configurations;

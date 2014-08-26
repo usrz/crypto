@@ -33,7 +33,7 @@ public class AESVaultTest extends AbstractTest {
     throws GeneralSecurityException {
         final Codec codec = BASE_64;
         final KDF kdf = new PBKDF2(Hash.SHA1, 10000, 32);
-        final AESVault vault = new AESVault(codec, kdf, "foobarbaz");
+        final AESVault vault = new AESVault(codec, kdf, "foobarbaz".toCharArray());
         final String original = "life is beautiful, isn't it?";
 
         /* Encrypt */

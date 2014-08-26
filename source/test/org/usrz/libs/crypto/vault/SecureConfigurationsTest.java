@@ -31,7 +31,7 @@ public class SecureConfigurationsTest extends AbstractTest {
     throws Exception {
         final Configurations configurations = new ResourceConfigurations("secure.properties");
         final VaultBuilder builder = new VaultBuilder(new ResourceConfigurations("vault.json"));
-        final Vault vault = builder.withPassword("foobar").build();
+        final Vault vault = builder.withPassword("foobar".toCharArray()).build();
         final SecureConfigurations secure = new SecureConfigurations(configurations, vault);
 
         assertEquals(secure.requireString("foo.unencrypted"), "this is not encrypted");
@@ -50,7 +50,7 @@ public class SecureConfigurationsTest extends AbstractTest {
     public void testSecureConfigurations2()
     throws Exception {
         final Configurations configurations = new ResourceConfigurations("secure.json");
-        final SecureConfigurations secure = new SecureConfigurations(configurations, "foobar");
+        final SecureConfigurations secure = new SecureConfigurations(configurations, "foobar".toCharArray());
 
         assertEquals(secure.requireString("foo.unencrypted"), "this is not encrypted");
         assertEquals(secure.requireString("foo.string"), "this is a string");

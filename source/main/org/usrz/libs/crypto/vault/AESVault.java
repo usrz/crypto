@@ -20,6 +20,7 @@ import static org.usrz.libs.utils.Check.notNull;
 
 import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
+import java.util.Arrays;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
@@ -36,15 +37,16 @@ public class AESVault implements Vault {
     private final SecureRandom random;
     private final byte[] password;
 
-    public AESVault(Codec codec, KDF kdf, String password) {
+    public AESVault(Codec codec, KDF kdf, char[] password) {
         this(new SecureRandom(), codec, kdf, password);
     }
 
-    public AESVault(SecureRandom random, Codec codec, KDF kdf, String password) {
+    public AESVault(SecureRandom random, Codec codec, KDF kdf, char[] password) {
         this.kdf = kdf;
         this.codec = codec;
         this.random = random;
-        this.password = password.getBytes(UTF8);
+        this.password = new String(password).getBytes(UTF8);
+        Arrays.fill(password, '\0');
     }
 
     @Override

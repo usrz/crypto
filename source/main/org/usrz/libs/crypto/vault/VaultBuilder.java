@@ -37,7 +37,7 @@ public class VaultBuilder {
     private final Type type;
     private KDF kdf;
     private Codec codec;
-    private String password;
+    private char[] password;
     private SecureRandom random;
 
     public VaultBuilder(Type type) {
@@ -63,12 +63,12 @@ public class VaultBuilder {
                             Objects.requireNonNull(password, "Password not specified"));
     }
 
-    public VaultBuilder withPassword(String password) {
+    public VaultBuilder withPassword(char[] password) {
         this.password = Objects.requireNonNull(password, "Null password");
         return this;
     }
 
-    public VaultBuilder withPassword(Supplier<String> supplier) {
+    public VaultBuilder withPassword(Supplier<char[]> supplier) {
         Objects.requireNonNull(supplier, "Null password supplier");
         password = Objects.requireNonNull(supplier.get(), "Null password");
         return this;
