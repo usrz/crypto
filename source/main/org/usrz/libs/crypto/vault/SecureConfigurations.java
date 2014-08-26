@@ -15,14 +15,22 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.vault;
 
+import java.io.File;
 import java.security.GeneralSecurityException;
 import java.util.AbstractSet;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.usrz.libs.configurations.Configurations;
+import org.usrz.libs.configurations.FileConfigurations;
 
 
 
@@ -117,4 +125,92 @@ public class SecureConfigurations extends Configurations {
         return configurations.size();
     }
 
+    /* Utility method to encrypt/decrypt configurations */
+    private static void help() {
+        System.out.println("Usage: java " + SecureConfigurations.class.getName() + " [-action] filename [...]");
+        System.out.println("");
+        System.out.println("  Options:");
+        System.out.println("    [-h|-help]           Simply display this help page");
+        System.out.println("    [-e|-enc|-encrypt]   Encrypt the value specified on the command line");
+        System.out.println("    [-e|-enc|-encrypt]   Encrypt the value specified on the command line");
+        System.out.println("    [-d|-dec|-decrypt]   Decrypt the value associated with the specified key");
+        System.out.println("    filename             The '.json' or '.properties' configuration file");
+        System.out.println("");
+        System.out.println("  Encryption:");
+        System.out.println("    When encrypting, each value specified on the command line will be");
+        System.out.println("    encrypted and echoed back on standard output.");
+        System.out.println("");
+        System.out.println("  Decryption:");
+        System.out.println("    When decrypting, each key specified on the command line will be");
+        System.out.println("    decrypted and echoed back on standard output, if no value is");
+        System.out.println("    specified, the whole configuration file will be decrypted");
+        System.out.println("");
+        System.exit(1);
+    }
+
+    public static void main(String[] args) {
+        final AtomicBoolean encrypt = new AtomicBoolean(false);
+        final AtomicReference<String> filename = new AtomicReference<>();
+        final List<String> actions = new ArrayList<>();
+
+        /* Parse command line options */
+        Arrays.asList(args).forEach((arg) -> {
+
+            /* -encrypt command line option */
+            if (arg.equalsIgnoreCase("-h") || arg.equalsIgnoreCase("-help")) {
+                help();
+            }
+
+            /* -encrypt command line option */
+            if (arg.equalsIgnoreCase("-e") || arg.equalsIgnoreCase("-enc") || arg.equalsIgnoreCase("-encrypt")) {
+                encrypt.set(true);
+                return;
+            }
+
+            /* -decrypt command line option */
+            if (arg.equalsIgnoreCase("-d") || arg.equalsIgnoreCase("-dec") || arg.equalsIgnoreCase("-decrypt")) {
+                encrypt.set(false);
+                return;
+            }
+
+            /* Filename or action? */
+            if (filename.get() == null) {
+                filename.set(arg);
+            } else {
+                actions.add(arg);
+            }
+        });
+
+        /* Check parameters */
+        if ((filename.get() == null) || (encrypt.get() && (actions.size() == 0))) help();
+
+        /* Load configurations */
+        final Configurations base = new FileConfigurations(new File(filename.get()).getAbsoluteFile());
+
+        /* Read password */
+        final char[] password = System.console().readPassword("Password: ");
+
+        /* Build up our secure configuration */
+        final SecureConfigurations conf = new SecureConfigurations(base, password);
+
+        /* Encrypt or decrypt? */
+        if (encrypt.get()) {
+            /* Encrypt each keyword */
+            actions.forEach((action) -> {
+                try {
+                    System.out.printf("%s = %s\n", action, conf.vault.encrypt(action));
+                } catch (Exception exception) {
+                    System.err.println("Error encrypting string '" + action + "'");
+                    exception.printStackTrace(System.err);
+                    System.exit(2);
+                }
+            });
+        } else {
+            if (actions.isEmpty()) {
+                actions.addAll(conf.keySet());
+                Collections.sort(actions);
+            }
+            actions.forEach((key) -> System.err.printf("%s = %s\n", key, conf.get(key)));
+        }
+    }
 }
