@@ -68,7 +68,8 @@ public class VaultBuilder {
     }
 
     public VaultBuilder withPassword(char[] password) {
-        this.password = () -> Check.notNull(password, "Null password");
+        Check.notNull(password, "Null password");
+        this.password = () -> password;
         return this;
     }
 
