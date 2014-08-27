@@ -39,7 +39,7 @@ public class KeyStoreBuilderTest extends AbstractTest {
                 .put("type", "pem")
                 .build();
         final KeyStore keyStore = new KeyStoreBuilder()
-                .configuration(configurations)
+                .withConfiguration(configurations)
                 .build();
 
         assertNotNull(keyStore.getKey("F7A4FD46266A272B145B4F09F6D14CC7A458268B", "asdf".toCharArray()));
@@ -53,7 +53,7 @@ public class KeyStoreBuilderTest extends AbstractTest {
                 .put("type", "pem")
                 .build();
         final KeyStore keyStore = new KeyStoreBuilder()
-                .configuration(configurations)
+                .withConfiguration(configurations)
                 .build();
 
         assertNotNull(keyStore.getKey("B4C67B3BA4FA10F0B219B079E73E986D671E8385", null));
@@ -68,8 +68,8 @@ public class KeyStoreBuilderTest extends AbstractTest {
                 .build();
 
         final KeyStore keyStore = new KeyStoreBuilder()
-                .configuration(configurations)
-                .password(new CallbackHandler() {
+                .withConfiguration(configurations)
+                .withPassword(new CallbackHandler() {
 
                     @Override
                     public void handle(Callback[] callbacks)
@@ -98,7 +98,7 @@ public class KeyStoreBuilderTest extends AbstractTest {
                 .put("type", "jks")
                 .build();
         final KeyStore keyStore = new KeyStoreBuilder()
-                .configuration(configurations)
+                .withConfiguration(configurations)
                 .build();
 
         assertNotNull(keyStore.getKey("myAlias", "qwerty".toCharArray()));
@@ -114,8 +114,8 @@ public class KeyStoreBuilderTest extends AbstractTest {
                 .build();
 
         final KeyStore keyStore = new KeyStoreBuilder()
-                .configuration(configurations)
-                .password(new CallbackHandler() {
+                .withConfiguration(configurations)
+                .withPassword(new CallbackHandler() {
 
                     @Override
                     public void handle(Callback[] callbacks)

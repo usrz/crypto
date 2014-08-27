@@ -33,7 +33,7 @@ import org.bouncycastle.asn1.x500.style.RFC4519Style;
 /**
  * A simple builder to create {@linkplain X500Principal X.500 principals}.
  *
- * <p>At least one attribute, the {@linkplain #commonName(String) common name}
+ * <p>At least one attribute, the {@linkplain #withCommonName(String) common name}
  * must be specified prior to {@linkplain #build() building}.</p>
  *
  * @author <a href="mailto:pier@usrz.com">Pier Fumagalli</a>
@@ -91,7 +91,7 @@ public class X500PrincipalBuilder {
     /**
      * Specifiy the <em>common name</em> <small>(OID 2.5.4.3)</small>.
      */
-    public X500PrincipalBuilder commonName(String commonName) {
+    public X500PrincipalBuilder withCommonName(String commonName) {
         attributes.put(COMMON_NAME, toDERUTF8String(commonName, 64));
         return this;
     }
@@ -99,7 +99,7 @@ public class X500PrincipalBuilder {
     /**
      * Specifiy the <em>country</em> <small>(OID 2.5.4.6)</small>.
      */
-    public X500PrincipalBuilder country(String country) {
+    public X500PrincipalBuilder withCountry(String country) {
         if (country == null) throw new NullPointerException("Null country");
         if (country.length() == 0) throw new IllegalArgumentException("Empty country");
         if (country.length() != 2) throw new IllegalArgumentException("Country must be 2 characters long");
@@ -110,7 +110,7 @@ public class X500PrincipalBuilder {
     /**
      * Specifiy the <em>state</em> <small>(OID 2.5.4.8)</small>.
      */
-    public X500PrincipalBuilder state(String state) {
+    public X500PrincipalBuilder withState(String state) {
         attributes.put(STATE, toDERUTF8String(state, 64));
         return this;
     }
@@ -118,7 +118,7 @@ public class X500PrincipalBuilder {
     /**
      * Specifiy the <em>locality</em> <small>(OID 2.5.4.7)</small>.
      */
-    public X500PrincipalBuilder locality(String locality) {
+    public X500PrincipalBuilder withLocality(String locality) {
         attributes.put(LOCALITY, toDERUTF8String(locality, 64));
         return this;
     }
@@ -126,7 +126,7 @@ public class X500PrincipalBuilder {
     /**
      * Specifiy the <em>organisation</em> <small>(OID 2.5.4.10)</small>.
      */
-    public X500PrincipalBuilder organisation(String organisation) {
+    public X500PrincipalBuilder withOrganisation(String organisation) {
         attributes.put(ORGANISATION, toDERUTF8String(organisation, 64));
         return this;
     }
@@ -134,7 +134,7 @@ public class X500PrincipalBuilder {
     /**
      * Specifiy the <em>organisational unit</em> <small>(OID 2.5.4.11)</small>.
      */
-    public X500PrincipalBuilder organisationalUnit(String organisationalUnit) {
+    public X500PrincipalBuilder withOrganisationalUnit(String organisationalUnit) {
         attributes.put(ORGANISATIONAL_UNIT, toDERUTF8String(organisationalUnit, 64));
         return this;
     }
@@ -142,7 +142,7 @@ public class X500PrincipalBuilder {
     /**
      * Specifiy the <em>email address</em> <small>(OID 1.2.840.113549.1.9.1)</small>.
      */
-    public X500PrincipalBuilder emailAddress(String emailAddress) {
+    public X500PrincipalBuilder withEmailAddress(String emailAddress) {
         if (emailAddress == null) throw new NullPointerException("Null value");
         if (emailAddress.length() == 0) throw new IllegalArgumentException("Empty value");
         if (emailAddress.length() > 128) throw new IllegalArgumentException("Value too long (max=128)");

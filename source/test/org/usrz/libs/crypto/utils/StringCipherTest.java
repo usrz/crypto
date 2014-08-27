@@ -29,13 +29,13 @@ public class StringCipherTest extends AbstractTest {
         final KeyPair keyPair = new KeyPairBuilder("RSA").build();
         final String message = "This is the most wonderful message in the world!";
 
-        final StringCipher encipher = new StringCipherBuilder("RSA").key(keyPair.getPublic()).encipher();
+        final StringCipher encipher = new StringCipherBuilder("RSA").withKey(keyPair.getPublic()).encipher();
         final String result1 = encipher.transform(message);
         final String result2 = encipher.transform(message);
 
         assertNotEquals(result1, result2, "WEAK encryption");
 
-        final StringCipher decipher = new StringCipherBuilder("RSA").key(keyPair.getPrivate()).decipher();
+        final StringCipher decipher = new StringCipherBuilder("RSA").withKey(keyPair.getPrivate()).decipher();
         final String decrypted1 = decipher.transform(result1);
         final String decrypted2 = decipher.transform(result2);
 
@@ -49,15 +49,15 @@ public class StringCipherTest extends AbstractTest {
         final SecretKey aesKey = new SecretKeyBuilder("AES").build();
         final String message = "This is the second most wonderful message in the world!";
 
-        final StringCipher encipher1 = new StringCipherBuilder("AES/CBC/PKCS5Padding").key(aesKey).encipher();
-        final StringCipher encipher2 = new StringCipherBuilder("AES/CBC/PKCS5Padding").key(aesKey).encipher();
+        final StringCipher encipher1 = new StringCipherBuilder("AES/CBC/PKCS5Padding").withKey(aesKey).encipher();
+        final StringCipher encipher2 = new StringCipherBuilder("AES/CBC/PKCS5Padding").withKey(aesKey).encipher();
         final String result1 = encipher1.transform(message);
         final String result2 = encipher2.transform(message);
 
         assertNotEquals(result1, result2, "WEAK encryption");
 
-        final StringCipher decipher1 = new StringCipherBuilder("AES/CBC/PKCS5Padding").key(aesKey).initializationVector(encipher1.getInitializationVector()).decipher();
-        final StringCipher decipher2 = new StringCipherBuilder("AES/CBC/PKCS5Padding").key(aesKey).initializationVector(encipher2.getInitializationVector()).decipher();
+        final StringCipher decipher1 = new StringCipherBuilder("AES/CBC/PKCS5Padding").withKey(aesKey).withInitializationVector(encipher1.getInitializationVector()).decipher();
+        final StringCipher decipher2 = new StringCipherBuilder("AES/CBC/PKCS5Padding").withKey(aesKey).withInitializationVector(encipher2.getInitializationVector()).decipher();
         final String decrypted1 = decipher1.transform(result1);
         final String decrypted2 = decipher2.transform(result2);
 

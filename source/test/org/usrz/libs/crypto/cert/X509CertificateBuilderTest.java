@@ -43,26 +43,26 @@ public class X509CertificateBuilderTest extends AbstractTest {
         final KeyPair keyPair = new KeyPairBuilder().build();
 
         final X500Principal principal = new X500PrincipalBuilder()
-                .country("JP")
-                .state("Tokyo")
-                .locality("Shinjuku")
-                .organisation("USRZ.org")
-                .organisationalUnit("Automated Tests")
-                .commonName("localhost")
-                .emailAddress("noreply@usrz.org")
+                .withCountry("JP")
+                .withState("Tokyo")
+                .withLocality("Shinjuku")
+                .withOrganisation("USRZ.org")
+                .withOrganisationalUnit("Automated Tests")
+                .withCommonName("localhost")
+                .withEmailAddress("noreply@usrz.org")
                 .build();
         assertEquals(principal, new X500Principal("EMAILADDRESS=noreply@usrz.org, CN=localhost, OU=Automated Tests, O=USRZ.org, L=Shinjuku, ST=Tokyo, C=JP"));
 
         final X509Certificate certificate = new X509CertificateBuilder()
                 .selfSigned(principal, keyPair)
-                .notBefore(0)
-                .notAfter(1, TimeUnit.DAYS)
-                .alternativeNameDNS("localhost")
-                .alternativeNameIPAddress("127.0.0.1")
-                .alternativeNameIPAddress("::1")
-                .alternativeNameURI("https://127.0.0.1/")
-                .crlDistributionPoint("https://usrz.org/test1.crl")
-                .crlDistributionPoint("https://usrz.org/test2.crl")
+                .withValidityNotBefore(0)
+                .withValidityNotAfter(1, TimeUnit.DAYS)
+                .withAlternativeNameDNS("localhost")
+                .withAlternativeNameIPAddress("127.0.0.1")
+                .withAlternativeNameIPAddress("::1")
+                .withAlternativeNameURI("https://127.0.0.1/")
+                .withCrlDistributionPoint("https://usrz.org/test1.crl")
+                .withCrlDistributionPoint("https://usrz.org/test2.crl")
                 .build();
 
         assertEquals(certificate.getVersion(), 3, "Wrong version");
@@ -123,22 +123,22 @@ public class X509CertificateBuilderTest extends AbstractTest {
         final KeyPair keyPair = new KeyPairBuilder().build();
 
         final X500Principal principal = new X500PrincipalBuilder()
-                .country("JP")
-                .state("Tokyo")
-                .locality("Shinjuku")
-                .organisation("USRZ.org")
-                .organisationalUnit("Automated Tests")
-                .commonName("Test Certificate Authority")
-                .emailAddress("noreply@usrz.org")
+                .withCountry("JP")
+                .withState("Tokyo")
+                .withLocality("Shinjuku")
+                .withOrganisation("USRZ.org")
+                .withOrganisationalUnit("Automated Tests")
+                .withCommonName("Test Certificate Authority")
+                .withEmailAddress("noreply@usrz.org")
                 .build();
         assertEquals(principal, new X500Principal("EMAILADDRESS=noreply@usrz.org, CN=Test Certificate Authority, OU=Automated Tests, O=USRZ.org, L=Shinjuku, ST=Tokyo, C=JP"));
 
         final X509Certificate certificate = new X509CertificateBuilder()
                 .selfSigned(principal, keyPair)
-                .mode(Mode.AUTHORITY)
-                .notBefore(0)
-                .notAfter(1, TimeUnit.DAYS)
-                .crlDistributionPoint("https://usrz.org/test.crl")
+                .withMode(Mode.AUTHORITY)
+                .withValidityNotBefore(0)
+                .withValidityNotAfter(1, TimeUnit.DAYS)
+                .withCrlDistributionPoint("https://usrz.org/test.crl")
                 .build();
 
         assertEquals(certificate.getVersion(), 3, "Wrong version");
@@ -188,19 +188,19 @@ public class X509CertificateBuilderTest extends AbstractTest {
         final KeyPair authorityKeyPair = new KeyPairBuilder().build();
 
         final X500Principal authorityPrincipal = new X500PrincipalBuilder()
-                .country("JP")
-                .state("Tokyo")
-                .locality("Shinjuku")
-                .organisation("USRZ.org")
-                .organisationalUnit("Automated Tests")
-                .commonName("Test Certificate Authority")
-                .emailAddress("noreply@usrz.org")
+                .withCountry("JP")
+                .withState("Tokyo")
+                .withLocality("Shinjuku")
+                .withOrganisation("USRZ.org")
+                .withOrganisationalUnit("Automated Tests")
+                .withCommonName("Test Certificate Authority")
+                .withEmailAddress("noreply@usrz.org")
                 .build();
 
         final X509Certificate authorityCertificate = new X509CertificateBuilder()
                 .selfSigned(authorityPrincipal, authorityKeyPair)
-                .mode(Mode.AUTHORITY)
-                .crlDistributionPoint("https://usrz.org/test.crl")
+                .withMode(Mode.AUTHORITY)
+                .withCrlDistributionPoint("https://usrz.org/test.crl")
                 .build();
 
         final File authorityFile = IO.makeTempFile("authority", ".der");
@@ -230,22 +230,22 @@ public class X509CertificateBuilderTest extends AbstractTest {
         final KeyPair serverKeyPair = new KeyPairBuilder().build();
 
         final X500Principal serverPrincipal = new X500PrincipalBuilder()
-                .country("JP")
-                .state("Tokyo")
-                .locality("Shinjuku")
-                .organisation("USRZ.org")
-                .organisationalUnit("Automated Tests")
-                .commonName("localhost")
-                .emailAddress("noreply@usrz.org")
+                .withCountry("JP")
+                .withState("Tokyo")
+                .withLocality("Shinjuku")
+                .withOrganisation("USRZ.org")
+                .withOrganisationalUnit("Automated Tests")
+                .withCommonName("localhost")
+                .withEmailAddress("noreply@usrz.org")
                 .build();
 
         final X509Certificate serverCertificate = new X509CertificateBuilder()
-                .mode(Mode.SERVER)
-                .issuer(authorityCertificate)
-                .issuerPrivateKey(authorityKeyPair.getPrivate())
-                .subject(serverPrincipal)
-                .subjectPublicKey(serverKeyPair.getPublic())
-                .serial(1)
+                .withMode(Mode.SERVER)
+                .withIssuer(authorityCertificate)
+                .withIssuerPrivateKey(authorityKeyPair.getPrivate())
+                .withSubject(serverPrincipal)
+                .withSubjectPublicKey(serverKeyPair.getPublic())
+                .withSerial(1)
                 .build();
 
         final File serverFile = IO.makeTempFile("server", ".der");
@@ -275,22 +275,22 @@ public class X509CertificateBuilderTest extends AbstractTest {
         final KeyPair clientKeyPair = new KeyPairBuilder().build();
 
         final X500Principal clientPrincipal = new X500PrincipalBuilder()
-                .country("JP")
-                .state("Tokyo")
-                .locality("Shinjuku")
-                .organisation("USRZ.org")
-                .organisationalUnit("Automated Tests")
-                .commonName("John Doe")
-                .emailAddress("noreply@usrz.org")
+                .withCountry("JP")
+                .withState("Tokyo")
+                .withLocality("Shinjuku")
+                .withOrganisation("USRZ.org")
+                .withOrganisationalUnit("Automated Tests")
+                .withCommonName("John Doe")
+                .withEmailAddress("noreply@usrz.org")
                 .build();
 
         final X509Certificate clientCertificate = new X509CertificateBuilder()
-                .mode(Mode.CLIENT)
-                .issuer(authorityCertificate)
-                .issuerPrivateKey(authorityKeyPair.getPrivate())
-                .subject(clientPrincipal)
-                .subjectPublicKey(clientKeyPair.getPublic())
-                .serial(1)
+                .withMode(Mode.CLIENT)
+                .withIssuer(authorityCertificate)
+                .withIssuerPrivateKey(authorityKeyPair.getPrivate())
+                .withSubject(clientPrincipal)
+                .withSubjectPublicKey(clientKeyPair.getPublic())
+                .withSerial(1)
                 .build();
 
         final File clientFile = IO.makeTempFile("client", ".der");

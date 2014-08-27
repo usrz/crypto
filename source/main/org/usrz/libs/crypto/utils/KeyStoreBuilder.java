@@ -43,30 +43,30 @@ public class KeyStoreBuilder {
         /* Nothing to do */
     }
 
-    public KeyStoreBuilder configuration(Configurations configurations) {
-        if (configurations.containsKey("file")) file(configurations.getFile("file"));
-        if (configurations.containsKey("type")) type(configurations.get("type"));
-        if (configurations.containsKey("password")) this.password(configurations.get("password").toCharArray());
+    public KeyStoreBuilder withConfiguration(Configurations configurations) {
+        if (configurations.containsKey("file")) withFile(configurations.getFile("file"));
+        if (configurations.containsKey("type")) withType(configurations.get("type"));
+        if (configurations.containsKey("password")) this.withPassword(configurations.get("password").toCharArray());
         return this;
     }
 
-    public KeyStoreBuilder file(File file) {
+    public KeyStoreBuilder withFile(File file) {
         this.file = notNull(file, "Null key store file");
         return this;
     }
 
-    public KeyStoreBuilder password(CallbackHandler handler) {
+    public KeyStoreBuilder withPassword(CallbackHandler handler) {
         password = new PasswordSupplier(handler, "Enter keystore password");
         return this;
     }
 
-    public KeyStoreBuilder password(char[] password) {
+    public KeyStoreBuilder withPassword(char[] password) {
         Check.notNull(password, "Null password");
         this.password = () -> password;
         return this;
     }
 
-    public KeyStoreBuilder type(String type) {
+    public KeyStoreBuilder withType(String type) {
         this.type = notNull(type, "Null KeyStore type");
         return this;
     }

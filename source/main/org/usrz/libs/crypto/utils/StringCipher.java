@@ -31,14 +31,14 @@ public interface StringCipher {
     /**
      * Return the algorithm associated with this {@link StringCipher}.
      *
-     * @see StringCipherBuilder#algorithm(String)
+     * @see StringCipherBuilder#withAlgorithm(String)
      */
     public String getAlgorithm();
 
     /**
      * Return the initialization vector of with this {@link StringCipher}.
      *
-     * @see StringCipherBuilder#initializationVector(byte[])
+     * @see StringCipherBuilder#withInitializationVector(byte[])
      */
     public byte[] getInitializationVector();
 

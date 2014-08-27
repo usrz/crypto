@@ -298,7 +298,7 @@ public class X509CertificateBuilder {
     /**
      * Create a new {@link X509CertificateBuilder} with validity
      * {@linkplain #notBefore from} <i>now</i> and
-     * {@linkplain #notAfter(long, TimeUnit) duration} of one year.
+     * {@linkplain #withValidityNotAfter(long, TimeUnit) duration} of one year.
      */
     public X509CertificateBuilder() {
         this(null);
@@ -308,7 +308,7 @@ public class X509CertificateBuilder {
      * Create a new {@link X509CertificateBuilder} in the specified
      * {@link Mode} with validity
      * {@linkplain #notBefore from} <i>now</i> and
-     * {@linkplain #notAfter(long, TimeUnit) duration} of one year.
+     * {@linkplain #withValidityNotAfter(long, TimeUnit) duration} of one year.
      */
     public X509CertificateBuilder(Mode mode) {
 
@@ -321,7 +321,7 @@ public class X509CertificateBuilder {
         notAfter = calendar.getTime();
 
         /* Set the default mode */
-        mode(mode);
+        withMode(mode);
     }
 
     /* ====================================================================== */
@@ -420,7 +420,7 @@ public class X509CertificateBuilder {
      * <p>This will reset both {@linkplain #clearStandardKeyUsage() Standard}
      * and {@linkplain #clearExtendedKeyUsage() extended} key usage flags.
      */
-    public X509CertificateBuilder mode(Mode mode) {
+    public X509CertificateBuilder withMode(Mode mode) {
         clearStandardKeyUsage();
         clearExtendedKeyUsage();
         if (mode != null) {
@@ -442,7 +442,7 @@ public class X509CertificateBuilder {
     /**
      * Add the specified {@linkplain StandardKeyUsage standard key usage} flags.
      */
-    public X509CertificateBuilder standardKeyUsage(StandardKeyUsage... standardUsages) {
+    public X509CertificateBuilder withStandardKeyUsage(StandardKeyUsage... standardUsages) {
         standardKeyUsage.addAll(Arrays.asList(standardUsages));
         return this;
     }
@@ -458,7 +458,7 @@ public class X509CertificateBuilder {
     /**
      * Add the specified {@linkplain ExtendedKeyUsage standard key usage} flags.
      */
-    public X509CertificateBuilder extendedKeyUsage(ExtendedKeyUsage... extendedUsages) {
+    public X509CertificateBuilder withExtendedKeyUsage(ExtendedKeyUsage... extendedUsages) {
         extendedKeyUsage.addAll(Arrays.asList(extendedUsages));
         return this;
     }
@@ -468,7 +468,7 @@ public class X509CertificateBuilder {
     /**
      * Set the certificate's subject {@linkplain X500Principal principal}.
      */
-    public X509CertificateBuilder subject(X500Principal subject) {
+    public X509CertificateBuilder withSubject(X500Principal subject) {
         if (subject == null) throw new NullPointerException("Null subject");
         this.subject = subject;
         return this;
@@ -478,9 +478,9 @@ public class X509CertificateBuilder {
      * Set the certificate's subject {@linkplain X500Principal principal} by
      * {@linkplain X500Principal#X500Principal(String) parsing} a string.
      */
-    public X509CertificateBuilder subject(String subject) {
+    public X509CertificateBuilder withSubject(String subject) {
         if (subject == null) throw new NullPointerException("Null subject");
-        return this.subject(new X500Principal(subject));
+        return this.withSubject(new X500Principal(subject));
     }
 
     /* ====================================================================== */
@@ -490,16 +490,16 @@ public class X509CertificateBuilder {
      * issuing the certificate.
      *
      * <p>This method will set the issuer's
-     * {@linkplain #issuer(X500Principal) principal},
-     * {@linkplain #issuerPublicKey(Key) public key}
+     * {@linkplain #withIssuer(X500Principal) principal},
+     * {@linkplain #withIssuerPublicKey(Key) public key}
      * and will attempt to copy the issuer's
-     * {@linkplain #crlDistributionPoint(URI) CRL distribution points}
+     * {@linkplain #withCrlDistributionPoint(URI) CRL distribution points}
      * in the issued certificate.</p>
      */
-    public X509CertificateBuilder issuer(X509Certificate issuer) {
+    public X509CertificateBuilder withIssuer(X509Certificate issuer) {
         if (issuer == null) throw new NullPointerException("Null issuer");
-        this.issuer(issuer.getSubjectX500Principal());
-        issuerPublicKey(issuer.getPublicKey());
+        this.withIssuer(issuer.getSubjectX500Principal());
+        withIssuerPublicKey(issuer.getPublicKey());
 
         final byte[] crl = issuer.getExtensionValue(Extension.cRLDistributionPoints.toString());
         if (crl != null) try {
@@ -522,7 +522,7 @@ public class X509CertificateBuilder {
     /**
      * Set the certificate's issuer {@linkplain X500Principal principal}.
      */
-    public X509CertificateBuilder issuer(X500Principal issuer) {
+    public X509CertificateBuilder withIssuer(X500Principal issuer) {
         if (issuer == null) throw new NullPointerException("Null issuer");
         this.issuer = issuer;
         return this;
@@ -532,9 +532,9 @@ public class X509CertificateBuilder {
      * Set the certificate's issuer {@linkplain X500Principal principal} by
      * {@linkplain X500Principal#X500Principal(String) parsing} a string.
      */
-    public X509CertificateBuilder issuer(String issuer) {
+    public X509CertificateBuilder withIssuer(String issuer) {
         if (issuer == null) throw new NullPointerException("Null issuer");
-        return this.issuer(new X500Principal(issuer));
+        return this.withIssuer(new X500Principal(issuer));
     }
 
     /* ====================================================================== */
@@ -542,7 +542,7 @@ public class X509CertificateBuilder {
     /**
      * Set the serial number of the issued certificate.
      */
-    public X509CertificateBuilder serial(BigInteger serial) {
+    public X509CertificateBuilder withSerial(BigInteger serial) {
         if (serial == null) throw new NullPointerException("Null serial");
         if (serial.signum() != 1) throw new NullPointerException("Serial must be positive");
         this.serial = serial;
@@ -552,8 +552,8 @@ public class X509CertificateBuilder {
     /**
      * Set the serial number of the issued certificate.
      */
-    public X509CertificateBuilder serial(long serial) {
-        return this.serial(BigInteger.valueOf(serial));
+    public X509CertificateBuilder withSerial(long serial) {
+        return this.withSerial(BigInteger.valueOf(serial));
     }
 
     /* ====================================================================== */
@@ -561,7 +561,7 @@ public class X509CertificateBuilder {
     /**
      * Set the <em>not-valid-before</em> date of the issued certificate.
      */
-    public X509CertificateBuilder notBefore(Date notBefore) {
+    public X509CertificateBuilder withValidityNotBefore(Date notBefore) {
         if (notBefore == null) throw new NullPointerException("Null \"not-before\" date");
         this.notBefore = notBefore;
         return this;
@@ -571,8 +571,8 @@ public class X509CertificateBuilder {
      * Set the <em>not-valid-before</em> date of the issued certificate (in
      * milliseconds from the Epoch).
      */
-    public X509CertificateBuilder notBefore(long notBefore) {
-        return this.notBefore(new Date(notBefore));
+    public X509CertificateBuilder withValidityNotBefore(long notBefore) {
+        return this.withValidityNotBefore(new Date(notBefore));
     }
 
     /* ====================================================================== */
@@ -580,7 +580,7 @@ public class X509CertificateBuilder {
     /**
      * Set the <em>not-valid-after</em> date of the issued certificate.
      */
-    public X509CertificateBuilder notAfter(Date notAfter) {
+    public X509CertificateBuilder withValidityNotAfter(Date notAfter) {
         if (notAfter == null) throw new NullPointerException("Null \"not-after\" date");
         this.notAfter = notAfter;
         return this;
@@ -590,21 +590,21 @@ public class X509CertificateBuilder {
      * Set the <em>not-valid-after</em> date of the issued certificate (in
      * milliseconds from the Epoch).
      */
-    public X509CertificateBuilder notAfter(long notAfter) {
-        return this.notAfter(new Date(notAfter));
+    public X509CertificateBuilder withValidityNotAfter(long notAfter) {
+        return this.withValidityNotAfter(new Date(notAfter));
     }
 
     /**
      * Set the <em>not-valid-after</em> date of the issued certificate deriving
-     * it from the <em>{@linkplain #notBefore(Date) not-valid-before}</em> date
+     * it from the <em>{@linkplain #withValidityNotBefore(Date) not-valid-before}</em> date
      * and, a duration and {@linkplain TimeUnit time unit}.
      *
-     * <p>Obviously the <em>{@linkplain #notBefore(Date) not-valid-before}</em>
+     * <p>Obviously the <em>{@linkplain #withValidityNotBefore(Date) not-valid-before}</em>
      * date must be set <b>prior</b> to calling this method.</p>
      */
-    public X509CertificateBuilder notAfter(long duration, TimeUnit unit) {
+    public X509CertificateBuilder withValidityNotAfter(long duration, TimeUnit unit) {
         if (notBefore == null) throw new IllegalStateException("Date \"not-before\" not yet specified");
-        return this.notAfter(notBefore.getTime() + MILLISECONDS.convert(duration, unit));
+        return this.withValidityNotAfter(notBefore.getTime() + MILLISECONDS.convert(duration, unit));
     }
 
     /* ====================================================================== */
@@ -612,7 +612,7 @@ public class X509CertificateBuilder {
     /**
      * Set the issuer private key that will be used to sign the certificate.
      */
-    public X509CertificateBuilder issuerPrivateKey(Key key) {
+    public X509CertificateBuilder withIssuerPrivateKey(Key key) {
         if (key == null) throw new NullPointerException("Null issuer private key");
         try {
             issuerPrivateKey = (PrivateKey) key;
@@ -626,7 +626,7 @@ public class X509CertificateBuilder {
      * Set the (optional) issuer public key that will be included in the
      * generated certificate.
      */
-    public X509CertificateBuilder issuerPublicKey(Key key) {
+    public X509CertificateBuilder withIssuerPublicKey(Key key) {
         if (key == null) throw new NullPointerException("Null issuer public key");
         try {
             issuerPublicKey = (PublicKey) key;
@@ -637,13 +637,13 @@ public class X509CertificateBuilder {
     }
 
     /**
-     * Set both the issuer {@linkplain #issuerPrivateKey(Key) private} and
-     * {@linkplain #issuerPublicKey(Key) public} keys from a {@link KeyPair}.
+     * Set both the issuer {@linkplain #withIssuerPrivateKey(Key) private} and
+     * {@linkplain #withIssuerPublicKey(Key) public} keys from a {@link KeyPair}.
      */
-    public X509CertificateBuilder issuerKeyPair(KeyPair keyPair) {
+    public X509CertificateBuilder withIssuerKeyPair(KeyPair keyPair) {
         if (keyPair == null) throw new NullPointerException("Null issuer key pair");
-        issuerPrivateKey(keyPair.getPrivate());
-        issuerPublicKey(keyPair.getPublic());
+        withIssuerPrivateKey(keyPair.getPrivate());
+        withIssuerPublicKey(keyPair.getPublic());
         return this;
     }
 
@@ -651,7 +651,7 @@ public class X509CertificateBuilder {
      * Set the subject public key that will be included in the generated
      * certificate.
      */
-    public X509CertificateBuilder subjectPublicKey(Key key) {
+    public X509CertificateBuilder withSubjectPublicKey(Key key) {
         if (key == null) throw new NullPointerException("Null subject public key");
         try {
             subjectPublicKey = (PublicKey) key;
@@ -675,7 +675,7 @@ public class X509CertificateBuilder {
      * Add an alternative name in the form of an email address to the
      * generated certificate.
      */
-    public X509CertificateBuilder alternativeNameEmail(String email) {
+    public X509CertificateBuilder withAlternativeNameEmail(String email) {
         if (email == null) throw new NullPointerException("Null email");
         alternativeNames.add(new GeneralName(GeneralName.rfc822Name, email));
         return this;
@@ -685,7 +685,7 @@ public class X509CertificateBuilder {
      * Add an alternative name in the form of a DNS name (a host name) to the
      * generated certificate.
      */
-    public X509CertificateBuilder alternativeNameDNS(String dnsName) {
+    public X509CertificateBuilder withAlternativeNameDNS(String dnsName) {
         if (dnsName == null) throw new NullPointerException("Null DNS name");
         alternativeNames.add(new GeneralName(GeneralName.dNSName, dnsName));
         return this;
@@ -695,19 +695,19 @@ public class X509CertificateBuilder {
      * Add an alternative name in the form of an {@link URI} to the
      * generated certificate.
      */
-    public X509CertificateBuilder alternativeNameURI(String uri) {
+    public X509CertificateBuilder withAlternativeNameURI(String uri) {
         if (uri == null) throw new NullPointerException("Null URI");
-        return alternativeNameURI(URI.create(uri));
+        return withAlternativeNameURI(URI.create(uri));
     }
 
     /**
      * Add an alternative name in the form of an {@link URI} to the
      * generated certificate.
      */
-    public X509CertificateBuilder alternativeNameURI(URL url) {
+    public X509CertificateBuilder withAlternativeNameURI(URL url) {
         if (url == null) throw new NullPointerException("Null URL");
         try {
-            return alternativeNameURI(url.toURI());
+            return withAlternativeNameURI(url.toURI());
         } catch (URISyntaxException exception) {
             throw new IllegalArgumentException("Invalid URI " + url.toString(), exception);
         }
@@ -717,7 +717,7 @@ public class X509CertificateBuilder {
      * Add an alternative name in the form of an {@link URI} to the
      * generated certificate.
      */
-    public X509CertificateBuilder alternativeNameURI(URI uri) {
+    public X509CertificateBuilder withAlternativeNameURI(URI uri) {
         if (uri == null) throw new NullPointerException("Null URI");
         final String string = uri.toASCIIString();
         alternativeNames.add(new GeneralName(GeneralName.uniformResourceIdentifier, string));
@@ -728,9 +728,9 @@ public class X509CertificateBuilder {
      * Add an alternative name in the form of an IP address to the
      * generated certificate.
      */
-    public X509CertificateBuilder alternativeNameIPAddress(InetAddress address) {
+    public X509CertificateBuilder withAlternativeNameIPAddress(InetAddress address) {
         if (address == null) throw new NullPointerException("Null address");
-        return this.alternativeNameIPAddress(address.getHostAddress());
+        return this.withAlternativeNameIPAddress(address.getHostAddress());
     }
 
     /**
@@ -740,7 +740,7 @@ public class X509CertificateBuilder {
      * <p>Both IPv4 and IPv6 are supported, and network masks can be specified
      * after a slash character in the string.</p>
      */
-    public X509CertificateBuilder alternativeNameIPAddress(String address) {
+    public X509CertificateBuilder withAlternativeNameIPAddress(String address) {
         if (address == null) throw new NullPointerException("Null address");
         alternativeNames.add(new GeneralName(GeneralName.iPAddress, address));
         return this;
@@ -759,18 +759,18 @@ public class X509CertificateBuilder {
     /**
      * Add a new CRL distribution point to the generated certificate.
      */
-    public X509CertificateBuilder crlDistributionPoint(String uri) {
+    public X509CertificateBuilder withCrlDistributionPoint(String uri) {
         if (uri == null) throw new NullPointerException("Null CRL distribution point");
-        return this.crlDistributionPoint(URI.create(uri));
+        return this.withCrlDistributionPoint(URI.create(uri));
     }
 
     /**
      * Add a new CRL distribution point to the generated certificate.
      */
-    public X509CertificateBuilder crlDistributionPoint(URL url) {
+    public X509CertificateBuilder withCrlDistributionPoint(URL url) {
         if (url == null) throw new NullPointerException("Null CRL distribution point");
         try {
-            return this.crlDistributionPoint(url.toURI());
+            return this.withCrlDistributionPoint(url.toURI());
         } catch (URISyntaxException exception) {
             throw new IllegalArgumentException("Invalid URI " + url.toString(), exception);
         }
@@ -779,7 +779,7 @@ public class X509CertificateBuilder {
     /**
      * Add a new CRL distribution point to the generated certificate.
      */
-    public X509CertificateBuilder crlDistributionPoint(URI uri) {
+    public X509CertificateBuilder withCrlDistributionPoint(URI uri) {
         if (uri == null) throw new NullPointerException("Null CRL distribution point");
         final String string = uri.toASCIIString();
         crlDistributionPoints.add(new GeneralName(GeneralName.uniformResourceIdentifier, string));
@@ -795,8 +795,8 @@ public class X509CertificateBuilder {
      * <p>This method will set up the current builder in
      * {@linkplain Mode#SERVER server mode}, use the same
      * {@linkplain X500Principal principal} both for the
-     * {@linkplain #issuer(X500Principal) issuer} and
-     * {@linkplain #issuer(X500Principal) subject} and
+     * {@linkplain #withIssuer(X500Principal) issuer} and
+     * {@linkplain #withIssuer(X500Principal) subject} and
      * will use the various needed keys from the specified {@link KeyPair},
      * while the serial number will be set to the {@linkplain CRC32 CRC32 hash}
      * of the {@linkplain X500Principal#getEncoded() encoded principal}.</p>
@@ -806,20 +806,20 @@ public class X509CertificateBuilder {
         if (keyPair == null) throw new NullPointerException("Null key pair for self-signed certificate");
 
         /* Set the mode (server) for self-signed certificates */
-        mode(Mode.SERVER);
+        withMode(Mode.SERVER);
 
         /* Set the serial to the CRC32 of the subject */
         final CRC32 crc = new CRC32();
         crc.update(principal.getEncoded());
-        this.serial(crc.getValue());
+        this.withSerial(crc.getValue());
 
         /* Set the subject public key and principal */
-        subjectPublicKey(keyPair.getPublic());
-        this.subject(principal);
+        withSubjectPublicKey(keyPair.getPublic());
+        this.withSubject(principal);
 
         /* Set the issuer key pair and principal */
-        issuerKeyPair(keyPair);
-        this.issuer(principal);
+        withIssuerKeyPair(keyPair);
+        this.withIssuer(principal);
 
         /* Dun! */
         return this;

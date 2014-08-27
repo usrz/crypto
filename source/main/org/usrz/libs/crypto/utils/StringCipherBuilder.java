@@ -61,10 +61,10 @@ public class StringCipherBuilder {
      * Create a new {@link StringCipherBuilder} associated with the specified
      * algorithm.
      *
-     * @see #algorithm(String)
+     * @see #withAlgorithm(String)
      */
     public StringCipherBuilder(String algorithm) {
-        algorithm(algorithm);
+        withAlgorithm(algorithm);
     }
 
     /**
@@ -99,7 +99,7 @@ public class StringCipherBuilder {
      * Specify the name of the algorithm used by this
      * {@link StringCipherBuilder}.
      */
-    public StringCipherBuilder algorithm(String algorithm) {
+    public StringCipherBuilder withAlgorithm(String algorithm) {
         if (algorithm == null) throw new NullPointerException("Null algorithm");
         this.algorithm = algorithm;
         return this;
@@ -114,7 +114,7 @@ public class StringCipherBuilder {
      * {@linkplain #encipher() encrypting} or
      * {@linkplain #decipher() decrypting} (respectively).</p>
      */
-    public StringCipherBuilder key(Key key) {
+    public StringCipherBuilder withKey(Key key) {
         if (key == null) throw new NullPointerException("Null key");
         this.key = key;
         return this;
@@ -127,7 +127,7 @@ public class StringCipherBuilder {
      * <p>By default this will be set to a {@link HexCodec} when decrypting
      * or a {@link CharsetCodec} <em>(UTF-8)</em> when encrypting.
      */
-    public StringCipherBuilder outputCodec(Codec codec) {
+    public StringCipherBuilder withOutputCodec(Codec codec) {
         if (codec == null) throw new NullPointerException("Null codec");
         outputCodec = codec;
         return this;
@@ -140,7 +140,7 @@ public class StringCipherBuilder {
      * <p>By default this will be set to a {@link HexCodec} when encrypting
      * or a {@link CharsetCodec} <em>(UTF-8)</em> when decrypting.
      */
-    public StringCipherBuilder inputCodec(Codec codec) {
+    public StringCipherBuilder withInputCodec(Codec codec) {
         if (codec == null) throw new NullPointerException("Null codec");
         inputCodec = codec;
         return this;
@@ -152,7 +152,7 @@ public class StringCipherBuilder {
      *
      * <p>This is useful with <b>AES</b>.</p>
      */
-    public StringCipherBuilder initializationVector(byte[] initializationVector) {
+    public StringCipherBuilder withInitializationVector(byte[] initializationVector) {
         if (initializationVector == null) throw new NullPointerException("Null initialization vector");
         this.initializationVector = initializationVector;
         return this;
