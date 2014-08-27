@@ -24,15 +24,13 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.usrz.libs.configurations.Configurations;
 import org.usrz.libs.configurations.FileConfigurations;
-
-
+import org.usrz.libs.utils.Check;
 
 public class SecureConfigurations extends Configurations {
 
@@ -43,23 +41,40 @@ public class SecureConfigurations extends Configurations {
         final VaultBuilder builder = new VaultBuilder(configurations.strip("$encryption"));
         vault = builder.withPassword(password).build();
         this.configurations = configurations;
+        validateAll();
     }
 
     public SecureConfigurations(Configurations configurations, Vault vault) {
-        this.configurations = Objects.requireNonNull(configurations, "Null configurations");
-        this.vault = Objects.requireNonNull(vault, "Null vault");
+        this.configurations = Check.notNull(configurations, "Null configurations");
+        this.vault = Check.notNull(vault, "Null vault");
+        validateAll();
     }
 
-    @Override
-    public String getString(Object key, String defaultValue) {
+    private void validateAll() {
+        keySet().forEach((key) -> {
+            try {
+                decodeString(key, null);
+            } catch (Exception exception) {
+                throw new IllegalStateException("Unable to decrypt key '" + key + "'", exception);
+            }
+        });
+    }
+
+    private String decodeString(Object key, String defaultValue)
+    throws GeneralSecurityException {
 
         /* Check if we have an un-encrypted value */
         final String encrypted = configurations.getString(key + ".$encrypted");
         if (encrypted == null) return configurations.getString(key, defaultValue);
 
         /* We have an encrypted value, try to descrypt it */
+        return vault.decode(encrypted);
+    }
+
+    @Override
+    public String getString(Object key, String defaultValue) {
         try {
-            return vault.decode(encrypted);
+            return decodeString(key, defaultValue);
         } catch (GeneralSecurityException exception) {
             throw new IllegalStateException("Unable to decrypt \"" + key + "\"", exception);
         }
