@@ -16,15 +16,18 @@
 package org.usrz.libs.crypto.vault;
 
 import java.security.SecureRandom;
-import java.util.Objects;
 import java.util.function.Supplier;
 
+import javax.security.auth.callback.CallbackHandler;
+
 import org.usrz.libs.configurations.Configurations;
+import org.usrz.libs.crypto.callbacks.PasswordSupplier;
 import org.usrz.libs.crypto.kdf.BasicKDFManager;
 import org.usrz.libs.crypto.kdf.KDF;
 import org.usrz.libs.crypto.kdf.KDFSpec;
 import org.usrz.libs.crypto.kdf.KDFSpecBuilder;
 import org.usrz.libs.crypto.vault.Vault.Type;
+import org.usrz.libs.utils.Check;
 import org.usrz.libs.utils.codecs.Codec;
 import org.usrz.libs.utils.codecs.CodecManager;
 
@@ -37,15 +40,15 @@ public class VaultBuilder {
     private final Type type;
     private KDF kdf;
     private Codec codec;
-    private char[] password;
+    private Supplier<char[]> password;
     private SecureRandom random;
 
     public VaultBuilder(Type type) {
-        this.type = Objects.requireNonNull(type, "Null type");
+        this.type = Check.notNull(type, "Null type");
     }
 
     public VaultBuilder(Configurations configurations) {
-        Objects.requireNonNull(configurations, "Null configurations");
+        Check.notNull(configurations, "Null configurations");
         final String type = configurations.requireString(TYPE).toUpperCase();
         try {
             this.type = Type.valueOf(type);
@@ -57,30 +60,37 @@ public class VaultBuilder {
 
     public Vault build() {
         if (type != Type.AES) throw new IllegalArgumentException("Unsupported vault type " + type);
+        char[] password = this.password.get();
         return new AESVault(random == null ? new SecureRandom() : random,
-                            Objects.requireNonNull(codec, "Codec not specified"),
-                            Objects.requireNonNull(kdf, "KDF not specified"),
-                            Objects.requireNonNull(password, "Password not specified"));
+                            Check.notNull(codec, "Codec not specified"),
+                            Check.notNull(kdf, "KDF not specified"),
+                            Check.notNull(password, "Password not specified"));
     }
 
     public VaultBuilder withPassword(char[] password) {
-        this.password = Objects.requireNonNull(password, "Null password");
+        this.password = () -> Check.notNull(password, "Null password");
         return this;
     }
 
     public VaultBuilder withPassword(Supplier<char[]> supplier) {
-        Objects.requireNonNull(supplier, "Null password supplier");
-        password = Objects.requireNonNull(supplier.get(), "Null password");
+        if (supplier == null) throw new NullPointerException("Null password supplier");
+        password = supplier;
+        return this;
+    }
+
+    public VaultBuilder withPassword(CallbackHandler handler) {
+        Check.notNull(handler, "Null password callback handler");
+        password = new PasswordSupplier(handler);
         return this;
     }
 
     public VaultBuilder withSecureRandom(SecureRandom random) {
-        this.random = Objects.requireNonNull(random, "Null random");
+        this.random = Check.notNull(random, "Null random");
         return this;
     }
 
     public VaultBuilder withKDF(KDF kdf) {
-        this.kdf = Objects.requireNonNull(kdf, "Null KDF");
+        this.kdf = Check.notNull(kdf, "Null KDF");
         return this;
     }
 
@@ -89,7 +99,7 @@ public class VaultBuilder {
     }
 
     public VaultBuilder withCodec(Codec codec) {
-        this.codec = Objects.requireNonNull(codec, "Null codec");
+        this.codec = Check.notNull(codec, "Null codec");
         return this;
     }
 
