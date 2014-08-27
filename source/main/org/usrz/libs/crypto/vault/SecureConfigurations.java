@@ -28,6 +28,8 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
+import javax.security.auth.callback.CallbackHandler;
+
 import org.usrz.libs.configurations.Configurations;
 import org.usrz.libs.configurations.FileConfigurations;
 import org.usrz.libs.utils.Check;
@@ -36,6 +38,13 @@ public class SecureConfigurations extends Configurations {
 
     private final Configurations configurations;
     private final Vault vault;
+
+    public SecureConfigurations(Configurations configurations, CallbackHandler handler) {
+        final VaultBuilder builder = new VaultBuilder(configurations.strip("$encryption"));
+        vault = builder.withPassword(handler).build();
+        this.configurations = configurations;
+        validateAll();
+    }
 
     public SecureConfigurations(Configurations configurations, char[] password) {
         final VaultBuilder builder = new VaultBuilder(configurations.strip("$encryption"));

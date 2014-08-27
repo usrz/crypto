@@ -80,7 +80,7 @@ public class VaultBuilder {
 
     public VaultBuilder withPassword(CallbackHandler handler) {
         Check.notNull(handler, "Null password callback handler");
-        password = new PasswordSupplier(handler);
+        password = new PasswordSupplier(handler, "Enter decryption password");
         return this;
     }
 
