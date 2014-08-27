@@ -21,10 +21,10 @@ import static org.usrz.libs.utils.codecs.Base64Codec.Alphabet.URL_SAFE;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.NoSuchElementException;
-import java.util.Objects;
 import java.util.StringTokenizer;
 
 import org.usrz.libs.crypto.hash.Hash;
+import org.usrz.libs.utils.Check;
 import org.usrz.libs.utils.codecs.Base64Codec;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -39,8 +39,8 @@ public class JsonWebTokenManager {
 
     public JsonWebTokenManager(Hash hash, ObjectMapper mapper) {
         codec = new Base64Codec(URL_SAFE, false);
-        this.hash = Objects.requireNonNull(hash, "Null hash");
-        this.mapper = Objects.requireNonNull(mapper, "Null mapper");
+        this.hash = Check.notNull(hash, "Null hash");
+        this.mapper = Check.notNull(mapper, "Null mapper");
         final String algorithm;
         switch (hash) {
             case SHA256: algorithm = "HS256" ; break;

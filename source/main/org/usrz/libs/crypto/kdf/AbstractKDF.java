@@ -15,7 +15,7 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.kdf;
 
-import java.util.Objects;
+import org.usrz.libs.utils.Check;
 
 /**
  * An abstract implementation of the {@link KDF} interface.
@@ -35,8 +35,8 @@ public abstract class AbstractKDF implements KDF {
      * Create a new {@link AbstractKDF} instance.
      */
     public AbstractKDF(Type type, KDFSpec kdfSpec) {
-        this.type = Objects.requireNonNull(type, "Null KDF type");
-        this.kdfSpec = Objects.requireNonNull(kdfSpec, "Null spec");
+        this.type = Check.notNull(type, "Null KDF type");
+        this.kdfSpec = Check.notNull(kdfSpec, "Null spec");
 
         derivedKeyLength = kdfSpec.getDerivedKeyLength();
         if (derivedKeyLength < 1)

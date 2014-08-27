@@ -15,10 +15,9 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.kdf;
 
-import java.util.Objects;
-
 import org.usrz.libs.crypto.hash.Hash;
 import org.usrz.libs.crypto.kdf.KDF.Type;
+import org.usrz.libs.utils.Check;
 
 /**
  * A basic abstract implementation of the {@link KDFSpec} interface.
@@ -42,7 +41,7 @@ public abstract class AbstractKDFSpec implements KDFSpec {
      * be defaulted to the {@linkplain Hash#getHashLength() hash length}.</p>
      */
     protected AbstractKDFSpec(Type type, Hash hash, int length) {
-        this.type = Objects.requireNonNull(type, "Null KDF type");
+        this.type = Check.notNull(type, "Null KDF type");
         this.hash = hash != null ? hash : type.getDefaultHash();
         this.length = length > 0 ? length : this.hash.getHashLength();
     }

@@ -15,10 +15,10 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.hash;
 
-import java.util.Objects;
-
 import javax.crypto.Mac;
 import javax.crypto.ShortBufferException;
+
+import org.usrz.libs.utils.Check;
 
 /**
  * A {@link Function} producing hash-based message authentication codes.
@@ -39,8 +39,8 @@ public class HMAC implements Function<HMAC> {
      * and {@link Mac}.
      */
     protected HMAC(Hash hash, Mac mac) {
-        this.hash = Objects.requireNonNull(hash, "Null hash");
-        this.mac = Objects.requireNonNull(mac, "Null mac");
+        this.hash = Check.notNull(hash, "Null hash");
+        this.mac = Check.notNull(mac, "Null mac");
     }
 
     /* ====================================================================== */

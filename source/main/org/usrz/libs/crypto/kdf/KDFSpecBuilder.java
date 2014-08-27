@@ -16,12 +16,12 @@
 package org.usrz.libs.crypto.kdf;
 
 import java.util.Map;
-import java.util.Objects;
 
 import org.usrz.libs.configurations.Configurations;
 import org.usrz.libs.configurations.MappedConfigurations;
 import org.usrz.libs.crypto.hash.Hash;
 import org.usrz.libs.crypto.kdf.KDF.Type;
+import org.usrz.libs.utils.Check;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -67,7 +67,7 @@ public class KDFSpecBuilder {
      */
     @JsonCreator
     public KDFSpecBuilder(@JsonProperty("type") String type) {
-        Objects.requireNonNull(type, "Null type");
+        Check.notNull(type, "Null type");
         try {
             this.type = Type.valueOf(type.toUpperCase());
         } catch (IllegalArgumentException exception) {
@@ -79,7 +79,7 @@ public class KDFSpecBuilder {
      * Create a new {@link KDFSpecBuilder} given the KDF's {@link Type}.
      */
     public KDFSpecBuilder(Type type) {
-        this.type = Objects.requireNonNull(type, "Null type");
+        this.type = Check.notNull(type, "Null type");
     }
 
     /**
@@ -97,7 +97,7 @@ public class KDFSpecBuilder {
      * in this class.
      */
     public KDFSpecBuilder(Configurations configurations) {
-        Objects.requireNonNull(configurations, "Null configurations");
+        Check.notNull(configurations, "Null configurations");
         final String type = configurations.requireString(TYPE);
         try {
             this.type = Type.valueOf(type.toUpperCase());
@@ -192,7 +192,7 @@ public class KDFSpecBuilder {
      */
     @JsonIgnore
     public KDFSpecBuilder withConfigurations(Configurations configurations) {
-        Objects.requireNonNull(configurations, "Null configurations");
+        Check.notNull(configurations, "Null configurations");
 
         final String hash = configurations.getString(HASH_FUNCTION, null);
         if (hash != null) this.withHash(hash);

@@ -17,7 +17,8 @@ package org.usrz.libs.crypto.hash;
 
 import java.security.DigestException;
 import java.security.MessageDigest;
-import java.util.Objects;
+
+import org.usrz.libs.utils.Check;
 
 /**
  * A {@link Function} for simple cryptographic hash function.
@@ -38,8 +39,8 @@ public class MD implements Function<MD> {
      * and {@link MessageDigest}.
      */
     protected MD(Hash hash, MessageDigest digest) {
-        this.hash = Objects.requireNonNull(hash, "Null hash");
-        this.digest = Objects.requireNonNull(digest, "Null message digest");
+        this.hash = Check.notNull(hash, "Null hash");
+        this.digest = Check.notNull(digest, "Null message digest");
     }
 
     /* ====================================================================== */

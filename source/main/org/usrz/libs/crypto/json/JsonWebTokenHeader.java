@@ -15,7 +15,7 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.json;
 
-import java.util.Objects;
+import org.usrz.libs.utils.Check;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -30,8 +30,8 @@ public class JsonWebTokenHeader {
     @JsonCreator
     public JsonWebTokenHeader(@JsonProperty("typ") String type,
                               @JsonProperty("alg") String algorithm) {
-        this.type = Objects.requireNonNull(type, "Null type");
-        this.algorithm = Objects.requireNonNull(algorithm, "Null algorithm");
+        this.type = Check.notNull(type, "Null type");
+        this.algorithm = Check.notNull(algorithm, "Null algorithm");
     }
 
     @JsonProperty("typ")

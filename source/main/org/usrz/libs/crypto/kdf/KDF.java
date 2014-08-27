@@ -19,9 +19,8 @@ import static org.usrz.libs.crypto.hash.Hash.MD5;
 import static org.usrz.libs.crypto.hash.Hash.SHA1;
 import static org.usrz.libs.crypto.hash.Hash.SHA256;
 
-import java.util.Objects;
-
 import org.usrz.libs.crypto.hash.Hash;
+import org.usrz.libs.utils.Check;
 
 /**
  * The {@link KDF} interface defines a component capable of derivating a
@@ -64,7 +63,7 @@ public interface KDF {
 
         /* Construct */
         private Type(Hash hash) {
-            this.hash = Objects.requireNonNull(hash, "Null hash");
+            this.hash = Check.notNull(hash, "Null hash");
         }
 
         /**
