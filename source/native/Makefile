@@ -2,20 +2,20 @@ SYSTEM    ?= $(shell uname -s)
 CC        ?= gcc
 JAVA_HOME ?= $(realpath $(dir $(realpath $(shell which java)))../)
 
-CFLAGS    ?= -fPIC -g -O2
+CFLAGS    ?= -fPIC -g -O2 -Wall -Wstrict-prototypes
 CFLAGS    += -I. -I$(JAVA_HOME)/include
 
 OBJS       = crypto_scrypt-sse.o sha256.o scrypt_jni.o
 
 ifeq ($(SYSTEM), Darwin)
 	LDFLAGS += -dynamiclib
-  CFLAGS  += -I$(JAVA_HOME)/include/darwin
-  LIB      = libscrypt_jni.dylib
+	CFLAGS  += -I$(JAVA_HOME)/include/darwin
+	LIB      = libscrypt_jni.dylib
 
 else ifeq ($(SYSTEM), Linux)
-	LDFLAGS += -shared
-  CFLAGS  += -I$(JAVA_HOME)/include/darwin
-  LIB      = libscrypt_jni.so
+	LDFLAGS += -s -shared
+	CFLAGS  += -I$(JAVA_HOME)/include/linux
+	LIB      = libscrypt_jni.so
 
 else
 	$(error Unsupported system $(SYSTEM))
