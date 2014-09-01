@@ -72,7 +72,7 @@ final class SCryptNativeHelper {
                 return false;
             }
 
-            final File file = File.createTempFile(prefix, suffix);
+            final File file = File.createTempFile(prefix + "-", suffix);
             file.setExecutable(true);
             file.deleteOnExit();
 
