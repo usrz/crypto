@@ -8,8 +8,10 @@
       <pattern>%date{HH:mm:ss.SSS} [%-5level] %logger: %msg%n</pattern>
     </encoder>
   </appender>
+  
+  <logger name="org.usrz.libs.crypto.kdf.SCryptNativeHelper" level="debug" />
 
-  <root level="info">
+  <root level="debug">
     <appender-ref ref="stderr" />
   </root>
 

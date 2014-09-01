@@ -20,10 +20,35 @@ import static org.usrz.libs.utils.codecs.HexCodec.HEX;
 
 import java.util.Random;
 
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.usrz.libs.testing.AbstractTest;
 
 public class SCryptTest extends AbstractTest {
+
+    protected boolean shouldUseNative() {
+        return false;
+    }
+
+    protected final SCrypt newInstance(int iterations,
+                                       int blockSize,
+                                       int parallelization,
+                                       int derivedKeyLength) {
+        if (shouldUseNative()) {
+            SCryptNativeHelper.enable();
+        } else {
+            SCryptNativeHelper.disable();
+        }
+        final SCrypt scrypt = new SCrypt(iterations, blockSize, parallelization, derivedKeyLength);
+        assertEquals(scrypt.isNative(), shouldUseNative());
+
+        return scrypt;
+    }
+
+    @BeforeClass
+    public void before() {
+        log.info("Tests will be running with native support %s", shouldUseNative() ? "ENABLED" : "DISABLED");
+    }
 
     @Test
     public void testParallelThreads()
@@ -40,7 +65,7 @@ public class SCryptTest extends AbstractTest {
         final boolean[] successes = new boolean[threadsCount];
 
         /* Our shared SCrypt instance */
-        final SCrypt scrypt = new SCrypt(1024, 8, 16, 64);
+        final SCrypt scrypt = newInstance(1024, 8, 16, 64);
 
         /* Randomness */
         final Random random = new Random();
@@ -93,7 +118,7 @@ public class SCryptTest extends AbstractTest {
 
     @Test
     public void testSpeed() {
-        final SCrypt scrypt = new SCrypt(16384, 8, 1, 64);
+        final SCrypt scrypt = newInstance(16384, 8, 1, 64);
         System.err.println("Computational memory per iteration: " + (scrypt.getComputationMemoryRequirement() / 1048576F) + " megs");
 
         final byte[] password = "pleaseletmein".getBytes(UTF8);
@@ -120,7 +145,7 @@ public class SCryptTest extends AbstractTest {
     public void testShortBuffer() {
         final byte[] result = new byte[63];
 
-        new SCrypt(1024, 8, 16, 64).deriveKey("password".getBytes(UTF8), "NaCl".getBytes(UTF8), result, 0);
+        newInstance(1024, 8, 16, 64).deriveKey("password".getBytes(UTF8), "NaCl".getBytes(UTF8), result, 0);
         assertEquals(result, HEX.decode("fdbabe1c9d3472007856e7190d01e9fe7c6ad7cbc8237830e77376634b3731622eaf30d92e22a3886ff109279d9830dac727afb94a83ee6d8360cbdfa2cc0640"));
     }
 
@@ -130,7 +155,7 @@ public class SCryptTest extends AbstractTest {
         result[0] = 0x29;
         result[65] = 0x1;
 
-        new SCrypt(1024, 8, 16, 64).deriveKey("password".getBytes(UTF8), "NaCl".getBytes(UTF8), result, 1);
+        newInstance(1024, 8, 16, 64).deriveKey("password".getBytes(UTF8), "NaCl".getBytes(UTF8), result, 1);
         assertEquals(result, HEX.decode("29fdbabe1c9d3472007856e7190d01e9fe7c6ad7cbc8237830e77376634b3731622eaf30d92e22a3886ff109279d9830dac727afb94a83ee6d8360cbdfa2cc064001"));
     }
 
@@ -140,25 +165,25 @@ public class SCryptTest extends AbstractTest {
 
     @Test
     public void testIETFVector1() {
-        assertEquals(new SCrypt(16, 1, 1, 64).deriveKey("".getBytes(UTF8), "".getBytes(UTF8)),
+        assertEquals(newInstance(16, 1, 1, 64).deriveKey("".getBytes(UTF8), "".getBytes(UTF8)),
                             HEX.decode("77d6576238657b203b19ca42c18a0497f16b4844e3074ae8dfdffa3fede21442fcd0069ded0948f8326a753a0fc81f17e8d3e0fb2e0d3628cf35e20c38d18906"));
     }
 
     @Test
     public void testIETFVector2() {
-        assertEquals(new SCrypt(1024, 8, 16, 64).deriveKey("password".getBytes(UTF8), "NaCl".getBytes(UTF8)),
+        assertEquals(newInstance(1024, 8, 16, 64).deriveKey("password".getBytes(UTF8), "NaCl".getBytes(UTF8)),
                             HEX.decode("fdbabe1c9d3472007856e7190d01e9fe7c6ad7cbc8237830e77376634b3731622eaf30d92e22a3886ff109279d9830dac727afb94a83ee6d8360cbdfa2cc0640"));
     }
 
     @Test
     public void testIETFVector3() {
-        assertEquals(new SCrypt(16384, 8, 1, 64).deriveKey("pleaseletmein".getBytes(UTF8), "SodiumChloride".getBytes(UTF8)),
+        assertEquals(newInstance(16384, 8, 1, 64).deriveKey("pleaseletmein".getBytes(UTF8), "SodiumChloride".getBytes(UTF8)),
                             HEX.decode("7023bdcb3afd7348461c06cd81fd38ebfda8fbba904f8e3ea9b543f6545da1f2d5432955613f0fcf62d49705242a9af9e61e85dc0d651e40dfcf017b45575887"));
     }
 
     @Test
     public void testIETFVector4() {
-        assertEquals(new SCrypt(1048576, 8, 1, 64).deriveKey("pleaseletmein".getBytes(UTF8), "SodiumChloride".getBytes(UTF8)),
+        assertEquals(newInstance(1048576, 8, 1, 64).deriveKey("pleaseletmein".getBytes(UTF8), "SodiumChloride".getBytes(UTF8)),
                             HEX.decode("2101cb9b6a511aaeaddbbe09cf70f881ec568d574a2ffd4dabe5ee9820adaa478e56fd8f4ba5d09ffa1c6d927c40f4c337304049e8a952fbcbf45c6fa77a41a4"));
     }
 

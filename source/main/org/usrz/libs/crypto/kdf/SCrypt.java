@@ -46,6 +46,8 @@ public class SCrypt extends AbstractKDF {
     private final PBKDF2 kdf1;
     /* The SHA256 KDF for the second hashing (final key) */
     private final PBKDF2 kdf2;
+    /* Whether to use the native implementation or the Java one */
+    private final boolean useNative;
 
     /**
      * Create a {@link SCrypt} with its specified initialization parameters.
@@ -85,10 +87,15 @@ public class SCrypt extends AbstractKDF {
         if (blockSize > MAX_VALUE / 128 / parallelization)
             throw new IllegalArgumentException("Block size too large for given parallelization");
 
-        /* Build our PKCS2[SHA256] (or whatever else) instances */
-        final Hash hash = kdfSpec.getHash();
-        kdf1 = new PBKDF2(hash, 1, parallelization * blockSizeTimes128); // initial pwd/salt
-        kdf2 = new PBKDF2(hash, 1, derivedKeyLength); // build final key
+        /* Check whether we have the native helper available */
+        if (useNative = SCryptNativeHelper.isAvailable()) {
+            kdf1 = kdf2 = null;
+        } else {
+            /* Build our PKCS2[SHA256] (or whatever else) instances */
+            final Hash hash = kdfSpec.getHash();
+            kdf1 = new PBKDF2(hash, 1, parallelization * blockSizeTimes128); // initial pwd/salt
+            kdf2 = new PBKDF2(hash, 1, derivedKeyLength); // build final key
+        }
 
     }
 
@@ -97,20 +104,35 @@ public class SCrypt extends AbstractKDF {
     @Override
     protected void computeKey(byte[] password, byte[] salt, byte[] output, int offset) {
 
-        /* Allocate our buffer */
-        final byte[] buffer  = new byte[blockSizeTimes128 * parallelization];
+        if (useNative) {
 
-        /* Compute our key */
-        kdf1.deriveKey(password, salt, buffer, 0);
-        new Computer().compute(buffer);
-        kdf2.deriveKey(password, buffer, output, offset);
+            /* Just invoke the native helper */
+            SCryptNativeHelper.scrypt(password, salt, output, offset, derivedKeyLength, iterations, blockSize, parallelization);
 
+        } else {
+
+            /* Allocate our buffer */
+            final byte[] buffer  = new byte[blockSizeTimes128 * parallelization];
+
+            /* Compute our key */
+            kdf1.deriveKey(password, salt, buffer, 0);
+            new Computer().compute(buffer);
+            kdf2.deriveKey(password, buffer, output, offset);
+
+        }
+    }
+
+    /**
+     * Return a flag indicating whether native (JNI) processing is enabled.
+     */
+    boolean isNative() {
+        return useNative;
     }
 
     /**
      * Evaluate (roughly) how much memory will be used to compute the key.
      */
-    protected int getComputationMemoryRequirement() {
+    int getComputationMemoryRequirement() {
         return (blockSizeTimes128 * iterations) // bufferV
              + (blockSizeTimes128 * 2) // buffer1;
              + 192; // buffer2 + bufferCopy + tempBuffer
