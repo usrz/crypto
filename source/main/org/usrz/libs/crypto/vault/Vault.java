@@ -43,7 +43,7 @@ public interface Vault extends Destroyable {
     public byte[] decrypt(String string)
     throws GeneralSecurityException;
 
-    default String decode(String string)
+    default String decryptString(String string)
     throws GeneralSecurityException {
         return new String(decrypt(string), UTF8);
     }

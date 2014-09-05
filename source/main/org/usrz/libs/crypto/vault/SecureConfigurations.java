@@ -78,14 +78,14 @@ public class SecureConfigurations extends Configurations implements Destroyable 
     private void validateAll() {
         keySet().forEach((key) -> {
             try {
-                decodeString(key, null);
+                decryptString(key, null);
             } catch (Exception exception) {
                 throw new IllegalStateException("Unable to decrypt key '" + key + "'", exception);
             }
         });
     }
 
-    private String decodeString(Object key, String defaultValue)
+    private String decryptString(Object key, String defaultValue)
     throws GeneralSecurityException {
 
         /* Check if we have an un-encrypted value */
@@ -93,13 +93,13 @@ public class SecureConfigurations extends Configurations implements Destroyable 
         if (encrypted == null) return configurations.getString(key, defaultValue);
 
         /* We have an encrypted value, try to descrypt it */
-        return vault.decode(encrypted);
+        return vault.decryptString(encrypted);
     }
 
     @Override
     public String getString(Object key, String defaultValue) {
         try {
-            return decodeString(key, defaultValue);
+            return decryptString(key, defaultValue);
         } catch (GeneralSecurityException exception) {
             throw new IllegalStateException("Unable to decrypt \"" + key + "\"", exception);
         }

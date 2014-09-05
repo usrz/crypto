@@ -42,8 +42,8 @@ public class AESVaultTest extends AbstractTest {
         assertNotEquals(encrypted1, encrypted2);
 
         /* Decrypt */
-        final String decrypted1 = vault.decode(encrypted1);
-        final String decrypted2 = vault.decode(encrypted2);
+        final String decrypted1 = vault.decryptString(encrypted1);
+        final String decrypted2 = vault.decryptString(encrypted2);
         assertEquals(decrypted1, original);
         assertEquals(decrypted2, original);
     }
