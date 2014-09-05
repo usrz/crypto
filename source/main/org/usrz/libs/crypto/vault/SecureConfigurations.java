@@ -28,13 +28,14 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
+import javax.security.auth.Destroyable;
 import javax.security.auth.callback.CallbackHandler;
 
 import org.usrz.libs.configurations.Configurations;
 import org.usrz.libs.configurations.FileConfigurations;
 import org.usrz.libs.utils.Check;
 
-public class SecureConfigurations extends Configurations {
+public class SecureConfigurations extends Configurations implements Destroyable {
 
     private final Configurations configurations;
     private final Vault vault;
@@ -58,6 +59,21 @@ public class SecureConfigurations extends Configurations {
         this.vault = Check.notNull(vault, "Null vault");
         validateAll();
     }
+
+    /* Override default methods from Destroyable */
+
+    @Override
+    public void destroy() {
+        vault.destroy();
+    }
+
+
+    @Override
+    public boolean isDestroyed() {
+        return vault.isDestroyed();
+    }
+
+    /* Override default methods from Destroyable */
 
     private void validateAll() {
         keySet().forEach((key) -> {
@@ -206,13 +222,19 @@ public class SecureConfigurations extends Configurations {
         });
 
         /* Check parameters */
-        if ((filename.get() == null) || (encrypt.get() && (actions.size() == 0))) help();
+        if (filename.get() == null) help();
 
         /* Load configurations */
         final Configurations base = new FileConfigurations(new File(filename.get()).getAbsoluteFile());
 
         /* Read password */
         final char[] password = System.console().readPassword("Password: ");
+
+        /* Read what to encrypt if nothing specified */
+        if (encrypt.get() && (actions.size() == 0)) {
+            final char[] decrypted = System.console().readPassword("Data to encrypt: ");
+            actions.add(new String(decrypted));
+        }
 
         /* Build up our secure configuration */
         final SecureConfigurations conf = new SecureConfigurations(base, password);

@@ -36,6 +36,7 @@ public class AESVault implements Vault {
     private final Codec codec;
     private final SecureRandom random;
     private final byte[] password;
+    private boolean destroyed = false;
 
     public AESVault(Codec codec, KDF kdf, char[] password) {
         this(new SecureRandom(), codec, kdf, password);
@@ -50,18 +51,30 @@ public class AESVault implements Vault {
     }
 
     @Override
+    public void destroy() {
+        destroyed = true;
+        Arrays.fill(password, (byte) 0);
+    }
+
+    @Override
+    public boolean isDestroyed() {
+        return destroyed;
+    }
+
+    @Override
     public boolean canEncrypt() {
-        return true;
+        return !destroyed;
     }
 
     @Override
     public boolean canDecrypt() {
-        return true;
+        return !destroyed;
     }
 
     @Override
     public String encrypt(byte[] data)
     throws GeneralSecurityException {
+        if (destroyed) throw new IllegalStateException("Vault destroyed");
         notNull(data, "Null data to encrypt");
 
         final Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
@@ -87,6 +100,7 @@ public class AESVault implements Vault {
     @Override
     public byte[] decrypt(String string)
     throws GeneralSecurityException {
+        if (destroyed) throw new IllegalStateException("Vault destroyed");
         notNull(string, "Null string to decrypt");
 
         final byte[] decoded = codec.decode(string);

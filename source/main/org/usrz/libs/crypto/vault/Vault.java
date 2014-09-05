@@ -20,9 +20,11 @@ import static org.usrz.libs.utils.Check.notNull;
 
 import java.security.GeneralSecurityException;
 
+import javax.security.auth.Destroyable;
+
 import org.usrz.libs.utils.codecs.Codec;
 
-public interface Vault {
+public interface Vault extends Destroyable {
 
     public enum Type { AES };
 
@@ -47,5 +49,13 @@ public interface Vault {
     }
 
     public Codec getCodec();
+
+    /* Override default methods from Destroyable */
+
+    @Override
+    public void destroy();
+
+    @Override
+    public boolean isDestroyed();
 
 }
