@@ -63,4 +63,27 @@ public class SecureConfigurationsTest extends AbstractTest {
                                                              "foo.boolean"));
         assertEquals(secure.keySet(), keys, "Invalid set keys returned from configuration");
     }
+
+    @Test
+    public void testDestroy()
+    throws Exception {
+        final Configurations configurations = new ResourceConfigurations("secure.properties");
+        final VaultBuilder builder = new VaultBuilder(new ResourceConfigurations("vault.json"));
+        final Vault vault = builder.withPassword("foobar".toCharArray()).build();
+        final SecureConfigurations secure = new SecureConfigurations(configurations, vault);
+
+        assertEquals(secure.requireString("foo.unencrypted"), "this is not encrypted");
+        assertEquals(secure.requireString("foo.string"), "this is a string");
+
+        secure.destroy();
+        assertTrue(secure.isDestroyed(), "Not destroyed?");
+        assertEquals(secure.requireString("foo.unencrypted"), "this is not encrypted");
+        try {
+            secure.getString("foo.string");
+            fail("IllegalStateException never thrown");
+        } catch (IllegalStateException exception) {
+            assertEquals(exception.getMessage(), "Vault destroyed");
+        }
+    }
+
 }

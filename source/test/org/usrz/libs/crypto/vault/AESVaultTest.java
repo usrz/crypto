@@ -46,6 +46,18 @@ public class AESVaultTest extends AbstractTest {
         final String decrypted2 = vault.decryptString(encrypted2);
         assertEquals(decrypted1, original);
         assertEquals(decrypted2, original);
+
+        /* Destroy */
+        vault.destroy();
+        assertTrue(vault.isDestroyed());
+        assertFalse(vault.canDecrypt());
+        assertFalse(vault.canEncrypt());
+        try {
+            vault.decrypt(encrypted1);
+            fail("IllegalStateException never thrown");
+        } catch (IllegalStateException exception) {
+            assertEquals(exception.getMessage(), "Vault destroyed");
+        }
     }
 
 }
