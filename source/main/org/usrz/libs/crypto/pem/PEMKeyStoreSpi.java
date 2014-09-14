@@ -294,9 +294,7 @@ public class PEMKeyStoreSpi extends KeyStoreSpi {
      * ====================================================================== */
 
     private static Holder newHolder(PublicKey key, ConcurrentHashMap<String, Holder> holders) {
-        final String alias = alias(key);
-        holders.putIfAbsent(alias, new Holder(alias));
-        return holders.get(alias);
+        return holders.computeIfAbsent(alias(key), (alias) -> new Holder(alias));
     }
 
     private static String alias(PublicKey key) {
