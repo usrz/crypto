@@ -32,25 +32,41 @@ public interface Vault extends Destroyable {
 
     public boolean canDecrypt();
 
+    public Codec getCodec();
+
+    /* ====================================================================== */
+
     default String encrypt(String string)
     throws GeneralSecurityException {
         return this.encrypt(notNull(string, "Null string to encrypt").getBytes(UTF8));
     }
 
-    public String encrypt(byte[] data)
+    default String encrypt(byte[] data)
+    throws GeneralSecurityException {
+        return getCodec().encode(encryptBytes(notNull(data, "No data to encrypt")));
+    }
+
+    public byte[] encryptBytes(byte[] data)
     throws GeneralSecurityException;
 
-    public byte[] decrypt(String string)
+    /* ====================================================================== */
+
+    public byte[] decrypt(byte[] data)
     throws GeneralSecurityException;
+
+    default byte[] decrypt(String string)
+    throws GeneralSecurityException {
+        return decrypt(getCodec().decode(string));
+    }
 
     default String decryptString(String string)
     throws GeneralSecurityException {
         return new String(decrypt(string), UTF8);
     }
 
-    public Codec getCodec();
+    /* ====================================================================== */
 
-    /* Override default methods from Destroyable */
+    /* Destroyable methods MUST be overridden (no defaults) */
 
     @Override
     public void destroy();

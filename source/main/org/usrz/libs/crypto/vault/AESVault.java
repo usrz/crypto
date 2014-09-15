@@ -36,7 +36,7 @@ public class AESVault implements Vault {
     private final Codec codec;
     private final SecureRandom random;
     private final byte[] password;
-    private boolean destroyed = false;
+    private volatile boolean destroyed = false;
 
     public AESVault(Codec codec, KDF kdf, char[] password) {
         this(new SecureRandom(), codec, kdf, password);
@@ -53,7 +53,7 @@ public class AESVault implements Vault {
     @Override
     public void destroy() {
         destroyed = true;
-        Arrays.fill(password, (byte) 0);
+        random.nextBytes(password);
     }
 
     @Override
@@ -72,7 +72,7 @@ public class AESVault implements Vault {
     }
 
     @Override
-    public String encrypt(byte[] data)
+    public byte[] encryptBytes(byte[] data)
     throws GeneralSecurityException {
         if (destroyed) throw new IllegalStateException("Vault destroyed");
         notNull(data, "Null data to encrypt");
@@ -94,21 +94,19 @@ public class AESVault implements Vault {
         System.arraycopy(salt, 0, result, 0, salt.length);
         System.arraycopy(encrypted, 0, result, salt.length, encrypted.length);
 
-        return codec.encode(result);
+        return result;
     }
 
     @Override
-    public byte[] decrypt(String string)
+    public byte[] decrypt(byte[] data)
     throws GeneralSecurityException {
         if (destroyed) throw new IllegalStateException("Vault destroyed");
-        notNull(string, "Null string to decrypt");
-
-        final byte[] decoded = codec.decode(string);
+        notNull(data, "No data to decrypt");
 
         final Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
 
         final byte[] salt = new byte[cipher.getBlockSize()];
-        System.arraycopy(decoded, 0, salt, 0, salt.length);
+        System.arraycopy(data, 0, salt, 0, salt.length);
 
         final byte[] key = kdf.deriveKey(password, salt);
 
@@ -116,7 +114,7 @@ public class AESVault implements Vault {
         final SecretKey secretKey = new SecretKeySpec(key, "AES");
 
         cipher.init(Cipher.DECRYPT_MODE, secretKey, ivParameterSpec);
-        return cipher.doFinal(decoded, salt.length, decoded.length - salt.length);
+        return cipher.doFinal(data, salt.length, data.length - salt.length);
     }
 
     @Override
