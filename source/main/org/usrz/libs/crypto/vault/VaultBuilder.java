@@ -51,7 +51,7 @@ public class VaultBuilder {
 
     public VaultBuilder(Configurations configurations) {
         Check.notNull(configurations, "Null configurations");
-        final String type = configurations.requireString(TYPE).toUpperCase();
+        final String type = configurations.getString(TYPE, "AES").toUpperCase();
         try {
             this.type = Type.valueOf(type);
         } catch (IllegalArgumentException exception) {
