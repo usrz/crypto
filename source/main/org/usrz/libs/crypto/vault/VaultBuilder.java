@@ -15,6 +15,8 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.vault;
 
+import static org.usrz.libs.utils.codecs.HexCodec.HEX;
+
 import java.security.SecureRandom;
 import java.util.function.Supplier;
 
@@ -39,7 +41,7 @@ public class VaultBuilder {
 
     private final Type type;
     private KDF kdf;
-    private Codec codec;
+    private Codec codec = HEX;
     private Supplier<char[]> password;
     private SecureRandom random;
 
@@ -61,8 +63,7 @@ public class VaultBuilder {
     public Vault build() {
         if (type != Type.AES) throw new IllegalArgumentException("Unsupported vault type " + type);
         char[] password = this.password.get();
-        return new AESVault(random == null ? new SecureRandom() : random,
-                            Check.notNull(codec, "Codec not specified"),
+        return new AESVault(random == null ? new SecureRandom() : random, codec,
                             Check.notNull(kdf, "KDF not specified"),
                             Check.notNull(password, "Password not specified"));
     }
