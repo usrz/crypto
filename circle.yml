@@ -1,6 +1,6 @@
 machine:
   environment:
-    JAVA_URL: "http://dev.usrz.com/jdk-8-minimal.tar.bz2"
+    JAVA_URL: "https://github.com/usrz/repository/releases/download/v0.0/java-1.8.0_20-minimal.tar.bz2"
     JAVA_HOME: "${HOME}/jdk1.8.0"
     PATH: "${JAVA_HOME}/bin:${JAVA_HOME}/jre/bin:${PATH}"
   node:
@@ -13,7 +13,7 @@ dependencies:
   override:
     - if test ! -d "${JAVA_HOME}" ; then
           mkdir "${JAVA_HOME}" ;
-          curl --silent "${JAVA_URL}" | 
+          curl --location --silent "${JAVA_URL}" | 
             tar -C "${JAVA_HOME}" -jxvf - ;
         fi
     - ant resolve -Divy.useCacheOnly=false
