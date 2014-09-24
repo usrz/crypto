@@ -15,10 +15,7 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.kdf;
 
-import java.util.Map;
-
 import org.usrz.libs.configurations.Configurations;
-import org.usrz.libs.configurations.MappedConfigurations;
 import org.usrz.libs.crypto.hash.Hash;
 import org.usrz.libs.crypto.kdf.KDF.Type;
 import org.usrz.libs.utils.Check;
@@ -83,15 +80,6 @@ public class KDFSpecBuilder {
     }
 
     /**
-     * Create a new {@link KDFSpecBuilder} given the specified {@link Map}
-     * containing properties keyed by the static {@link String} fields outlined
-     * in this class.
-     */
-    public KDFSpecBuilder(Map<?, ?> parameters) {
-        this(configurations(parameters));
-    }
-
-    /**
      * Create a new {@link KDFSpecBuilder} from a {@link Configurations}
      * containing properties keyed by the static {@link String} fields outlined
      * in this class.
@@ -105,13 +93,6 @@ public class KDFSpecBuilder {
             throw new IllegalArgumentException("Invalid type \"" + type + "\"", exception);
         }
         withConfigurations(configurations);
-    }
-
-    /* Convert a map to a configurations instance */
-    private static Configurations configurations(Map<?, ?> map) {
-        if (map == null) return null;
-        if (map instanceof Configurations) return (Configurations) map;
-        return new MappedConfigurations(map);
     }
 
     /* ====================================================================== */
