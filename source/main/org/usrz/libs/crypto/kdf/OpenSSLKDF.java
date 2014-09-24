@@ -16,7 +16,6 @@
 package org.usrz.libs.crypto.kdf;
 
 import static org.usrz.libs.crypto.hash.Hash.MD5;
-import static org.usrz.libs.crypto.kdf.KDF.Type.OPENSSL;
 
 import org.usrz.libs.crypto.hash.Hash;
 import org.usrz.libs.crypto.hash.MD;
@@ -46,7 +45,7 @@ public class OpenSSLKDF extends AbstractKDF {
      * Create an {@link OpenSSLKDF} from the specified {@link OpenSSLKDFSpec}.
      */
     public OpenSSLKDF(OpenSSLKDFSpec kdfSpec) {
-        super(OPENSSL, kdfSpec);
+        super(kdfSpec);
         hash = kdfSpec.getHash();
     }
 

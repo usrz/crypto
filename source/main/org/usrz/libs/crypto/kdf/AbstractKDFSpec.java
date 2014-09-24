@@ -16,7 +16,7 @@
 package org.usrz.libs.crypto.kdf;
 
 import org.usrz.libs.crypto.hash.Hash;
-import org.usrz.libs.crypto.kdf.KDF.Type;
+import org.usrz.libs.crypto.kdf.KDF.Function;
 import org.usrz.libs.utils.Check;
 
 /**
@@ -26,29 +26,29 @@ import org.usrz.libs.utils.Check;
  */
 public abstract class AbstractKDFSpec implements KDFSpec {
 
-    private final Type type;
+    private final Function function;
     private final Hash hash;
     private final int length;
 
     /**
      * Create an {@link AbstractKDFSpec} instance asspciated with the given
-     * {@link Type}, {@link Hash} and <em>derived key length</em>.
+     * {@link Function}, {@link Hash} and <em>derived key length</em>.
      *
      * <p>If the specified {@link Hash} is <b>null</b> it will be defaulted
-     * to the KDF's own {@linkplain Type#getDefaultHash() default hash}.</p>
+     * to the KDF's own {@linkplain Function#getDefaultHash() default hash}.</p>
      *
      * <p>If the specified <em>derived key length</em> is less than 1, it will
      * be defaulted to the {@linkplain Hash#getHashLength() hash length}.</p>
      */
-    protected AbstractKDFSpec(Type type, Hash hash, int length) {
-        this.type = Check.notNull(type, "Null KDF type");
-        this.hash = hash != null ? hash : type.getDefaultHash();
+    protected AbstractKDFSpec(Function function, Hash hash, int length) {
+        this.function = Check.notNull(function, "Null KDF function");
+        this.hash = hash != null ? hash : function.getDefaultHash();
         this.length = length > 0 ? length : this.hash.getHashLength();
     }
 
     @Override
-    public final Type getType() {
-        return type;
+    public final Function getFunction() {
+        return function;
     }
 
     @Override
@@ -63,7 +63,7 @@ public abstract class AbstractKDFSpec implements KDFSpec {
 
     @Override
     public int hashCode() {
-        return (type.hashCode() ^ hash.hashCode()) * length;
+        return (function.hashCode() ^ hash.hashCode()) * length;
     }
 
     @Override
@@ -73,7 +73,7 @@ public abstract class AbstractKDFSpec implements KDFSpec {
         try {
             final AbstractKDFSpec spec = (AbstractKDFSpec) object;
             return length == spec.getDerivedKeyLength()
-                   && getType() == spec.getType()
+                   && getFunction() == spec.getFunction()
                    && getHash() == spec.getHash();
         } catch (ClassCastException exception) {
             return false;

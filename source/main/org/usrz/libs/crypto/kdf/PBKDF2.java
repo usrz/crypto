@@ -16,7 +16,6 @@
 package org.usrz.libs.crypto.kdf;
 
 import static java.lang.System.arraycopy;
-import static org.usrz.libs.crypto.kdf.KDF.Type.PBKDF2;
 
 import org.usrz.libs.crypto.hash.HMAC;
 import org.usrz.libs.crypto.hash.Hash;
@@ -67,7 +66,7 @@ public class PBKDF2 extends AbstractKDF {
      * Create a new {@link PBKDF2} from the specified {@link PBKDF2Spec}.
      */
     public PBKDF2(PBKDF2Spec kdfSpec) {
-        super(PBKDF2, kdfSpec);
+        super(kdfSpec);
 
         hash = kdfSpec.getHash();
         iterations = kdfSpec.getIterations();

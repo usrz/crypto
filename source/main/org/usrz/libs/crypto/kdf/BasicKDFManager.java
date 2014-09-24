@@ -30,11 +30,11 @@ public class BasicKDFManager implements KDFManager {
 
     @Override
     public KDF getKDF(KDFSpec spec) {
-        switch (spec.getType()) {
+        switch (spec.getFunction()) {
             case OPENSSL: return new OpenSSLKDF((OpenSSLKDFSpec) spec);
             case PBKDF2:  return new PBKDF2((PBKDF2Spec) spec);
             case SCRYPT:  return new SCrypt((SCryptSpec) spec);
         }
-        throw new UnsupportedOperationException("Invalid KDF type " + spec.getType());
+        throw new UnsupportedOperationException("Invalid KDF function " + spec.getFunction());
     }
 }

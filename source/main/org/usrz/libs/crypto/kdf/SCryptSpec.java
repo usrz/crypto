@@ -18,7 +18,7 @@ package org.usrz.libs.crypto.kdf;
 import static java.lang.Integer.MAX_VALUE;
 
 import org.usrz.libs.crypto.hash.Hash;
-import org.usrz.libs.crypto.kdf.KDF.Type;
+import org.usrz.libs.crypto.kdf.KDF.Function;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
@@ -27,7 +27,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
  *
  * @author <a href="mailto:pier@usrz.com">Pier Fumagalli</a>
  */
-@JsonPropertyOrder({"type","hash","derivedKeyLength","iterations","blockSize","parallelization"})
+@JsonPropertyOrder({"function","hash","derivedKeyLength","iterations","blockSize","parallelization"})
 public class SCryptSpec extends AbstractKDFSpec {
 
     private final int iterations;
@@ -52,7 +52,7 @@ public class SCryptSpec extends AbstractKDFSpec {
                       int iterations,
                       int blockSize,
                       int parallelization) {
-        super(Type.SCRYPT, hash, derivedKeyLength);
+        super(Function.SCRYPT, hash, derivedKeyLength);
 
         /* Defaults */
         if (blockSize < 1) blockSize = 8;

@@ -33,11 +33,11 @@ import org.usrz.libs.utils.Check;
 public interface KDF {
 
     /**
-     * The types of all known {@link KDF} functions.
+     * All known {@link KDF} functions.
      *
      * @author <a href="mailto:pier@usrz.com">Pier Fumagalli</a>
      */
-    public enum Type {
+    public enum Function {
 
         /**
          * OpenSSL's own (internal) KDF:
@@ -62,13 +62,13 @@ public interface KDF {
         private final Hash hash;
 
         /* Construct */
-        private Type(Hash hash) {
+        private Function(Hash hash) {
             this.hash = Check.notNull(hash, "Null hash");
         }
 
         /**
          * Return the default kind of {@link Hash} used by {@link KDF}s of
-         * this {@link Type}.
+         * this {@link Function}.
          */
         public Hash getDefaultHash() {
             return hash;

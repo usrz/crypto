@@ -17,7 +17,6 @@ package org.usrz.libs.crypto.kdf;
 
 import static java.lang.Integer.MAX_VALUE;
 import static java.lang.System.arraycopy;
-import static org.usrz.libs.crypto.kdf.KDF.Type.SCRYPT;
 
 import org.usrz.libs.crypto.hash.Hash;
 
@@ -71,7 +70,7 @@ public class SCrypt extends AbstractKDF {
      * Create a new {@link SCrypt} from the specified {@link SCryptSpec}.
      */
     public SCrypt(SCryptSpec kdfSpec) {
-        super(SCRYPT, kdfSpec);
+        super(kdfSpec);
 
         /* Store our parameters */
         iterations = kdfSpec.getIterations();

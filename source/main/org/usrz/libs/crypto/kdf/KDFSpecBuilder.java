@@ -17,7 +17,7 @@ package org.usrz.libs.crypto.kdf;
 
 import org.usrz.libs.configurations.Configurations;
 import org.usrz.libs.crypto.hash.Hash;
-import org.usrz.libs.crypto.kdf.KDF.Type;
+import org.usrz.libs.crypto.kdf.KDF.Function;
 import org.usrz.libs.utils.Check;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -33,8 +33,8 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 @JsonPOJOBuilder
 public class KDFSpecBuilder {
 
-    /** The key defining the <em>type</em> of this KDF. */
-    public static final String TYPE = "type";
+    /** The key defining the <em>function</em> of this KDF. */
+    public static final String FUNCTION = "function";
     /** The key defining the <em>hash function</em> of this KDF. */
     public static final String HASH_FUNCTION = "hashFunction";
     /** The key defining the <em>derived key length</em> of this KDF. */
@@ -48,7 +48,7 @@ public class KDFSpecBuilder {
 
     /* ====================================================================== */
 
-    private final Type type;
+    private final Function function;
     private Hash hash = null;
     private int derivedKeyLength = -1;
     private int iterations = -1;
@@ -58,25 +58,25 @@ public class KDFSpecBuilder {
     /* ====================================================================== */
 
     /**
-     * Create a new {@link KDFSpecBuilder} given the KDF's {@link Type}.
+     * Create a new {@link KDFSpecBuilder} given the KDF's {@link Function}.
      *
      * <p>This method is also used by Jackson to create instances from JSON.</p>
      */
     @JsonCreator
-    public KDFSpecBuilder(@JsonProperty("type") String type) {
-        Check.notNull(type, "Null type");
+    public KDFSpecBuilder(@JsonProperty(FUNCTION) String function) {
+        Check.notNull(function, "Null function");
         try {
-            this.type = Type.valueOf(type.toUpperCase());
+            this.function = Function.valueOf(function.toUpperCase());
         } catch (IllegalArgumentException exception) {
-            throw new IllegalArgumentException("Invalid type \"" + type + "\"", exception);
+            throw new IllegalArgumentException("Invalid function \"" + function + "\"", exception);
         }
     }
 
     /**
-     * Create a new {@link KDFSpecBuilder} given the KDF's {@link Type}.
+     * Create a new {@link KDFSpecBuilder} given the KDF's {@link Function}.
      */
-    public KDFSpecBuilder(Type type) {
-        this.type = Check.notNull(type, "Null type");
+    public KDFSpecBuilder(Function function) {
+        this.function = Check.notNull(function, "Null function");
     }
 
     /**
@@ -86,11 +86,11 @@ public class KDFSpecBuilder {
      */
     public KDFSpecBuilder(Configurations configurations) {
         Check.notNull(configurations, "Null configurations");
-        final String type = configurations.requireString(TYPE);
+        final String function = configurations.requireString(FUNCTION);
         try {
-            this.type = Type.valueOf(type.toUpperCase());
+            this.function = Function.valueOf(function.toUpperCase());
         } catch (IllegalArgumentException exception) {
-            throw new IllegalArgumentException("Invalid type \"" + type + "\"", exception);
+            throw new IllegalArgumentException("Invalid function \"" + function + "\"", exception);
         }
         withConfigurations(configurations);
     }
@@ -101,11 +101,11 @@ public class KDFSpecBuilder {
      * Build a {@link KDFSpec} instance according to the collected parameters.
      */
     public KDFSpec build() {
-        switch (type) {
+        switch (function) {
             case OPENSSL: return new OpenSSLKDFSpec(hash, derivedKeyLength);
             case PBKDF2:  return new PBKDF2Spec(hash, derivedKeyLength, iterations);
             case SCRYPT:  return new SCryptSpec(hash, derivedKeyLength, iterations, blockSize, parallelization);
-            default: throw new IllegalStateException("Unsupported KDF type " + type);
+            default: throw new IllegalStateException("Unsupported KDF function " + function);
         }
     }
 

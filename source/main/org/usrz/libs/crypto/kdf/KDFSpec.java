@@ -16,7 +16,7 @@
 package org.usrz.libs.crypto.kdf;
 
 import org.usrz.libs.crypto.hash.Hash;
-import org.usrz.libs.crypto.kdf.KDF.Type;
+import org.usrz.libs.crypto.kdf.KDF.Function;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
@@ -29,9 +29,9 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 public interface KDFSpec {
 
     /**
-     * Return the {@link Type} of the {@link KDF}.
+     * Return the {@link Function} of the {@link KDF}.
      */
-    public Type getType();
+    public Function getFunction();
 
     /**
      * Return the {@link Hash} function used by the {@link KDF}.

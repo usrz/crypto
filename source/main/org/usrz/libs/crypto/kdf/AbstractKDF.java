@@ -28,14 +28,11 @@ public abstract class AbstractKDF implements KDF {
     protected final int derivedKeyLength;
     /** The {@link KDFSpec} associated with this instance. */
     protected final KDFSpec kdfSpec;
-    /** The {@link Type} of this KDF. */
-    protected final Type type;
 
     /**
      * Create a new {@link AbstractKDF} instance.
      */
-    public AbstractKDF(Type type, KDFSpec kdfSpec) {
-        this.type = Check.notNull(type, "Null KDF type");
+    public AbstractKDF(KDFSpec kdfSpec) {
         this.kdfSpec = Check.notNull(kdfSpec, "Null spec");
 
         derivedKeyLength = kdfSpec.getDerivedKeyLength();

@@ -15,7 +15,7 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.kdf;
 
-import static org.usrz.libs.crypto.kdf.KDF.Type.OPENSSL;
+import static org.usrz.libs.crypto.kdf.KDF.Function.OPENSSL;
 
 import org.usrz.libs.crypto.hash.Hash;
 
@@ -26,7 +26,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
  *
  * @author <a href="mailto:pier@usrz.com">Pier Fumagalli</a>
  */
-@JsonPropertyOrder({"type","hash","derivedKeyLength"})
+@JsonPropertyOrder({"function","hash","derivedKeyLength"})
 public class OpenSSLKDFSpec extends AbstractKDFSpec {
 
     public OpenSSLKDFSpec() {

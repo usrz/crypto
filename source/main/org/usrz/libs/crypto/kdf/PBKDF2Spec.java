@@ -15,7 +15,7 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.kdf;
 
-import static org.usrz.libs.crypto.kdf.KDF.Type.PBKDF2;
+import static org.usrz.libs.crypto.kdf.KDF.Function.PBKDF2;
 
 import org.usrz.libs.crypto.hash.Hash;
 
@@ -26,7 +26,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
  *
  * @author <a href="mailto:pier@usrz.com">Pier Fumagalli</a>
  */
-@JsonPropertyOrder({"type","hash","derivedKeyLength","iterations"})
+@JsonPropertyOrder({"function","hash","derivedKeyLength","iterations"})
 public class PBKDF2Spec extends AbstractKDFSpec {
 
     private final int iterations;
