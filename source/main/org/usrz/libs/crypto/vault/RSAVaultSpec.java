@@ -15,54 +15,24 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.vault;
 
-import static org.usrz.libs.utils.Charsets.UTF8;
+import static org.usrz.libs.crypto.vault.VaultSpecBuilder.CODEC_SPEC;
 
-import org.usrz.libs.utils.codecs.CharsetCodec;
-import org.usrz.libs.utils.codecs.Codec;
+import org.usrz.libs.utils.Check;
 
-public class NoOpVault implements Vault {
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-    public static final Vault NO_OP_VAULT = new NoOpVault();
+public class RSAVaultSpec extends RSACryptoSpec implements VaultSpec {
 
-    private static final Codec CODEC = new CharsetCodec(UTF8);
+    private final String codecSpec;
 
-    private NoOpVault() {
-        /* Nothing to do */
+    public RSAVaultSpec(String codecSpec) {
+        this.codecSpec = Check.notNull(codecSpec, "Null codec spec");
     }
 
     @Override
-    public void close() {
-        /* Nothing to do */
-    }
-
-    @Override
-    public boolean isDestroyed() {
-        return false;
-    }
-
-    @Override
-    public boolean canEncrypt() {
-        return false;
-    }
-
-    @Override
-    public boolean canDecrypt() {
-        return false;
-    }
-
-    @Override
-    public Codec getCodec() {
-        return CODEC;
-    }
-
-    @Override
-    public byte[] encryptBytes(byte[] data) {
-        return data;
-    }
-
-    @Override
-    public byte[] decrypt(byte[] data) {
-        return data;
+    @JsonProperty(CODEC_SPEC)
+    public String getCodecSpec() {
+        return codecSpec;
     }
 
 }

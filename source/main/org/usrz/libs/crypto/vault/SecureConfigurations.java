@@ -15,8 +15,6 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.vault;
 
-import static org.usrz.libs.crypto.vault.NoOpVault.NO_OP_VAULT;
-
 import java.io.Closeable;
 import java.io.File;
 import java.security.GeneralSecurityException;
@@ -56,7 +54,7 @@ implements ClosingDestroyable {
     private final Vault vault;
 
     public SecureConfigurations(Configurations configurations) {
-        this(configurations, NO_OP_VAULT, true);
+        this(null, true, configurations);
     }
 
     public SecureConfigurations(Configurations configurations, Password password) {
@@ -64,19 +62,23 @@ implements ClosingDestroyable {
     }
 
     public SecureConfigurations(Configurations configurations, Vault vault) {
-        this(configurations, vault, false);
+        this(Check.notNull(vault, "Null vault"), false, configurations);
     }
 
     public SecureConfigurations(Configurations configurations, Password password, boolean lenient) {
-        this(configurations, new VaultBuilder(configurations.strip(PREFIX))
-                                .withPassword(password)
-                                       .build(),
-             lenient);
+        this(new VaultBuilder(configurations.strip(PREFIX)).withPassword(password).build(),
+             lenient, configurations);
     }
 
     public SecureConfigurations(Configurations configurations, Vault vault, boolean lenient) {
+        this(Check.notNull(vault, "Null vault"), lenient, configurations);
+    }
+
+    /* ---------------------------------------------------------------------- */
+
+    private SecureConfigurations(Vault vault, boolean lenient, Configurations configurations) {
         this.configurations = Check.notNull(configurations, "Null configurations");
-        this.vault = Check.notNull(vault, "Null vault");
+        this.vault = vault; // it can be null here, checked above!
         this.lenient = lenient;
 
         /* Validate all our keys */
@@ -101,7 +103,7 @@ implements ClosingDestroyable {
     @Override
     protected Configurations wrap(Map<?, ?> map) {
         final Configurations configurations = super.wrap(map);
-        final SecureConfigurations secure = new SecureConfigurations(configurations, vault, lenient);
+        final SecureConfigurations secure = new SecureConfigurations(vault, lenient, configurations);
         closeables.add(secure);
         return secure;
     }
@@ -117,13 +119,13 @@ implements ClosingDestroyable {
         } catch (Exception exception) {
             log.warn(exception, "Exception closing/destroying " + closeable);
         }
-        vault.close();
+        if (vault != null) vault.close();
     }
 
 
     @Override
     public boolean isDestroyed() {
-        return vault.isDestroyed();
+        return vault == null ? false : vault.isDestroyed();
     }
 
     /* ====================================================================== */
@@ -150,9 +152,10 @@ implements ClosingDestroyable {
 
         /* If we have an encrypted value, wrap it in a Password */
         if (encryptedKeys.contains(key)) try {
+            if (vault == null) throw new IllegalStateException("Unable to decrypt key \"" + key + "\"");
             final String encryptedKey = key.toString() + SUFFIX;
             final String encryptedValue = configurations.getString(encryptedKey);
-            final Password password = new Password(vault.decryptCharacters(encryptedValue));
+            final Password password = vault.decryptPassword(encryptedValue);
             closeables.add(password);
             return password;
         } catch (GeneralSecurityException exception) {
@@ -223,12 +226,11 @@ implements ClosingDestroyable {
 
     /* Utility method to encrypt/decrypt configurations */
     private static void help() {
-        System.out.println("Usage: java " + SecureConfigurations.class.getName() + " [-action] filename [...]");
+        System.out.println("Usage: java " + SecureConfigurations.class.getName() + " [-action] filename [..keys..]");
         System.out.println("");
         System.out.println("  Options:");
         System.out.println("    [-h|-help]           Simply display this help page");
-        System.out.println("    [-e|-enc|-encrypt]   Encrypt the value specified on the command line");
-        System.out.println("    [-e|-enc|-encrypt]   Encrypt the value specified on the command line");
+        System.out.println("    [-e|-enc|-encrypt]   Encrypt a value to be added to the configurations");
         System.out.println("    [-d|-dec|-decrypt]   Decrypt the value associated with the specified key");
         System.out.println("    filename             The '.json' or '.properties' configuration file");
         System.out.println("");
@@ -247,7 +249,7 @@ implements ClosingDestroyable {
     public static void main(String[] args) {
         final AtomicBoolean encrypt = new AtomicBoolean(false);
         final AtomicReference<String> filename = new AtomicReference<>();
-        final List<String> actions = new ArrayList<>();
+        final List<String> keys = new ArrayList<>();
 
         /* Parse command line options */
         Arrays.asList(args).forEach((arg) -> {
@@ -273,7 +275,7 @@ implements ClosingDestroyable {
             if (filename.get() == null) {
                 filename.set(arg);
             } else {
-                actions.add(arg);
+                keys.add(arg);
             }
         });
 
@@ -283,40 +285,36 @@ implements ClosingDestroyable {
         /* Load configurations */
         final Configurations base = new FileConfigurations(new File(filename.get()).getAbsoluteFile());
 
-        /* Read password */
+        /* Read password, build configurations and destroy */
         final Password password = new Password(System.console().readPassword("Password: "));
-
-        /* Read what to encrypt if nothing specified */
-        if (encrypt.get() && (actions.size() == 0)) {
-            final char[] decrypted = System.console().readPassword("Data to encrypt: ");
-            actions.add(new String(decrypted));
-        }
-
-        /* Build up our secure configuration */
-        final SecureConfigurations conf = new SecureConfigurations(base, password, true);
+        final SecureConfigurations secure = new SecureConfigurations(base, password, true);
+        password.close();
 
         /* Encrypt or decrypt? */
         if (encrypt.get()) {
-            /* Encrypt each keyword */
-            actions.forEach((action) -> {
-                try {
-                    System.out.printf("%s = %s\n", action, conf.vault.encrypt(action));
-                } catch (Exception exception) {
-                    System.err.println("Error encrypting string '" + action + "'");
-                    exception.printStackTrace(System.err);
-                    System.exit(2);
-                }
-            });
-        } else {
-            if (actions.isEmpty()) {
-                actions.addAll(conf.keySet());
-                Collections.sort(actions);
+
+            /* Read from console and encrypt whatever we have to */
+            final Password decrypted = new Password(System.console().readPassword("Data to encrypt: "));
+            try {
+                final String key = keys.isEmpty() ? "..." : keys.get(0);
+                System.out.printf("%s%s = %s\n", key, SUFFIX, secure.vault.encryptPassword(decrypted));
+            } catch (Exception exception) {
+                System.err.println("Error encrypting");
+                exception.printStackTrace(System.err);
+                System.exit(2);
+            } finally {
+                decrypted.close();
             }
-            actions.forEach((key) -> System.err.printf("%s = %s\n", key, conf.get(key)));
+
+        } else {
+            if (keys.isEmpty()) {
+                keys.addAll(secure.keySet());
+                Collections.sort(keys);
+            }
+            keys.forEach((key) -> System.err.printf("%s = %s\n", key, secure.get(key)));
         }
 
         /* Wipe configurations/password */
-        password.close();
-        conf.close();
+        secure.close();
     }
 }

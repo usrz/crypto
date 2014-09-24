@@ -15,64 +15,88 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.vault;
 
-import static org.usrz.libs.utils.Charsets.UTF8;
-import static org.usrz.libs.utils.Check.notNull;
-
-import java.nio.ByteBuffer;
-import java.nio.charset.CharacterCodingException;
-import java.nio.charset.CharsetDecoder;
 import java.security.GeneralSecurityException;
 
-import org.bouncycastle.util.Arrays;
-import org.usrz.libs.crypto.utils.ClosingDestroyable;
+import org.usrz.libs.configurations.Password;
+import org.usrz.libs.crypto.utils.CryptoUtils;
+import org.usrz.libs.utils.Check;
 import org.usrz.libs.utils.codecs.Codec;
 
-public interface Vault extends ClosingDestroyable {
+public class Vault implements Crypto {
 
-    public enum Type { AES, NONE };
-
-    public boolean canEncrypt();
-
-    public boolean canDecrypt();
-
-    public Codec getCodec();
+    private final Crypto crypto;
+    private final Codec codec;
 
     /* ====================================================================== */
 
-    default String encrypt(String string)
-    throws GeneralSecurityException {
-        return this.encrypt(notNull(string, "Null string to encrypt").getBytes(UTF8));
+    public Vault(Crypto crypto, Codec codec) {
+        this.crypto = Check.notNull(crypto, "Null crypto");
+        this.codec = Check.notNull(codec, "Null codec");
     }
-
-    default String encrypt(byte[] data)
-    throws GeneralSecurityException {
-        return getCodec().encode(encryptBytes(notNull(data, "No data to encrypt")));
-    }
-
-    public byte[] encryptBytes(byte[] data)
-    throws GeneralSecurityException;
 
     /* ====================================================================== */
 
-    public byte[] decrypt(byte[] data)
-    throws GeneralSecurityException;
-
-    default byte[] decrypt(String string)
-    throws GeneralSecurityException {
-        return decrypt(getCodec().decode(string));
+    public Codec getCodec() {
+        return codec;
     }
 
-    default char[] decryptCharacters(String string)
+    public String encryptPassword(Password password)
     throws GeneralSecurityException {
-        final byte[] bytes = decrypt(string);
-        final CharsetDecoder decoder = UTF8.newDecoder();
+        final byte[] bytes = CryptoUtils.safeEncode(password.get(), false);
         try {
-            return decoder.decode(ByteBuffer.wrap(bytes)).array();
-        } catch (CharacterCodingException exception) {
-            throw new IllegalArgumentException("Unable to decode UTF8 string", exception);
+            return getCodec().encode(encrypt(bytes));
         } finally {
-            Arrays.fill(bytes, (byte) 0);
+            CryptoUtils.destroy(bytes);
         }
+    }
+
+    public Password decryptPassword(String string)
+    throws GeneralSecurityException {
+        final byte[] bytes = getCodec().decode(string);
+        try {
+            return new Password(CryptoUtils.safeDecode(decrypt(bytes), false));
+        } finally {
+            CryptoUtils.destroy(bytes);
+        }
+    }
+
+    /* ====================================================================== */
+
+    @Override
+    public Algorithm getAlgorithm() {
+        return crypto.getAlgorithm();
+    }
+
+    @Override
+    public void close() {
+        crypto.close();
+    }
+
+    @Override
+    public boolean isDestroyed() {
+        return crypto.isDestroyed();
+    }
+
+    @Override
+    public byte[] decrypt(byte[] data)
+    throws GeneralSecurityException {
+        return crypto.decrypt(data);
+    }
+
+    @Override
+    public byte[] encrypt(byte[] data)
+    throws GeneralSecurityException {
+        return crypto.encrypt(data);
+    }
+
+    @Override
+    public boolean canEncrypt() {
+        return crypto.canEncrypt();
+    }
+
+    @Override
+    public boolean canDecrypt() {
+        return crypto.canDecrypt();
     }
 
 }

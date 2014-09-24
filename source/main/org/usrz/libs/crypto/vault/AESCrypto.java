@@ -15,6 +15,7 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.vault;
 
+import static org.usrz.libs.crypto.vault.Crypto.Algorithm.AES;
 import static org.usrz.libs.utils.Check.notNull;
 
 import java.security.GeneralSecurityException;
@@ -28,34 +29,36 @@ import javax.crypto.spec.SecretKeySpec;
 import org.usrz.libs.configurations.Password;
 import org.usrz.libs.crypto.kdf.KDF;
 import org.usrz.libs.crypto.utils.CryptoUtils;
-import org.usrz.libs.utils.codecs.Codec;
 
-public class AESVault implements Vault {
+public class AESCrypto implements Crypto {
 
     private final KDF kdf;
-    private final Codec codec;
     private final SecureRandom random;
     private final byte[] password;
-    private volatile boolean xdestroyed = false;
+    private volatile boolean destroyed = false;
     private final Object lock = new Object();
 
-    public AESVault(Codec codec, KDF kdf, Password password) {
-        this(new SecureRandom(), codec, kdf, password);
+    public AESCrypto(KDF kdf, Password password) {
+        this(new SecureRandom(), kdf, password);
     }
 
-    public AESVault(SecureRandom random, Codec codec, KDF kdf, Password password) {
+    public AESCrypto(SecureRandom random, KDF kdf, Password password) {
         this.kdf = kdf;
-        this.codec = codec;
-        this.random = random;
+        this.random = random == null ? new SecureRandom() : random;
         this.password = CryptoUtils.safeEncode(password.get(), false);
     }
 
     @Override
+    public Algorithm getAlgorithm() {
+        return AES;
+    }
+
+    @Override
     public void close() {
-        if (! xdestroyed) {
+        if (! destroyed) {
             synchronized (lock) {
                 CryptoUtils.destroy(password);
-                xdestroyed = true;
+                destroyed = true;
             }
         }
     }
@@ -63,7 +66,7 @@ public class AESVault implements Vault {
     @Override
     public boolean isDestroyed() {
         synchronized (lock) {
-            return xdestroyed;
+            return destroyed;
         }
     }
 
@@ -78,7 +81,7 @@ public class AESVault implements Vault {
     }
 
     @Override
-    public byte[] encryptBytes(byte[] data)
+    public byte[] encrypt(byte[] data)
     throws GeneralSecurityException {
         if (isDestroyed()) throw new IllegalStateException("Vault destroyed");
         notNull(data, "Null data to encrypt");
@@ -93,7 +96,7 @@ public class AESVault implements Vault {
         final IvParameterSpec ivParameterSpec = new IvParameterSpec(salt);
         final SecretKey secretKey = new SecretKeySpec(key, "AES");
 
-        cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivParameterSpec);
+        cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivParameterSpec, random);
         final byte[] encrypted = cipher.doFinal(data);
 
         final byte[] result = new byte[salt.length + encrypted.length];
@@ -119,13 +122,8 @@ public class AESVault implements Vault {
         final IvParameterSpec ivParameterSpec = new IvParameterSpec(salt);
         final SecretKey secretKey = new SecretKeySpec(key, "AES");
 
-        cipher.init(Cipher.DECRYPT_MODE, secretKey, ivParameterSpec);
+        cipher.init(Cipher.DECRYPT_MODE, secretKey, ivParameterSpec, random);
         return cipher.doFinal(data, salt.length, data.length - salt.length);
-    }
-
-    @Override
-    public Codec getCodec() {
-        return codec;
     }
 
 }

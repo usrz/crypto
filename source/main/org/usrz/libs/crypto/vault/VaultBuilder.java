@@ -15,98 +15,59 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.vault;
 
-import static org.usrz.libs.crypto.vault.NoOpVault.NO_OP_VAULT;
-import static org.usrz.libs.utils.codecs.HexCodec.HEX;
+import static org.usrz.libs.crypto.vault.VaultSpecBuilder.CODEC_SPEC;
 
 import java.security.SecureRandom;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
 
 import org.usrz.libs.configurations.Configurations;
 import org.usrz.libs.configurations.Password;
-import org.usrz.libs.crypto.kdf.BasicKDFManager;
-import org.usrz.libs.crypto.kdf.KDF;
-import org.usrz.libs.crypto.kdf.KDFSpec;
-import org.usrz.libs.crypto.kdf.KDFSpecBuilder;
-import org.usrz.libs.crypto.vault.Vault.Type;
-import org.usrz.libs.utils.Check;
 import org.usrz.libs.utils.codecs.Codec;
 import org.usrz.libs.utils.codecs.CodecManager;
 
-public class VaultBuilder {
+public class VaultBuilder extends CryptoBuilder {
 
-    public static final String TYPE = "type";
-    public static final String CODEC = "codec";
-    public static final String KDF = "kdf";
-
-    private final Type type;
-    private KDF kdf;
-    private Codec codec = HEX;
-    private Password password;
-    private SecureRandom random;
-
-    public VaultBuilder(Type type) {
-        this.type = Check.notNull(type, "Null type");
-    }
+    private String codecSpec = "HEX";
 
     public VaultBuilder(Configurations configurations) {
-        Check.notNull(configurations, "Null configurations");
-        final String type = configurations.getString(TYPE, "AES").toUpperCase();
-        try {
-            this.type = Type.valueOf(type);
-        } catch (IllegalArgumentException exception) {
-            throw new IllegalArgumentException("Unknown vault type " + type, exception);
-        }
-        withConfigurations(configurations);
+        super(configurations);
+        codecSpec = configurations.get(CODEC_SPEC, codecSpec);
     }
 
+    public VaultBuilder(VaultSpec spec) {
+        super(spec);
+        codecSpec = spec.getCodecSpec();
+    }
+
+    @Override
     public Vault build() {
-        if (type == Type.NONE) return NO_OP_VAULT;
-
-        if (type != Type.AES) throw new IllegalArgumentException("Unsupported vault type " + type);
-        final Password password = Check.<Password>notNull(this.password, "Null password");
-        try {
-            return new AESVault(random == null ? new SecureRandom() : random, codec,
-                                Check.notNull(kdf, "KDF not specified"), password);
-        } finally {
-            password.close();
-        }
+        final Codec codec = CodecManager.getCodec(codecSpec);
+        return new Vault(super.build(), codec);
     }
 
+    @Override
+    public VaultBuilder withRandom(SecureRandom random) {
+        super.withRandom(random);
+        return this;
+    }
+
+    @Override
+    public VaultBuilder withPrivateKey(RSAPrivateKey privateKey) {
+        super.withPrivateKey(privateKey);
+        return this;
+    }
+
+    @Override
+    public VaultBuilder withPublicKey(RSAPublicKey publicKey) {
+        super.withPublicKey(publicKey);
+        return this;
+    }
+
+    @Override
     public VaultBuilder withPassword(Password password) {
-        this.password = Check.<Password>notNull(password, "Null password");
+        super.withPassword(password);
         return this;
     }
 
-    public VaultBuilder withSecureRandom(SecureRandom random) {
-        this.random = Check.notNull(random, "Null random");
-        return this;
-    }
-
-    public VaultBuilder withKDF(KDF kdf) {
-        this.kdf = Check.notNull(kdf, "Null KDF");
-        return this;
-    }
-
-    public VaultBuilder withKDFSpec(KDFSpec kdfSpec) {
-        return withKDF(new BasicKDFManager().getKDF(kdfSpec));
-    }
-
-    public VaultBuilder withCodec(Codec codec) {
-        this.codec = Check.notNull(codec, "Null codec");
-        return this;
-    }
-
-    public VaultBuilder withCodecSpec(String codecSpec) {
-        return withCodec(CodecManager.getCodec(codecSpec));
-    }
-
-    public VaultBuilder withConfigurations(Configurations configurations) {
-
-        final String codec = configurations.getString(CODEC, null);
-        if (codec != null) withCodecSpec(codec);
-
-        final Configurations kdf = configurations.strip(KDF);
-        if (!kdf.isEmpty()) withKDFSpec(new KDFSpecBuilder(kdf).build());
-
-        return this;
-    }
 }
