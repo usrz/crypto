@@ -15,15 +15,13 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.vault;
 
+import static org.usrz.libs.crypto.vault.NoOpVault.NO_OP_VAULT;
 import static org.usrz.libs.utils.codecs.HexCodec.HEX;
 
 import java.security.SecureRandom;
-import java.util.function.Supplier;
-
-import javax.security.auth.callback.CallbackHandler;
 
 import org.usrz.libs.configurations.Configurations;
-import org.usrz.libs.crypto.callbacks.PasswordSupplier;
+import org.usrz.libs.configurations.Password;
 import org.usrz.libs.crypto.kdf.BasicKDFManager;
 import org.usrz.libs.crypto.kdf.KDF;
 import org.usrz.libs.crypto.kdf.KDFSpec;
@@ -42,7 +40,7 @@ public class VaultBuilder {
     private final Type type;
     private KDF kdf;
     private Codec codec = HEX;
-    private Supplier<char[]> password;
+    private Password password;
     private SecureRandom random;
 
     public VaultBuilder(Type type) {
@@ -61,28 +59,20 @@ public class VaultBuilder {
     }
 
     public Vault build() {
+        if (type == Type.NONE) return NO_OP_VAULT;
+
         if (type != Type.AES) throw new IllegalArgumentException("Unsupported vault type " + type);
-        char[] password = this.password.get();
-        return new AESVault(random == null ? new SecureRandom() : random, codec,
-                            Check.notNull(kdf, "KDF not specified"),
-                            Check.notNull(password, "Password not specified"));
+        final Password password = Check.notNull(this.password, "Null password");
+        try {
+            return new AESVault(random == null ? new SecureRandom() : random, codec,
+                                Check.notNull(kdf, "KDF not specified"), password);
+        } finally {
+            password.close();
+        }
     }
 
-    public VaultBuilder withPassword(char[] password) {
-        Check.notNull(password, "Null password");
-        this.password = () -> password;
-        return this;
-    }
-
-    public VaultBuilder withPassword(Supplier<char[]> supplier) {
-        if (supplier == null) throw new NullPointerException("Null password supplier");
-        password = supplier;
-        return this;
-    }
-
-    public VaultBuilder withPassword(CallbackHandler handler) {
-        Check.notNull(handler, "Null password callback handler");
-        password = new PasswordSupplier(handler, "Enter decryption password");
+    public VaultBuilder withPassword(Password password) {
+        this.password = Check.notNull(password);
         return this;
     }
 
