@@ -295,6 +295,7 @@ public class PEMKeyStoreTest extends AbstractTest {
                     final Socket socket = server.accept();
                     log.debug("Accepting connection from %s" + socket.getRemoteSocketAddress());
                     IO.copy(message, socket.getOutputStream());
+                    socket.close();
                 } catch (Exception exception) {
                     exception.printStackTrace();
                 }
@@ -307,6 +308,7 @@ public class PEMKeyStoreTest extends AbstractTest {
             final Socket client = context.getSocketFactory().createSocket(localhost, server.getLocalPort());
             byte[] received = IO.read(client.getInputStream());
             assertEquals(received, message);
+            client.close();
         } finally {
             try {
                 server.close();

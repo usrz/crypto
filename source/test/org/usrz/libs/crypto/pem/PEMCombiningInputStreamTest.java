@@ -41,12 +41,14 @@ public class PEMCombiningInputStreamTest extends AbstractTest {
                                                               readAndTrim("full.pem"),        // 4
                                                               readAndTrim("selfsigned.pem")); // 2
         final PEMReader reader = new PEMReader(input);
+
         try {
             int count = 0;
             while (reader.read() != null) count ++;
             assertEquals(count, 20, "Wrong number of entries");
         } finally {
             reader.close();
+            input.close();
         }
     }
 }

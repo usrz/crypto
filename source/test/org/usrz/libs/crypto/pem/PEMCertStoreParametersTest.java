@@ -28,9 +28,9 @@ public class PEMCertStoreParametersTest extends AbstractTest {
     public void testCertStore()
     throws Exception {
         final InputStream input = IO.resource("chains.pem");
-
         final PEMCertStoreParameters params = new PEMCertStoreParameters(input);
         final CertStore certStore = CertStore.getInstance("Collection", params);
+        input.close();
 
         assertEquals(certStore.getCertificates(null).size(), 12, "Wrong number of certificates found");
         assertEquals(certStore.getCRLs(null).size(), 0, "Wrong number of CRLs");
