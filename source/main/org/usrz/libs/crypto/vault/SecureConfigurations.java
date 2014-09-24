@@ -15,8 +15,11 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.vault;
 
+import static org.usrz.libs.crypto.vault.NoOpVault.NO_OP_VAULT;
+
 import java.io.File;
 import java.security.GeneralSecurityException;
+import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,43 +31,81 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.security.auth.Destroyable;
-import javax.security.auth.callback.CallbackHandler;
-
 import org.usrz.libs.configurations.Configurations;
 import org.usrz.libs.configurations.FileConfigurations;
+import org.usrz.libs.configurations.Password;
+import org.usrz.libs.crypto.utils.ClosingDestroyable;
+import org.usrz.libs.logging.Log;
 import org.usrz.libs.utils.Check;
 
-public class SecureConfigurations extends Configurations implements Destroyable {
+public final class SecureConfigurations extends Configurations
+implements ClosingDestroyable {
+
+    private static final Log log = new Log(SecureConfigurations.class);
+    public static final String PREFIX = "$encryption.";
+    public static final String SUFFIX = ".$encrypted";
+
+    private final Set<Password> passwords = new HashSet<>();
+    private final Set<String> encryptedKeys = new HashSet<>();
+    private final Set<String> plainKeys = new HashSet<>();
 
     private final Configurations configurations;
+    private final boolean lenient;
     private final Vault vault;
 
-    public SecureConfigurations(Configurations configurations, CallbackHandler handler) {
-        final VaultBuilder builder = new VaultBuilder(configurations.strip("$encryption"));
-        vault = builder.withPassword(handler).build();
-        this.configurations = configurations;
-        validateAll();
+    public SecureConfigurations(Configurations configurations) {
+        this(configurations, NO_OP_VAULT, true);
     }
 
-    public SecureConfigurations(Configurations configurations, char[] password) {
-        final VaultBuilder builder = new VaultBuilder(configurations.strip("$encryption"));
-        vault = builder.withPassword(password).build();
-        this.configurations = configurations;
-        validateAll();
+    public SecureConfigurations(Configurations configurations, Password password) {
+        this(configurations, password, false);
     }
 
     public SecureConfigurations(Configurations configurations, Vault vault) {
-        this.configurations = Check.notNull(configurations, "Null configurations");
-        this.vault = Check.notNull(vault, "Null vault");
-        validateAll();
+        this(configurations, vault, false);
     }
 
-    /* Override default methods from Destroyable */
+    public SecureConfigurations(Configurations configurations, Password password, boolean lenient) {
+        this(configurations, new VaultBuilder(configurations.strip(PREFIX))
+                                .withPassword(password)
+                                       .build(),
+             lenient);
+    }
+
+    public SecureConfigurations(Configurations configurations, Vault vault, boolean lenient) {
+        this.configurations = Check.notNull(configurations, "Null configurations");
+        this.vault = Check.notNull(vault, "Null vault");
+        this.lenient = lenient;
+
+        /* Validate all our keys */
+        configurations.keySet().forEach((key) -> {
+            if (key.startsWith(PREFIX)) return;
+            if (key.endsWith(SUFFIX)) {
+                encryptedKeys.add(key.substring(0, key.length() - SUFFIX.length()));
+            } else {
+                plainKeys.add(key);
+            }
+        });
+
+        final Set<String> intersection = new HashSet<>(plainKeys);
+        intersection.retainAll(encryptedKeys);
+        if (!intersection.isEmpty()) {
+            throw new IllegalStateException("Some keys are both available in encrypted and decrypted format: " + intersection);
+        }
+    }
+
+    /* ====================================================================== */
+    /* Override default methods from Closeable/Destroyable                    */
+    /* ====================================================================== */
 
     @Override
-    public void destroy() {
-        vault.destroy();
+    public void close() {
+        for (Password password: passwords) try {
+            password.close();
+        } catch (Exception exception) {
+            log.warn(exception, "Exception closing/destroying password");
+        }
+        vault.close();
     }
 
 
@@ -73,51 +114,76 @@ public class SecureConfigurations extends Configurations implements Destroyable 
         return vault.isDestroyed();
     }
 
-    /* Override default methods from Destroyable */
-
-    private void validateAll() {
-        keySet().forEach((key) -> {
-            try {
-                decryptString(key, null);
-            } catch (Exception exception) {
-                throw new IllegalStateException("Unable to decrypt key '" + key + "'", exception);
-            }
-        });
-    }
-
-    private String decryptString(Object key, String defaultValue)
-    throws GeneralSecurityException {
-
-        /* Check if we have an un-encrypted value */
-        final String encrypted = configurations.getString(key + ".$encrypted");
-        if (encrypted == null) return configurations.getString(key, defaultValue);
-
-        /* We have an encrypted value, try to descrypt it */
-        return vault.decryptString(encrypted);
-    }
+    /* ====================================================================== */
+    /* getString(key, default) and getPassword(key) implementation            */
+    /* ====================================================================== */
 
     @Override
     public String getString(Object key, String defaultValue) {
-        try {
-            return decryptString(key, defaultValue);
-        } catch (GeneralSecurityException exception) {
-            throw new IllegalStateException("Unable to decrypt \"" + key + "\"", exception);
+        /* If we have a plain value, just return its value */
+        if (plainKeys.contains(key)) return configurations.getString(key);
+
+        /* If we have an encrypted value, return a string only if lenient */
+        if (encryptedKeys.contains(key)) {
+            if (lenient) return new String(getPassword(key).get());
+            throw new IllegalStateException("Unable to retrieve encrypted value for \"" + key + "\" (not lenient)");
         }
+
+        /* We don't have either, just return the default */
+        return defaultValue;
+    }
+
+    @Override
+    public Password getPassword(Object key) {
+
+        /* If we have an encrypted value, wrap it in a Password */
+        if (encryptedKeys.contains(key)) try {
+            final String encryptedKey = key.toString() + SUFFIX;
+            final String encryptedValue = configurations.getString(encryptedKey);
+            final Password password = new Password(vault.decryptCharacters(encryptedValue));
+            passwords.add(password);
+            return password;
+        } catch (GeneralSecurityException exception) {
+            throw new IllegalStateException("Unable to decrypt encrypted value for \"" + key + "\"");
+        }
+
+        /* If we have a plain value, wrap it in a Password only if lenient */
+        if (plainKeys.contains(key)) {
+            if (lenient) return new Password(configurations.get(key).toCharArray());
+            throw new IllegalStateException("Unable to retrieve plain value for \"" + key + "\" (not lenient)");
+        }
+
+        /* If we have neither, just return null */
+        return null;
+    }
+
+    /* ====================================================================== */
+    /* size() and entrySet() implementation                                   */
+    /* ====================================================================== */
+
+    @Override
+    public int size() {
+        return entrySet().size();
     }
 
     @Override
     public Set<Entry<String, String>> entrySet() {
 
+        /* Initialize all plain keys */
         final Set<String> keys = new HashSet<>();
-        configurations.keySet().forEach((key) -> {
-            if (! key.startsWith("$encryption.")) {
-                keys.add(key.endsWith(".$encrypted")
-                         ? key.substring(0,  key.length() - 11)
-                         : key);
-            }
-        });
+        plainKeys.forEach((key) -> keys.add(key));
 
+        /* If lenient, also add our encrypted keys */
+        if (lenient) encryptedKeys.forEach((key) -> keys.add(key));
+
+        /* Return our set */
         return new AbstractSet<Entry<String, String>>() {
+
+            @Override
+            public int size() {
+                return keys.size();
+            }
+
 
             @Override
             public Iterator<Entry<String, String>> iterator() {
@@ -132,38 +198,16 @@ public class SecureConfigurations extends Configurations implements Destroyable 
                     @Override
                     public Entry<String, String> next() {
                         final String key = iterator.next();
-                        return new Entry<String, String>() {
-
-                            @Override
-                            public String getKey() {
-                                return key;
-                            }
-
-                            @Override
-                            public String getValue() {
-                                return SecureConfigurations.this.getString(key);
-                            }
-
-                            @Override
-                            public String setValue(String value) {
-                                throw new UnsupportedOperationException();
-                            }
-                        };
+                        return new SimpleImmutableEntry<>(key, getString(key));
                     }
                 };
-            }
-
-            @Override
-            public int size() {
-                return keys.size();
             }
         };
     }
 
-    @Override
-    public int size() {
-        return configurations.size();
-    }
+    /* ====================================================================== */
+    /* Command line implementation                                            */
+    /* ====================================================================== */
 
     /* Utility method to encrypt/decrypt configurations */
     private static void help() {
@@ -228,7 +272,7 @@ public class SecureConfigurations extends Configurations implements Destroyable 
         final Configurations base = new FileConfigurations(new File(filename.get()).getAbsoluteFile());
 
         /* Read password */
-        final char[] password = System.console().readPassword("Password: ");
+        final Password password = new Password(System.console().readPassword("Password: "));
 
         /* Read what to encrypt if nothing specified */
         if (encrypt.get() && (actions.size() == 0)) {
@@ -237,7 +281,7 @@ public class SecureConfigurations extends Configurations implements Destroyable 
         }
 
         /* Build up our secure configuration */
-        final SecureConfigurations conf = new SecureConfigurations(base, password);
+        final SecureConfigurations conf = new SecureConfigurations(base, password, true);
 
         /* Encrypt or decrypt? */
         if (encrypt.get()) {
@@ -258,5 +302,9 @@ public class SecureConfigurations extends Configurations implements Destroyable 
             }
             actions.forEach((key) -> System.err.printf("%s = %s\n", key, conf.get(key)));
         }
+
+        /* Wipe configurations/password */
+        password.close();
+        conf.close();
     }
 }
