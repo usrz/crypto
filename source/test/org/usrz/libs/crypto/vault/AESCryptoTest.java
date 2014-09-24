@@ -16,7 +16,6 @@
 package org.usrz.libs.crypto.vault;
 
 import static org.usrz.libs.utils.Charsets.UTF8;
-import static org.usrz.libs.utils.codecs.Base64Codec.BASE_64;
 
 import java.security.GeneralSecurityException;
 
@@ -26,14 +25,12 @@ import org.usrz.libs.crypto.hash.Hash;
 import org.usrz.libs.crypto.kdf.KDF;
 import org.usrz.libs.crypto.kdf.PBKDF2;
 import org.usrz.libs.testing.AbstractTest;
-import org.usrz.libs.utils.codecs.Codec;
 
 public class AESCryptoTest extends AbstractTest {
 
     @Test
     public void testAESVault()
     throws GeneralSecurityException {
-        final Codec codec = BASE_64;
         final KDF kdf = new PBKDF2(Hash.SHA1, 10000, 32);
         final Password password = new Password("foobarbaz".toCharArray());
         final AESCrypto vault = new AESCrypto(kdf, password);
