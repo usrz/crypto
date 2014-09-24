@@ -62,7 +62,7 @@ public class VaultBuilder {
         if (type == Type.NONE) return NO_OP_VAULT;
 
         if (type != Type.AES) throw new IllegalArgumentException("Unsupported vault type " + type);
-        final Password password = Check.notNull(this.password, "Null password");
+        final Password password = Check.<Password>notNull(this.password, "Null password");
         try {
             return new AESVault(random == null ? new SecureRandom() : random, codec,
                                 Check.notNull(kdf, "KDF not specified"), password);
@@ -72,7 +72,7 @@ public class VaultBuilder {
     }
 
     public VaultBuilder withPassword(Password password) {
-        this.password = Check.notNull(password);
+        this.password = Check.<Password>notNull(password, "Null password");
         return this;
     }
 

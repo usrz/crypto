@@ -52,7 +52,7 @@ public class KeyStoreBuilder {
     }
 
     public KeyStoreBuilder withPassword(Password password) {
-        this.password = Check.notNull(password, "Null password");
+        this.password = Check.<Password>notNull(password, "Null password");
         return this;
     }
 
