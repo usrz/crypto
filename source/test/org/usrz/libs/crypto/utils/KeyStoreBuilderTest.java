@@ -15,17 +15,13 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.utils;
 
-import java.io.IOException;
 import java.security.KeyStore;
-
-import javax.security.auth.callback.Callback;
-import javax.security.auth.callback.CallbackHandler;
-import javax.security.auth.callback.PasswordCallback;
-import javax.security.auth.callback.UnsupportedCallbackException;
 
 import org.testng.annotations.Test;
 import org.usrz.libs.configurations.Configurations;
 import org.usrz.libs.configurations.ConfigurationsBuilder;
+import org.usrz.libs.configurations.Password;
+import org.usrz.libs.crypto.vault.SecureConfigurations;
 import org.usrz.libs.testing.AbstractTest;
 import org.usrz.libs.testing.IO;
 
@@ -33,11 +29,12 @@ public class KeyStoreBuilderTest extends AbstractTest {
 
     @Test
     public void testKeyStoreBuilderPEMEncrypted() throws Exception {
-        final Configurations configurations = new ConfigurationsBuilder()
+        @SuppressWarnings("resource")
+        final Configurations configurations = new SecureConfigurations(new ConfigurationsBuilder()
                 .put("file", IO.copyTempFile("encrypted.pem"))
                 .put("password", "asdf")
                 .put("type", "pem")
-                .build();
+                .build());
         final KeyStore keyStore = new KeyStoreBuilder()
                 .withConfiguration(configurations)
                 .build();
@@ -61,28 +58,18 @@ public class KeyStoreBuilderTest extends AbstractTest {
     }
 
     @Test
-    public void testKeyStoreBuilderPEMCallback() throws Exception {
+    public void testKeyStoreBuilderPEMPassword() throws Exception {
         final Configurations configurations = new ConfigurationsBuilder()
                 .put("file", IO.copyTempFile("encrypted.pem"))
                 .put("type", "pem")
                 .build();
 
+        final Password password = new Password("asdf".toCharArray());
         final KeyStore keyStore = new KeyStoreBuilder()
                 .withConfiguration(configurations)
-                .withPassword(new CallbackHandler() {
-
-                    @Override
-                    public void handle(Callback[] callbacks)
-                    throws IOException, UnsupportedCallbackException {
-                        try {
-                            ((PasswordCallback) callbacks[0]).setPassword("asdf".toCharArray());
-                        } catch (ClassCastException exception) {
-                            throw new UnsupportedCallbackException(callbacks[0], "FOO!");
-                        }
-                    }
-
-                })
+                .withPassword(password)
                 .build();
+        password.close();
 
         assertNotNull(keyStore.getKey("F7A4FD46266A272B145B4F09F6D14CC7A458268B", "asdf".toCharArray()));
         assertNotNull(keyStore.getCertificate("F7A4FD46266A272B145B4F09F6D14CC7A458268B"));
@@ -92,11 +79,12 @@ public class KeyStoreBuilderTest extends AbstractTest {
 
     @Test
     public void testKeyStoreBuilderJKS() throws Exception {
-        final Configurations configurations = new ConfigurationsBuilder()
+        @SuppressWarnings("resource")
+        final Configurations configurations = new SecureConfigurations(new ConfigurationsBuilder()
                 .put("file", IO.copyTempFile("keystore.jks"))
                 .put("password", "asdfgh")
                 .put("type", "jks")
-                .build();
+                .build());
         final KeyStore keyStore = new KeyStoreBuilder()
                 .withConfiguration(configurations)
                 .build();
@@ -113,22 +101,12 @@ public class KeyStoreBuilderTest extends AbstractTest {
                 .put("type", "jks")
                 .build();
 
+        final Password password = new Password("asdfgh".toCharArray());
         final KeyStore keyStore = new KeyStoreBuilder()
                 .withConfiguration(configurations)
-                .withPassword(new CallbackHandler() {
-
-                    @Override
-                    public void handle(Callback[] callbacks)
-                    throws IOException, UnsupportedCallbackException {
-                        try {
-                            ((PasswordCallback) callbacks[0]).setPassword("asdfgh".toCharArray());
-                        } catch (ClassCastException exception) {
-                            throw new UnsupportedCallbackException(callbacks[0], "FOO!");
-                        }
-                    }
-
-                })
+                .withPassword(password)
                 .build();
+        password.close();
 
         assertNotNull(keyStore.getKey("myAlias", "qwerty".toCharArray()));
         assertNotNull(keyStore.getCertificate("myAlias"));

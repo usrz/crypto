@@ -20,6 +20,7 @@ import static org.usrz.libs.utils.codecs.Base64Codec.BASE_64;
 import java.security.GeneralSecurityException;
 
 import org.testng.annotations.Test;
+import org.usrz.libs.configurations.Password;
 import org.usrz.libs.crypto.hash.Hash;
 import org.usrz.libs.crypto.kdf.KDF;
 import org.usrz.libs.crypto.kdf.PBKDF2;
@@ -33,8 +34,10 @@ public class AESVaultTest extends AbstractTest {
     throws GeneralSecurityException {
         final Codec codec = BASE_64;
         final KDF kdf = new PBKDF2(Hash.SHA1, 10000, 32);
-        final AESVault vault = new AESVault(codec, kdf, "foobarbaz".toCharArray());
+        final Password password = new Password("foobarbaz".toCharArray());
+        final AESVault vault = new AESVault(codec, kdf, password);
         final String original = "life is beautiful, isn't it?";
+        password.close();
 
         /* Encrypt */
         final String encrypted1 = vault.encrypt(original);
@@ -42,13 +45,13 @@ public class AESVaultTest extends AbstractTest {
         assertNotEquals(encrypted1, encrypted2);
 
         /* Decrypt */
-        final String decrypted1 = vault.decryptString(encrypted1);
-        final String decrypted2 = vault.decryptString(encrypted2);
+        final String decrypted1 = new String(vault.decryptCharacters(encrypted1));
+        final String decrypted2 = new String(vault.decryptCharacters(encrypted2));
         assertEquals(decrypted1, original);
         assertEquals(decrypted2, original);
 
         /* Destroy */
-        vault.destroy();
+        vault.close();
         assertTrue(vault.isDestroyed());
         assertFalse(vault.canDecrypt());
         assertFalse(vault.canEncrypt());

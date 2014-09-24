@@ -21,18 +21,40 @@ import java.util.Set;
 
 import org.testng.annotations.Test;
 import org.usrz.libs.configurations.Configurations;
+import org.usrz.libs.configurations.ConfigurationsBuilder;
+import org.usrz.libs.configurations.Password;
 import org.usrz.libs.configurations.ResourceConfigurations;
 import org.usrz.libs.testing.AbstractTest;
 
 public class SecureConfigurationsTest extends AbstractTest {
+
+    @Test(expectedExceptions=IllegalStateException.class,
+          expectedExceptionsMessageRegExp="Some keys are both available in encrypted and decrypted format: \\[foo\\]")
+    public void testSecureConfigurationsDuplicate()
+    throws Exception {
+        final Password password = new Password("foobar".toCharArray());
+        new SecureConfigurations(new ConfigurationsBuilder()
+                                         .put("foo", "foo")
+                                         .put("foo.$encrypted", "bar")
+                                         .build(),
+                                 new VaultBuilder(new ResourceConfigurations("vault.json"))
+                                         .withPassword(password)
+                                         .build())
+                .close();
+        password.close();
+    }
 
     @Test
     public void testSecureConfigurations1()
     throws Exception {
         final Configurations configurations = new ResourceConfigurations("secure.properties");
         final VaultBuilder builder = new VaultBuilder(new ResourceConfigurations("vault.json"));
-        final Vault vault = builder.withPassword("foobar".toCharArray()).build();
-        final SecureConfigurations secure = new SecureConfigurations(configurations, vault);
+
+        final Password password = new Password("foobar".toCharArray());
+        final Vault vault = builder.withPassword(password).build();
+        password.close();
+
+        final SecureConfigurations secure = new SecureConfigurations(configurations, vault, true);
 
         assertEquals(secure.requireString("foo.unencrypted"), "this is not encrypted");
         assertEquals(secure.requireString("foo.string"), "this is a string");
@@ -44,13 +66,18 @@ public class SecureConfigurationsTest extends AbstractTest {
                                                              "foo.number",
                                                              "foo.boolean"));
         assertEquals(secure.keySet(), keys, "Invalid set keys returned from configuration");
+
+        vault.close();
+        secure.close();
     }
 
     @Test
     public void testSecureConfigurations2()
     throws Exception {
         final Configurations configurations = new ResourceConfigurations("secure.json");
-        final SecureConfigurations secure = new SecureConfigurations(configurations, "foobar".toCharArray());
+        final Password password = new Password("foobar".toCharArray());
+        final SecureConfigurations secure = new SecureConfigurations(configurations, password, true);
+        password.close();
 
         assertEquals(secure.requireString("foo.unencrypted"), "this is not encrypted");
         assertEquals(secure.requireString("foo.string"), "this is a string");
@@ -62,6 +89,39 @@ public class SecureConfigurationsTest extends AbstractTest {
                                                              "foo.number",
                                                              "foo.boolean"));
         assertEquals(secure.keySet(), keys, "Invalid set keys returned from configuration");
+        secure.close();
+    }
+
+    @Test
+    public void testSecureConfigurationsNonLenient()
+    throws Exception {
+        final Configurations configurations = new ResourceConfigurations("secure.json");
+        final Password password = new Password("foobar".toCharArray());
+        final SecureConfigurations secure = new SecureConfigurations(configurations, password, false);
+        password.close();
+
+        assertEquals(secure.requireString("foo.unencrypted"), "this is not encrypted");
+        assertEquals(secure.requirePassword("foo.string").get(), "this is a string".toCharArray());
+        assertEquals(secure.requirePassword("foo.number").get(), "12345".toCharArray());
+        assertEquals(secure.requirePassword("foo.boolean").get(), "true".toCharArray());
+
+        final Set<String> keys = new HashSet<>(Arrays.asList("foo.unencrypted"));
+        assertEquals(secure.keySet(), keys, "Invalid set keys returned from configuration");
+
+        try {
+            secure.requireString("foo.string");
+            fail("The requireString method should throw an IllegalStateException");
+        } catch (IllegalStateException exception) {
+            assertEquals(exception.getMessage(), "Unable to retrieve encrypted value for \"foo.string\" (not lenient)", "Exception message");
+        }
+
+        try {
+            secure.close();
+            assertTrue(password.isDestroyed(), "Configurations not destroyed");
+            secure.requirePassword("foo.string");
+        } catch (IllegalStateException exception) {
+            assertEquals(exception.getMessage(), "Vault destroyed");
+        }
     }
 
     @Test
@@ -69,14 +129,20 @@ public class SecureConfigurationsTest extends AbstractTest {
     throws Exception {
         final Configurations configurations = new ResourceConfigurations("secure.properties");
         final VaultBuilder builder = new VaultBuilder(new ResourceConfigurations("vault.json"));
-        final Vault vault = builder.withPassword("foobar".toCharArray()).build();
-        final SecureConfigurations secure = new SecureConfigurations(configurations, vault);
+        final Password password = new Password("foobar".toCharArray());
+
+        @SuppressWarnings("resource")
+        final Vault vault = builder.withPassword(password).build();
+        password.close();
+
+        final SecureConfigurations secure = new SecureConfigurations(configurations, vault, true);
 
         assertEquals(secure.requireString("foo.unencrypted"), "this is not encrypted");
         assertEquals(secure.requireString("foo.string"), "this is a string");
 
-        secure.destroy();
+        secure.close();
         assertTrue(secure.isDestroyed(), "Not destroyed?");
+        assertTrue(vault.isDestroyed(), "Vault Not destroyed?");
         assertEquals(secure.requireString("foo.unencrypted"), "this is not encrypted");
         try {
             secure.getString("foo.string");
