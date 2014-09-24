@@ -23,9 +23,10 @@ import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.callback.PasswordCallback;
 import javax.security.auth.callback.UnsupportedCallbackException;
 
+import org.usrz.libs.configurations.Password;
 import org.usrz.libs.utils.Check;
 
-public class PasswordSupplier implements Supplier<char[]> {
+public class PasswordSupplier implements Supplier<Password> {
 
     private final CallbackHandler handler;
     private final String prompt;
@@ -40,7 +41,7 @@ public class PasswordSupplier implements Supplier<char[]> {
     }
 
     @Override
-    public char[] get() {
+    public Password get() {
         final PasswordCallback callback = new PasswordCallback(prompt, false);
         try {
             handler.handle(new Callback[] { callback });
@@ -48,7 +49,7 @@ public class PasswordSupplier implements Supplier<char[]> {
             final char[] copy = new char[password.length];
             System.arraycopy(password, 0, copy, 0, password.length);
             callback.clearPassword();
-            return copy;
+            return new Password(copy);
         } catch (UnsupportedCallbackException | IOException exception) {
             throw new IllegalStateException("Exception handling password callback", exception);
         }
