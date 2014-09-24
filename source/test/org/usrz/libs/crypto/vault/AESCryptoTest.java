@@ -15,6 +15,7 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.vault;
 
+import static org.usrz.libs.utils.Charsets.UTF8;
 import static org.usrz.libs.utils.codecs.Base64Codec.BASE_64;
 
 import java.security.GeneralSecurityException;
@@ -27,7 +28,7 @@ import org.usrz.libs.crypto.kdf.PBKDF2;
 import org.usrz.libs.testing.AbstractTest;
 import org.usrz.libs.utils.codecs.Codec;
 
-public class AESVaultTest extends AbstractTest {
+public class AESCryptoTest extends AbstractTest {
 
     @Test
     public void testAESVault()
@@ -35,18 +36,20 @@ public class AESVaultTest extends AbstractTest {
         final Codec codec = BASE_64;
         final KDF kdf = new PBKDF2(Hash.SHA1, 10000, 32);
         final Password password = new Password("foobarbaz".toCharArray());
-        final AESVault vault = new AESVault(codec, kdf, password);
-        final String original = "life is beautiful, isn't it?";
+        final AESCrypto vault = new AESCrypto(kdf, password);
         password.close();
 
+
+        final byte[] original = "life is beautiful, isn't it?".getBytes(UTF8);
+
         /* Encrypt */
-        final String encrypted1 = vault.encrypt(original);
-        final String encrypted2 = vault.encrypt(original);
+        final byte[] encrypted1 = vault.encrypt(original);
+        final byte[] encrypted2 = vault.encrypt(original);
         assertNotEquals(encrypted1, encrypted2);
 
         /* Decrypt */
-        final String decrypted1 = new String(vault.decryptCharacters(encrypted1));
-        final String decrypted2 = new String(vault.decryptCharacters(encrypted2));
+        final byte[] decrypted1 = vault.decrypt(encrypted1);
+        final byte[] decrypted2 = vault.decrypt(encrypted2);
         assertEquals(decrypted1, original);
         assertEquals(decrypted2, original);
 

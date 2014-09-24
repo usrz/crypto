@@ -21,9 +21,10 @@ import org.usrz.libs.configurations.Password;
 import org.usrz.libs.configurations.ResourceConfigurations;
 import org.usrz.libs.testing.AbstractTest;
 
-public class VaultBuilderTest extends AbstractTest {
+public class VaultTest extends AbstractTest {
 
     @Test
+    @SuppressWarnings("resource")
     public void testVaultBuilder() throws Exception {
         final Configurations configurations = new ResourceConfigurations("vault.json");
         final VaultBuilder builder = new VaultBuilder(configurations);
@@ -32,17 +33,17 @@ public class VaultBuilderTest extends AbstractTest {
         password.close();
 
         /* Symmetric encryption/decryption */
-        final String encrypted = vault.encrypt("hello, world!");
-        final String decrypted = new String(vault.decryptCharacters(encrypted));
+        final String encrypted = vault.encryptPassword(new Password("hello, world!".toCharArray()));
+        final String decrypted = new String(vault.decryptPassword(encrypted).get());
         assertEquals(decrypted, "hello, world!");
 
         /* Well known value with password "foobar" */
-        assertEquals(new String(vault.decryptCharacters("ZFGDwOaXLILommCHFbB4-cOR0toqVTaibspiy65aqkBZZ2tN40wK4t70V2iIqGcx")), "this is a well-known value");
+        assertEquals(new String(vault.decryptPassword("ZFGDwOaXLILommCHFbB4-cOR0toqVTaibspiy65aqkBZZ2tN40wK4t70V2iIqGcx").get()), "this is a well-known value");
 
         /* Close the vault */
         vault.close();
         try {
-            vault.encrypt("hello, world!");
+            vault.encryptPassword(new Password("hello, world!".toCharArray()));
             fail("Vault not destroyed");
         } catch (IllegalStateException exception) {
             assertEquals(exception.getMessage(), "Vault destroyed");
