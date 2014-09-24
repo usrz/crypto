@@ -1,9 +1,9 @@
 {
   $encryption: {
-    type:  "aes",
-    codec: "base64/urlsafe/unpadded",
-    kdf: {
-      type:       "scrypt",
+    algorithm: "aes",
+    codec:     "base64/urlsafe/unpadded",
+    kdfspec: {
+      function:   "scrypt",
       iterations: 16384
     }
   },
