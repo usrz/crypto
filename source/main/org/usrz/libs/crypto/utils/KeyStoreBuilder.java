@@ -23,19 +23,15 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.Security;
-import java.util.Arrays;
-import java.util.function.Supplier;
-
-import javax.security.auth.callback.CallbackHandler;
 
 import org.usrz.libs.configurations.Configurations;
-import org.usrz.libs.crypto.callbacks.PasswordSupplier;
+import org.usrz.libs.configurations.Password;
 import org.usrz.libs.crypto.pem.PEMProvider;
 import org.usrz.libs.utils.Check;
 
 public class KeyStoreBuilder {
 
-    private Supplier<char[]> password = null;
+    private Password password = null;
     private String type = "PEM";
     private File file = null;
 
@@ -46,7 +42,7 @@ public class KeyStoreBuilder {
     public KeyStoreBuilder withConfiguration(Configurations configurations) {
         if (configurations.containsKey("file")) withFile(configurations.getFile("file"));
         if (configurations.containsKey("type")) withType(configurations.get("type"));
-        if (configurations.containsKey("password")) this.withPassword(configurations.get("password").toCharArray());
+        if (configurations.containsKey("password")) withPassword(configurations.getPassword("password"));
         return this;
     }
 
@@ -55,14 +51,8 @@ public class KeyStoreBuilder {
         return this;
     }
 
-    public KeyStoreBuilder withPassword(CallbackHandler handler) {
-        password = new PasswordSupplier(handler, "Enter keystore password");
-        return this;
-    }
-
-    public KeyStoreBuilder withPassword(char[] password) {
-        Check.notNull(password, "Null password");
-        this.password = () -> password;
+    public KeyStoreBuilder withPassword(Password password) {
+        this.password = Check.notNull(password, "Null password");
         return this;
     }
 
@@ -76,11 +66,11 @@ public class KeyStoreBuilder {
         if (file == null) throw new IOException("No file specified for keystore");
         if ("PEM".equalsIgnoreCase(type)) Security.addProvider(new PEMProvider());
 
-        final char[] password = this.password == null ? null : this.password.get();
-
         final KeyStore keyStore = KeyStore.getInstance(type);
-        keyStore.load(new FileInputStream(file), password);
-        if (password != null) Arrays.fill(password, '\0');
+        final FileInputStream input = new FileInputStream(file);
+        keyStore.load(input, password == null ? null : password.get());
+        input.close();
+
         return keyStore;
     }
 
