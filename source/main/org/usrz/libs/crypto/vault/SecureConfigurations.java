@@ -17,6 +17,7 @@ package org.usrz.libs.crypto.vault;
 
 import static org.usrz.libs.crypto.vault.NoOpVault.NO_OP_VAULT;
 
+import java.io.Closeable;
 import java.io.File;
 import java.security.GeneralSecurityException;
 import java.util.AbstractMap.SimpleImmutableEntry;
@@ -27,6 +28,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -45,7 +47,7 @@ implements ClosingDestroyable {
     public static final String PREFIX = "$encryption.";
     public static final String SUFFIX = ".$encrypted";
 
-    private final Set<Password> passwords = new HashSet<>();
+    private final Set<Closeable> closeables = new HashSet<>();
     private final Set<String> encryptedKeys = new HashSet<>();
     private final Set<String> plainKeys = new HashSet<>();
 
@@ -95,15 +97,25 @@ implements ClosingDestroyable {
     }
 
     /* ====================================================================== */
+
+    @Override
+    protected Configurations wrap(Map<?, ?> map) {
+        final Configurations configurations = super.wrap(map);
+        final SecureConfigurations secure = new SecureConfigurations(configurations, vault, lenient);
+        closeables.add(secure);
+        return secure;
+    }
+
+    /* ====================================================================== */
     /* Override default methods from Closeable/Destroyable                    */
     /* ====================================================================== */
 
     @Override
     public void close() {
-        for (Password password: passwords) try {
-            password.close();
+        for (Closeable closeable: closeables) try {
+            closeable.close();
         } catch (Exception exception) {
-            log.warn(exception, "Exception closing/destroying password");
+            log.warn(exception, "Exception closing/destroying " + closeable);
         }
         vault.close();
     }
@@ -141,7 +153,7 @@ implements ClosingDestroyable {
             final String encryptedKey = key.toString() + SUFFIX;
             final String encryptedValue = configurations.getString(encryptedKey);
             final Password password = new Password(vault.decryptCharacters(encryptedValue));
-            passwords.add(password);
+            closeables.add(password);
             return password;
         } catch (GeneralSecurityException exception) {
             throw new IllegalStateException("Unable to decrypt encrypted value for \"" + key + "\"");
