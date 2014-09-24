@@ -18,15 +18,18 @@ package org.usrz.libs.crypto.vault;
 import static org.usrz.libs.utils.Charsets.UTF8;
 import static org.usrz.libs.utils.Check.notNull;
 
+import java.nio.ByteBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.CharsetDecoder;
 import java.security.GeneralSecurityException;
 
-import javax.security.auth.Destroyable;
-
+import org.bouncycastle.util.Arrays;
+import org.usrz.libs.crypto.utils.ClosingDestroyable;
 import org.usrz.libs.utils.codecs.Codec;
 
-public interface Vault extends Destroyable {
+public interface Vault extends ClosingDestroyable {
 
-    public enum Type { AES };
+    public enum Type { AES, NONE };
 
     public boolean canEncrypt();
 
@@ -59,19 +62,17 @@ public interface Vault extends Destroyable {
         return decrypt(getCodec().decode(string));
     }
 
-    default String decryptString(String string)
+    default char[] decryptCharacters(String string)
     throws GeneralSecurityException {
-        return new String(decrypt(string), UTF8);
+        final byte[] bytes = decrypt(string);
+        final CharsetDecoder decoder = UTF8.newDecoder();
+        try {
+            return decoder.decode(ByteBuffer.wrap(bytes)).array();
+        } catch (CharacterCodingException exception) {
+            throw new IllegalArgumentException("Unable to decode UTF8 string", exception);
+        } finally {
+            Arrays.fill(bytes, (byte) 0);
+        }
     }
-
-    /* ====================================================================== */
-
-    /* Destroyable methods MUST be overridden (no defaults) */
-
-    @Override
-    public void destroy();
-
-    @Override
-    public boolean isDestroyed();
 
 }
