@@ -15,7 +15,6 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.vault;
 
-import static org.usrz.libs.crypto.vault.Crypto.Algorithm.RSA;
 import static org.usrz.libs.utils.Check.notNull;
 
 import java.security.GeneralSecurityException;
@@ -34,6 +33,7 @@ public class RSACrypto implements Crypto {
 
     private final Object lock = new Object();
     private final SecureRandom random;
+    private final RSACryptoSpec spec;
     private RSAPrivateKey privateKey;
     private RSAPublicKey publicKey;
 
@@ -63,11 +63,12 @@ public class RSACrypto implements Crypto {
         this.random = random == null ? new SecureRandom() : random;
         this.privateKey = privateKey;
         this.publicKey = publicKey;
+        spec = new RSACryptoSpec();
     }
 
     @Override
-    public Algorithm getAlgorithm() {
-        return RSA;
+    public RSACryptoSpec getSpec() {
+        return spec;
     }
 
     /* ====================================================================== */

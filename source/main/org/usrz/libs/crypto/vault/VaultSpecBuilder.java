@@ -15,12 +15,16 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.vault;
 
+import static org.usrz.libs.utils.Check.notNull;
+import static org.usrz.libs.utils.codecs.CodecManager.getCodec;
+import static org.usrz.libs.utils.codecs.HexCodec.HEX;
+
 import org.usrz.libs.configurations.Configurations;
 import org.usrz.libs.crypto.kdf.KDFSpec;
 import org.usrz.libs.crypto.vault.Crypto.Algorithm;
-import org.usrz.libs.utils.Check;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
@@ -29,7 +33,7 @@ public class VaultSpecBuilder extends CryptoSpecBuilder {
 
     public static final String CODEC_SPEC = "codec";
 
-    private String codecSpec = "HEX"; // default
+    private String codecSpec = HEX.getCodecSpec(); // default
 
     @JsonCreator
     public VaultSpecBuilder(@JsonProperty(ALGORITHM) String algorithm) {
@@ -66,14 +70,16 @@ public class VaultSpecBuilder extends CryptoSpecBuilder {
     }
 
     @Override
+    @JsonIgnore
     public VaultSpecBuilder withConfigurations(Configurations configurations) {
         super.withConfigurations(configurations);
         withCodecSpec(configurations.get(CODEC_SPEC, codecSpec));
         return this;
     }
 
+    @JsonProperty(CODEC_SPEC)
     public VaultSpecBuilder withCodecSpec(String codecSpec) {
-        this.codecSpec = Check.notNull(codecSpec, "Null codec spec");
+        this.codecSpec = getCodec(notNull(codecSpec, "Null codec spec")).getCodecSpec();
         return this;
     }
 }

@@ -44,4 +44,24 @@ public class AESCryptoSpec implements CryptoSpec {
     public KDFSpec getKDFSpec() {
         return kdfSpec;
     }
+
+    /* ====================================================================== */
+
+    @Override
+    public boolean equals(Object object) {
+        if (object == null) return false;
+        if (object == this) return true;
+        try {
+            final AESCryptoSpec spec = (AESCryptoSpec) object;
+            return getAlgorithm().equals(spec.getAlgorithm())
+                && getKDFSpec().equals(spec.getKDFSpec());
+        } catch (ClassCastException exception) {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return (getAlgorithm().hashCode() * 31) ^ getKDFSpec().hashCode();
+    }
 }

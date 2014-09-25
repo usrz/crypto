@@ -30,4 +30,23 @@ public class RSACryptoSpec implements CryptoSpec {
         return RSA;
     }
 
+    /* ====================================================================== */
+
+    @Override
+    public boolean equals(Object object) {
+        if (object == null) return false;
+        if (object == this) return true;
+        try {
+            final RSACryptoSpec spec = (RSACryptoSpec) object;
+            return getAlgorithm().equals(spec.getAlgorithm());
+        } catch (ClassCastException exception) {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return getAlgorithm().hashCode();
+    }
+
 }

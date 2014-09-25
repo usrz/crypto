@@ -15,26 +15,49 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.vault;
 
+import static org.usrz.libs.utils.Check.notNull;
+
 import java.security.GeneralSecurityException;
 
 import org.usrz.libs.configurations.Password;
 import org.usrz.libs.crypto.utils.CryptoUtils;
 import org.usrz.libs.utils.Check;
 import org.usrz.libs.utils.codecs.Codec;
+import org.usrz.libs.utils.codecs.ManagedCodec;
 
 public class Vault implements Crypto {
 
     private final Crypto crypto;
     private final Codec codec;
+    private final VaultSpec spec;
 
     /* ====================================================================== */
 
-    public Vault(Crypto crypto, Codec codec) {
+    public Vault(Crypto crypto, ManagedCodec codec) {
         this.crypto = Check.notNull(crypto, "Null crypto");
-        this.codec = Check.notNull(codec, "Null codec");
+        this.codec = notNull(codec, "Null codec");
+
+        final CryptoSpec spec = crypto.getSpec();
+        final String codecSpec = codec.getCodecSpec();
+        switch (spec.getAlgorithm()) {
+            case AES:
+                final AESCryptoSpec aesSpec = (AESCryptoSpec) spec;
+                this.spec = new AESVaultSpec(aesSpec.getKDFSpec(), codecSpec);
+                break;
+            case RSA:
+                this.spec = new RSAVaultSpec(codecSpec);
+                break;
+            default:
+                throw new IllegalStateException("Unsupported algorithm " + spec.getAlgorithm());
+        }
     }
 
     /* ====================================================================== */
+
+    @Override
+    public VaultSpec getSpec() {
+        return spec;
+    }
 
     public Codec getCodec() {
         return codec;
@@ -61,11 +84,6 @@ public class Vault implements Crypto {
     }
 
     /* ====================================================================== */
-
-    @Override
-    public Algorithm getAlgorithm() {
-        return crypto.getAlgorithm();
-    }
 
     @Override
     public void close() {

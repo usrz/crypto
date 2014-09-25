@@ -15,7 +15,6 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.vault;
 
-import static org.usrz.libs.crypto.vault.Crypto.Algorithm.AES;
 import static org.usrz.libs.utils.Check.notNull;
 
 import java.security.GeneralSecurityException;
@@ -29,10 +28,12 @@ import javax.crypto.spec.SecretKeySpec;
 import org.usrz.libs.configurations.Password;
 import org.usrz.libs.crypto.kdf.KDF;
 import org.usrz.libs.crypto.utils.CryptoUtils;
+import org.usrz.libs.utils.Check;
 
 public class AESCrypto implements Crypto {
 
     private final KDF kdf;
+    private final AESCryptoSpec spec;
     private final SecureRandom random;
     private final byte[] password;
     private volatile boolean destroyed = false;
@@ -43,14 +44,15 @@ public class AESCrypto implements Crypto {
     }
 
     public AESCrypto(SecureRandom random, KDF kdf, Password password) {
-        this.kdf = kdf;
+        this.kdf = Check.notNull(kdf, "Null KDF");
         this.random = random == null ? new SecureRandom() : random;
         this.password = CryptoUtils.safeEncode(password.get(), false);
+        spec = new AESCryptoSpec(kdf.getKDFSpec());
     }
 
     @Override
-    public Algorithm getAlgorithm() {
-        return AES;
+    public CryptoSpec getSpec() {
+        return spec;
     }
 
     @Override

@@ -23,7 +23,7 @@ public interface Crypto extends ClosingDestroyable {
 
     public enum Algorithm { AES, RSA };
 
-    public Algorithm getAlgorithm();
+    public CryptoSpec getSpec();
 
     public boolean canEncrypt();
 

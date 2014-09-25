@@ -1,7 +1,7 @@
 {
   "algorithm": "aes",
   "codec":     "base64/urlsafe/unpadded",
-  "kdfspec": {
+  "kdf": {
     "function": "scrypt",
     "iterations": 16384
   }

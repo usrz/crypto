@@ -23,7 +23,6 @@ import java.security.interfaces.RSAPublicKey;
 
 import org.usrz.libs.configurations.Configurations;
 import org.usrz.libs.configurations.Password;
-import org.usrz.libs.utils.codecs.Codec;
 import org.usrz.libs.utils.codecs.CodecManager;
 
 public class VaultBuilder extends CryptoBuilder {
@@ -42,8 +41,7 @@ public class VaultBuilder extends CryptoBuilder {
 
     @Override
     public Vault build() {
-        final Codec codec = CodecManager.getCodec(codecSpec);
-        return new Vault(super.build(), codec);
+        return new Vault(super.build(), CodecManager.getCodec(codecSpec));
     }
 
     @Override

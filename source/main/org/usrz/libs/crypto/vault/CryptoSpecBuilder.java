@@ -22,14 +22,15 @@ import org.usrz.libs.crypto.vault.Crypto.Algorithm;
 import org.usrz.libs.utils.Check;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 @JsonPOJOBuilder
 public class CryptoSpecBuilder {
 
+    public static final String KDF_SPEC = "kdf";
     public static final String ALGORITHM = "algorithm";
-    public static final String KDF_SPEC = "kdfspec";
 
     private final Algorithm algorithm;
     private KDFSpec kdfSpec;
@@ -81,6 +82,7 @@ public class CryptoSpecBuilder {
         return this;
     }
 
+    @JsonIgnore
     public CryptoSpecBuilder withConfigurations(Configurations configurations) {
         final Configurations kdfConfigs = configurations.strip(KDF_SPEC);
         if (!kdfConfigs.isEmpty()) kdfSpec = new KDFSpecBuilder(kdfConfigs).build();
