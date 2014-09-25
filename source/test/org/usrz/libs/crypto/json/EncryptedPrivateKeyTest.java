@@ -23,7 +23,6 @@ import java.security.PrivateKey;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 import org.usrz.libs.configurations.Password;
-import org.usrz.libs.crypto.json.EncryptedPrivateKey;
 import org.usrz.libs.crypto.kdf.KDF.Function;
 import org.usrz.libs.crypto.kdf.KDFSpecBuilder;
 import org.usrz.libs.crypto.vault.Crypto;
@@ -66,6 +65,12 @@ public class EncryptedPrivateKeyTest extends AbstractTest {
     public void testEncryptedPrivateKeyDSA()
     throws Exception {
         testEncryptedPrivateKey(KeyPairGenerator.getInstance("DSA").generateKeyPair().getPrivate());
+    }
+
+    @Test
+    public void testEncryptedPrivateKeyEC()
+    throws Exception {
+        testEncryptedPrivateKey(KeyPairGenerator.getInstance("EC").generateKeyPair().getPrivate());
     }
 
     private void testEncryptedPrivateKey(PrivateKey privateKey)

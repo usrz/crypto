@@ -25,7 +25,6 @@ import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 import org.usrz.libs.configurations.Password;
 import org.usrz.libs.crypto.cert.X509CertificateBuilder;
-import org.usrz.libs.crypto.json.EncryptedKeyCert;
 import org.usrz.libs.crypto.kdf.KDF.Function;
 import org.usrz.libs.crypto.kdf.KDFSpecBuilder;
 import org.usrz.libs.crypto.utils.KeyCert;
@@ -71,6 +70,14 @@ public class EncryptedKeyCertTest extends AbstractTest {
     public void testEncryptedKeyCertDSA()
     throws Exception {
         final KeyPair keyPair = KeyPairGenerator.getInstance("DSA").generateKeyPair();
+        final X509Certificate certificate = new X509CertificateBuilder().selfSigned("CN=test", keyPair).build();
+        testEncryptedKeyCert(new KeyCert(certificate, keyPair.getPrivate()));
+    }
+
+    @Test
+    public void testEncryptedKeyCertEC()
+    throws Exception {
+        final KeyPair keyPair = KeyPairGenerator.getInstance("EC").generateKeyPair();
         final X509Certificate certificate = new X509CertificateBuilder().selfSigned("CN=test", keyPair).build();
         testEncryptedKeyCert(new KeyCert(certificate, keyPair.getPrivate()));
     }

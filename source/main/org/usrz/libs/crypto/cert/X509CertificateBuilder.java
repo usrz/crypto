@@ -405,7 +405,8 @@ public class X509CertificateBuilder {
 
         try {
             final CertificateFactory factory = CertificateFactory.getInstance("X.509");
-            final String signatureAlgorithm = hash.name() + "with" + issuerPrivateKey.getAlgorithm();
+            final String keyAlgorithm = issuerPrivateKey.getAlgorithm();
+            final String signatureAlgorithm = hash.name() + "with" + (keyAlgorithm.equals("EC") ? "ECDSA" : keyAlgorithm);
             final ContentSigner signer = new JcaContentSignerBuilder(signatureAlgorithm).build(issuerPrivateKey);
             final X509CertificateHolder certificateHolder = certificateBuilder.build(signer);
             return (X509Certificate) factory.generateCertificate(new ByteArrayInputStream(certificateHolder.getEncoded()));

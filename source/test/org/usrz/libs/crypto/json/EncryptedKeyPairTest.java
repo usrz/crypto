@@ -23,7 +23,6 @@ import java.security.KeyPairGenerator;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 import org.usrz.libs.configurations.Password;
-import org.usrz.libs.crypto.json.EncryptedKeyPair;
 import org.usrz.libs.crypto.kdf.KDF.Function;
 import org.usrz.libs.crypto.kdf.KDFSpecBuilder;
 import org.usrz.libs.crypto.vault.Crypto;
@@ -66,6 +65,12 @@ public class EncryptedKeyPairTest extends AbstractTest {
     public void testEncryptedKeyPairDSA()
     throws Exception {
         testEncryptedKeyPair(KeyPairGenerator.getInstance("DSA").generateKeyPair());
+    }
+
+    @Test
+    public void testEncryptedKeyPairEC()
+    throws Exception {
+        testEncryptedKeyPair(KeyPairGenerator.getInstance("EC").generateKeyPair());
     }
 
     private void testEncryptedKeyPair(KeyPair keyPair)

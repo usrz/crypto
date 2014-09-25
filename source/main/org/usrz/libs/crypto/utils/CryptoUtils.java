@@ -30,8 +30,11 @@ import java.security.SecureRandom;
 import java.security.interfaces.DSAParams;
 import java.security.interfaces.DSAPrivateKey;
 import java.security.interfaces.DSAPublicKey;
+import java.security.interfaces.ECPrivateKey;
+import java.security.interfaces.ECPublicKey;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.security.spec.ECParameterSpec;
 import java.util.Arrays;
 
 import org.usrz.libs.utils.Check;
@@ -169,6 +172,12 @@ public class CryptoUtils {
             if (!privateModulus.equals(publicModulus)) {
                 throw new IllegalArgumentException("RSA private/public keys modulus mismatch");
             }
+        } else if ("EC".equals(algorithm)) {
+            final ECParameterSpec privateParams = ((ECPrivateKey) privateKey).getParams();
+            final ECParameterSpec publicParams = ((ECPublicKey) publicKey).getParams();
+            if (!privateParams.equals(publicParams)) {
+                throw new IllegalArgumentException("EC private/public keys parameters mismatch");
+            }
         } else if ("DSA".equals(algorithm)) {
             final DSAParams privateParams = ((DSAPrivateKey) privateKey).getParams();
             final DSAParams publicParams = ((DSAPublicKey) publicKey).getParams();
@@ -177,7 +186,6 @@ public class CryptoUtils {
                    privateParams.getQ().equals(publicParams.getQ()))) {
                 throw new IllegalArgumentException("DSA private/public keys parameters mismatch");
             }
-
         } else {
             throw new IllegalArgumentException("Unsupported keys algorithm " + algorithm);
         }
