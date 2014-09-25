@@ -25,7 +25,6 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.security.Key;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
@@ -631,10 +630,10 @@ public class X509CertificateBuilder {
     /**
      * Set the issuer private key that will be used to sign the certificate.
      */
-    public X509CertificateBuilder withIssuerPrivateKey(Key key) {
+    public X509CertificateBuilder withIssuerPrivateKey(PrivateKey key) {
         if (key == null) throw new NullPointerException("Null issuer private key");
         try {
-            issuerPrivateKey = (PrivateKey) key;
+            issuerPrivateKey = key;
             return this;
         } catch (ClassCastException exception) {
             throw new IllegalArgumentException("Key " + key.getClass().getName() + " is not a private key");
@@ -645,10 +644,10 @@ public class X509CertificateBuilder {
      * Set the (optional) issuer public key that will be included in the
      * generated certificate.
      */
-    public X509CertificateBuilder withIssuerPublicKey(Key key) {
+    public X509CertificateBuilder withIssuerPublicKey(PublicKey key) {
         if (key == null) throw new NullPointerException("Null issuer public key");
         try {
-            issuerPublicKey = (PublicKey) key;
+            issuerPublicKey = key;
             return this;
         } catch (ClassCastException exception) {
             throw new IllegalArgumentException("Key " + key.getClass().getName() + " is not a public key");
@@ -670,10 +669,10 @@ public class X509CertificateBuilder {
      * Set the subject public key that will be included in the generated
      * certificate.
      */
-    public X509CertificateBuilder withSubjectPublicKey(Key key) {
+    public X509CertificateBuilder withSubjectPublicKey(PublicKey key) {
         if (key == null) throw new NullPointerException("Null subject public key");
         try {
-            subjectPublicKey = (PublicKey) key;
+            subjectPublicKey = key;
             return this;
         } catch (ClassCastException exception) {
             throw new IllegalArgumentException("Key " + key.getClass().getName() + " is not a public key");
