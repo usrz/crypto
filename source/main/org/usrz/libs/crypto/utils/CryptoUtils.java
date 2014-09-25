@@ -42,14 +42,14 @@ public class CryptoUtils {
         return bytes;
     }
 
-    public static void destroy(char[] array) {
+    public static void destroyArray(char[] array) {
         if (array == null) return;
         for (int x = 0; x < array.length; x ++)
             array[x] = (char) random.nextInt();
         Arrays.fill(array, '\0');
     }
 
-    public static void destroy(byte[] array) {
+    public static void destroyArray(byte[] array) {
         if (array == null) return;
         random.nextBytes(array);
         Arrays.fill(array, (byte) 0);
@@ -84,8 +84,8 @@ public class CryptoUtils {
             return array;
 
         } finally {
-            if (destroy) destroy(chars);
-            destroy(bytes);
+            if (destroy) destroyArray(chars);
+            destroyArray(bytes);
         }
     }
 
@@ -118,8 +118,8 @@ public class CryptoUtils {
             return array;
 
         } finally {
-            if (destroy) destroy(bytes);
-            destroy(chars);
+            if (destroy) destroyArray(bytes);
+            destroyArray(chars);
         }
     }
 }

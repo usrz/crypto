@@ -59,7 +59,7 @@ public class AESCrypto implements Crypto {
     public void close() {
         if (! destroyed) {
             synchronized (lock) {
-                CryptoUtils.destroy(password);
+                CryptoUtils.destroyArray(password);
                 destroyed = true;
             }
         }
@@ -108,9 +108,9 @@ public class AESCrypto implements Crypto {
 
             return result;
         } finally {
-            CryptoUtils.destroy(encrypted);
-            CryptoUtils.destroy(key);
-            CryptoUtils.destroy(iv);
+            CryptoUtils.destroyArray(encrypted);
+            CryptoUtils.destroyArray(key);
+            CryptoUtils.destroyArray(iv);
         }
     }
 
@@ -134,8 +134,8 @@ public class AESCrypto implements Crypto {
             cipher.init(Cipher.DECRYPT_MODE, secretKey, ivParameterSpec, random);
             return cipher.doFinal(data, iv.length, data.length - iv.length);
         } finally {
-            CryptoUtils.destroy(key);
-            CryptoUtils.destroy(iv);
+            CryptoUtils.destroyArray(key);
+            CryptoUtils.destroyArray(iv);
         }
     }
 

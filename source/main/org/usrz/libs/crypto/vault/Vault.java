@@ -69,7 +69,7 @@ public class Vault implements Crypto {
         try {
             return getCodec().encode(encrypt(bytes));
         } finally {
-            CryptoUtils.destroy(bytes);
+            CryptoUtils.destroyArray(bytes);
         }
     }
 
@@ -79,7 +79,7 @@ public class Vault implements Crypto {
         try {
             return new Password(CryptoUtils.safeDecode(decrypt(bytes), false));
         } finally {
-            CryptoUtils.destroy(bytes);
+            CryptoUtils.destroyArray(bytes);
         }
     }
 
