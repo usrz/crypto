@@ -16,6 +16,7 @@
 package org.usrz.libs.crypto.cert;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.usrz.libs.crypto.hash.Hash.SHA256;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -73,6 +74,7 @@ import org.bouncycastle.cert.jcajce.JcaX509ExtensionUtils;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.usrz.libs.crypto.hash.Hash;
 
 /**
  * A simple builder to create {@linkplain X509Certificate X.509 certificates}.
@@ -287,6 +289,7 @@ public class X509CertificateBuilder {
     private PublicKey issuerPublicKey;
     private PublicKey subjectPublicKey;
     private Mode mode;
+    private Hash hash;
 
     private final Set<StandardKeyUsage> standardKeyUsage = new HashSet<>();
     private final Set<ExtendedKeyUsage> extendedKeyUsage = new HashSet<>();
@@ -320,8 +323,10 @@ public class X509CertificateBuilder {
         calendar.add(Calendar.YEAR, 1);
         notAfter = calendar.getTime();
 
-        /* Set the default mode */
+        /* Set the default hashing algorithm and mode */
+        withHash(SHA256);
         withMode(mode);
+
     }
 
     /* ====================================================================== */
@@ -400,7 +405,8 @@ public class X509CertificateBuilder {
 
         try {
             final CertificateFactory factory = CertificateFactory.getInstance("X.509");
-            final ContentSigner signer = new JcaContentSignerBuilder("SHA1withRSA").build(issuerPrivateKey);
+            final String signatureAlgorithm = hash.name() + "with" + issuerPrivateKey.getAlgorithm();
+            final ContentSigner signer = new JcaContentSignerBuilder(signatureAlgorithm).build(issuerPrivateKey);
             final X509CertificateHolder certificateHolder = certificateBuilder.build(signer);
             return (X509Certificate) factory.generateCertificate(new ByteArrayInputStream(certificateHolder.getEncoded()));
         } catch (OperatorCreationException exception) {
@@ -605,6 +611,18 @@ public class X509CertificateBuilder {
     public X509CertificateBuilder withValidityNotAfter(long duration, TimeUnit unit) {
         if (notBefore == null) throw new IllegalStateException("Date \"not-before\" not yet specified");
         return this.withValidityNotAfter(notBefore.getTime() + MILLISECONDS.convert(duration, unit));
+    }
+
+    /* ====================================================================== */
+
+    /**
+     * Set the {@linkplain Hash hashing algorithm} to generate the certificate's
+     * signature (default {@link Hash#SHA256 SHA256}).
+     */
+    public X509CertificateBuilder withHash(Hash hash) {
+        if (hash == null) throw new NullPointerException("Null hashing algorithm");
+        this.hash = hash;
+        return this;
     }
 
     /* ====================================================================== */
@@ -832,7 +850,7 @@ public class X509CertificateBuilder {
      * @see #selfSigned(X500Principal, KeyPair)
      */
     public X509CertificateBuilder selfSigned(String principal, KeyPair keyPair) {
-        if (subject == null) throw new NullPointerException("Null subject");
+        if (principal == null) throw new NullPointerException("Null principal");
         return this.selfSigned(new X500Principal(principal), keyPair);
     }
 

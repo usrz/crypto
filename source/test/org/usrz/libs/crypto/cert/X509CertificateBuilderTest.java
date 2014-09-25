@@ -28,6 +28,7 @@ import javax.security.auth.x500.X500Principal;
 
 import org.testng.annotations.Test;
 import org.usrz.libs.crypto.cert.X509CertificateBuilder.Mode;
+import org.usrz.libs.crypto.hash.Hash;
 import org.usrz.libs.crypto.utils.KeyPairBuilder;
 import org.usrz.libs.testing.AbstractTest;
 import org.usrz.libs.testing.Exec;
@@ -69,7 +70,7 @@ public class X509CertificateBuilderTest extends AbstractTest {
         assertEquals(certificate.getSubjectX500Principal(), principal, "Wrong subject");
         assertEquals(certificate.getIssuerX500Principal(), principal, "Wrong issuer");
         assertEquals(certificate.getPublicKey(), keyPair.getPublic(), "Wrong public key");
-        assertEquals(certificate.getSigAlgName(), "SHA1withRSA", "Wrong algorithm");
+        assertEquals(certificate.getSigAlgName(), "SHA256withRSA", "Wrong algorithm");
         assertEquals(certificate.getNotBefore(), new Date(0), "Wrong \"not-before\" date");
         assertEquals(certificate.getNotAfter(), new Date(86400000), "Wrong \"not-after\" date");
         assertEquals(certificate.getBasicConstraints(), -1, "Wrong basic constraints");
@@ -139,6 +140,7 @@ public class X509CertificateBuilderTest extends AbstractTest {
                 .withValidityNotBefore(0)
                 .withValidityNotAfter(1, TimeUnit.DAYS)
                 .withCrlDistributionPoint("https://usrz.org/test.crl")
+                .withHash(Hash.SHA1)
                 .build();
 
         assertEquals(certificate.getVersion(), 3, "Wrong version");
