@@ -90,22 +90,28 @@ public class AESCrypto implements Crypto {
 
         final Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
 
-        final byte[] salt = new byte[cipher.getBlockSize()];
-        random.nextBytes(salt);
+        /* We use the Initialization Vector from AES as the salt for our KDF */
+        final byte[] iv = CryptoUtils.randomBytes(cipher.getBlockSize());
+        final byte[] key = kdf.deriveKey(password, iv);
+        byte[] encrypted = null;
 
-        final byte[] key = kdf.deriveKey(password, salt);
+        try {
+            final IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
+            final SecretKey secretKey = new SecretKeySpec(key, "AES");
 
-        final IvParameterSpec ivParameterSpec = new IvParameterSpec(salt);
-        final SecretKey secretKey = new SecretKeySpec(key, "AES");
+            cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivParameterSpec, random);
+            encrypted = cipher.doFinal(data);
 
-        cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivParameterSpec, random);
-        final byte[] encrypted = cipher.doFinal(data);
+            final byte[] result = new byte[iv.length + encrypted.length];
+            System.arraycopy(iv, 0, result, 0, iv.length);
+            System.arraycopy(encrypted, 0, result, iv.length, encrypted.length);
 
-        final byte[] result = new byte[salt.length + encrypted.length];
-        System.arraycopy(salt, 0, result, 0, salt.length);
-        System.arraycopy(encrypted, 0, result, salt.length, encrypted.length);
-
-        return result;
+            return result;
+        } finally {
+            CryptoUtils.destroy(encrypted);
+            CryptoUtils.destroy(key);
+            CryptoUtils.destroy(iv);
+        }
     }
 
     @Override
@@ -116,16 +122,21 @@ public class AESCrypto implements Crypto {
 
         final Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
 
-        final byte[] salt = new byte[cipher.getBlockSize()];
-        System.arraycopy(data, 0, salt, 0, salt.length);
+        /* We use the Initialization Vector from AES as the salt for our KDF */
+        final byte[] iv = new byte[cipher.getBlockSize()];
+        System.arraycopy(data, 0, iv, 0, iv.length);
+        final byte[] key = kdf.deriveKey(password, iv);
 
-        final byte[] key = kdf.deriveKey(password, salt);
+        try {
+            final IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
+            final SecretKey secretKey = new SecretKeySpec(key, "AES");
 
-        final IvParameterSpec ivParameterSpec = new IvParameterSpec(salt);
-        final SecretKey secretKey = new SecretKeySpec(key, "AES");
-
-        cipher.init(Cipher.DECRYPT_MODE, secretKey, ivParameterSpec, random);
-        return cipher.doFinal(data, salt.length, data.length - salt.length);
+            cipher.init(Cipher.DECRYPT_MODE, secretKey, ivParameterSpec, random);
+            return cipher.doFinal(data, iv.length, data.length - iv.length);
+        } finally {
+            CryptoUtils.destroy(key);
+            CryptoUtils.destroy(iv);
+        }
     }
 
 }

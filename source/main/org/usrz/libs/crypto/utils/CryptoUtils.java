@@ -33,6 +33,15 @@ public class CryptoUtils {
         throw new IllegalStateException("Do not construct");
     }
 
+    public static byte[] randomBytes(int size) {
+        return randomBytes(new byte[size]);
+    }
+
+    public static byte[] randomBytes(byte[] bytes) {
+        random.nextBytes(bytes);
+        return bytes;
+    }
+
     public static void destroy(char[] array) {
         if (array == null) return;
         for (int x = 0; x < array.length; x ++)
