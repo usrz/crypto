@@ -17,12 +17,21 @@ package org.usrz.libs.crypto.utils;
 
 import static org.usrz.libs.utils.Charsets.UTF8;
 
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CoderResult;
+import java.security.KeyPair;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.SecureRandom;
+import java.security.interfaces.DSAParams;
+import java.security.interfaces.DSAPrivateKey;
+import java.security.interfaces.DSAPublicKey;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
 import java.util.Arrays;
 
 public class CryptoUtils {
@@ -33,6 +42,8 @@ public class CryptoUtils {
         throw new IllegalStateException("Do not construct");
     }
 
+    /* ====================================================================== */
+
     public static byte[] randomBytes(int size) {
         return randomBytes(new byte[size]);
     }
@@ -41,6 +52,8 @@ public class CryptoUtils {
         random.nextBytes(bytes);
         return bytes;
     }
+
+    /* ====================================================================== */
 
     public static void destroyArray(char[] array) {
         if (array == null) return;
@@ -54,6 +67,8 @@ public class CryptoUtils {
         random.nextBytes(array);
         Arrays.fill(array, (byte) 0);
     }
+
+    /* ====================================================================== */
 
     public static byte[] safeEncode(char[] chars, boolean destroy) {
 
@@ -121,5 +136,49 @@ public class CryptoUtils {
             if (destroy) destroyArray(bytes);
             destroyArray(chars);
         }
+    }
+
+    /* ====================================================================== */
+
+    public static String validateKeys(KeyPair keyPair) {
+        return validateKeys(keyPair.getPrivate(), keyPair.getPublic());
+    }
+
+    public static String validateKeys(KeyCert keyCert) {
+        return validateKeys(keyCert.getPrivate(), keyCert.getPublic());
+    }
+
+    public static String validateKeys(PrivateKey privateKey, PublicKey publicKey) {
+
+        /* Check algorithm */
+        final String algorithm;
+        if (!privateKey.getAlgorithm().equals(publicKey.getAlgorithm())) {
+            throw new IllegalArgumentException("Key alogorithm mismatch: private=" + privateKey.getAlgorithm() + ", public=" + publicKey.getAlgorithm());
+        } else {
+            algorithm = privateKey.getAlgorithm();
+        }
+
+        /* Check if private/public key match */
+        if ("RSA".equals(algorithm)) {
+            final BigInteger privateModulus = ((RSAPrivateKey) privateKey).getModulus();
+            final BigInteger publicModulus = ((RSAPublicKey) publicKey).getModulus();
+            if (!privateModulus.equals(publicModulus)) {
+                throw new IllegalArgumentException("RSA private/public keys modulus mismatch");
+            }
+        } else if ("DSA".equals(algorithm)) {
+            final DSAParams privateParams = ((DSAPrivateKey) privateKey).getParams();
+            final DSAParams publicParams = ((DSAPublicKey) publicKey).getParams();
+            if (! (privateParams.getG().equals(publicParams.getG()) &&
+                   privateParams.getP().equals(publicParams.getP()) &&
+                   privateParams.getQ().equals(publicParams.getQ()))) {
+                throw new IllegalArgumentException("DSA private/public keys parameters mismatch");
+            }
+
+        } else {
+            throw new IllegalArgumentException("Unsupported keys algorithm " + algorithm);
+        }
+
+        /* Return the algorithm after validation */
+        return algorithm;
     }
 }
