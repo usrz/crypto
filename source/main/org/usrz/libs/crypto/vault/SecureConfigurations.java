@@ -17,26 +17,32 @@ package org.usrz.libs.crypto.vault;
 
 import java.io.Closeable;
 import java.io.File;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
 import java.security.GeneralSecurityException;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.usrz.libs.configurations.Configurations;
 import org.usrz.libs.configurations.FileConfigurations;
+import org.usrz.libs.configurations.JsonConfigurations;
 import org.usrz.libs.configurations.Password;
 import org.usrz.libs.crypto.utils.ClosingDestroyable;
 import org.usrz.libs.logging.Log;
 import org.usrz.libs.utils.Check;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public final class SecureConfigurations extends Configurations
 implements ClosingDestroyable {
@@ -96,6 +102,15 @@ implements ClosingDestroyable {
         if (!intersection.isEmpty()) {
             throw new IllegalStateException("Some keys are both available in encrypted and decrypted format: " + intersection);
         }
+
+        /* Check that we can decrypt all our configurations */
+        encryptedKeys.forEach((key) -> {
+            try {
+                getPassword(key).close();
+            } catch (Exception exception) {
+                throw new IllegalStateException("Some keys failed to decrypt", exception);
+            }
+        });
     }
 
     /* ====================================================================== */
@@ -226,28 +241,31 @@ implements ClosingDestroyable {
 
     /* Utility method to encrypt/decrypt configurations */
     private static void help() {
-        System.out.println("Usage: java " + SecureConfigurations.class.getName() + " [-action] filename [..keys..]");
-        System.out.println("");
-        System.out.println("  Options:");
-        System.out.println("    [-h|-help]           Simply display this help page");
-        System.out.println("    [-e|-enc|-encrypt]   Encrypt a value to be added to the configurations");
-        System.out.println("    [-d|-dec|-decrypt]   Decrypt the value associated with the specified key");
-        System.out.println("    filename             The '.json' or '.properties' configuration file");
-        System.out.println("");
-        System.out.println("  Encryption:");
-        System.out.println("    When encrypting, each value specified on the command line will be");
-        System.out.println("    encrypted and echoed back on standard output.");
-        System.out.println("");
-        System.out.println("  Decryption:");
-        System.out.println("    When decrypting, each key specified on the command line will be");
-        System.out.println("    decrypted and echoed back on standard output, if no value is");
-        System.out.println("    specified, the whole configuration file will be decrypted");
-        System.out.println("");
+        System.err.println("Usage: java " + SecureConfigurations.class.getName() + " [-action] filename [..keys..]");
+        System.err.println("");
+        System.err.println("  Options:");
+        System.err.println("    [-h|-help]            Simply display this help page");
+        System.err.println("    [-e|-enc|-encrypt]    Encrypt a value to be added to the configurations");
+        System.err.println("    [-d|-dec|-decrypt]    Decrypt the value associated with the specified key");
+        System.err.println("    [-n|-norm|-normalize] Verify and normalize the specified configuration");
+        System.err.println("    filename              The '.json' or '.properties' configuration file");
+        System.err.println("");
+        System.err.println("  Encryption:");
+        System.err.println("    When encrypting, each value specified on the command line will be");
+        System.err.println("    encrypted and echoed back on standard output.");
+        System.err.println("");
+        System.err.println("  Decryption:");
+        System.err.println("    When decrypting, each key specified on the command line will be");
+        System.err.println("    decrypted and echoed back on standard output, if no value is");
+        System.err.println("    specified, the whole configuration file will be decrypted");
+        System.err.println("");
         System.exit(1);
     }
 
+    private static enum Operation { ENCRYPT, DECRYPT, NORMALIZE }
+
     public static void main(String[] args) {
-        final AtomicBoolean encrypt = new AtomicBoolean(false);
+        final AtomicReference<Operation> operation = new AtomicReference<>();
         final AtomicReference<String> filename = new AtomicReference<>();
         final List<String> keys = new ArrayList<>();
 
@@ -261,13 +279,19 @@ implements ClosingDestroyable {
 
             /* -encrypt command line option */
             if (arg.equalsIgnoreCase("-e") || arg.equalsIgnoreCase("-enc") || arg.equalsIgnoreCase("-encrypt")) {
-                encrypt.set(true);
+                operation.set(Operation.ENCRYPT);
                 return;
             }
 
             /* -decrypt command line option */
             if (arg.equalsIgnoreCase("-d") || arg.equalsIgnoreCase("-dec") || arg.equalsIgnoreCase("-decrypt")) {
-                encrypt.set(false);
+                operation.set(Operation.DECRYPT);
+                return;
+            }
+
+            /* -normalize command line option */
+            if (arg.equalsIgnoreCase("-n") || arg.equalsIgnoreCase("-norm") || arg.equalsIgnoreCase("-normalize")) {
+                operation.set(Operation.NORMALIZE);
                 return;
             }
 
@@ -281,6 +305,7 @@ implements ClosingDestroyable {
 
         /* Check parameters */
         if (filename.get() == null) help();
+        if (operation.get() == null) help();
 
         /* Load configurations */
         final Configurations base = new FileConfigurations(new File(filename.get()).getAbsoluteFile());
@@ -288,30 +313,67 @@ implements ClosingDestroyable {
         /* Read password, build configurations and destroy */
         final Password password = new Password(System.console().readPassword("Password: "));
         final SecureConfigurations secure = new SecureConfigurations(base, password, true);
+        System.out.println();
         password.close();
 
         /* Encrypt or decrypt? */
-        if (encrypt.get()) {
+        switch (operation.get()) {
+            case ENCRYPT:
 
-            /* Read from console and encrypt whatever we have to */
-            final Password decrypted = new Password(System.console().readPassword("Data to encrypt: "));
-            try {
-                final String key = keys.isEmpty() ? "..." : keys.get(0);
-                System.out.printf("%s%s = %s\n", key, SUFFIX, secure.vault.encryptPassword(decrypted));
-            } catch (Exception exception) {
-                System.err.println("Error encrypting");
-                exception.printStackTrace(System.err);
-                System.exit(2);
-            } finally {
-                decrypted.close();
-            }
+                /* Read from console and encrypt whatever we have to */
+                final Password decrypted = new Password(System.console().readPassword("Data to encrypt: "));
+                try {
+                    final String key = keys.isEmpty() ? "..." : keys.get(0);
+                    System.out.printf("%s%s = %s\n", key, SUFFIX, secure.vault.encryptPassword(decrypted));
+                } catch (Exception exception) {
+                    System.err.println("Error encrypting");
+                    exception.printStackTrace(System.err);
+                    System.exit(2);
+                } finally {
+                    decrypted.close();
+                }
 
-        } else {
-            if (keys.isEmpty()) {
-                keys.addAll(secure.keySet());
-                Collections.sort(keys);
-            }
-            keys.forEach((key) -> System.err.printf("%s = %s\n", key, secure.get(key)));
+                break;
+
+            case DECRYPT:
+
+                if (keys.isEmpty()) {
+                    secure.list(System.out);
+                } else {
+                    keys.forEach((key) -> System.out.printf("%s = %s\n", key, secure.get(key)));
+                }
+
+                break;
+
+            case NORMALIZE:
+                try {
+                    /* Process and print the prefix (encryption configs) first */
+                    final VaultSpec spec = secure.vault.getSpec();
+                    final String json = new ObjectMapper().writeValueAsString(spec);
+                    final Reader reader = new StringReader(json);
+                    final Configurations encryption = new JsonConfigurations(reader).prefix(PREFIX);
+                    System.out.println("#");
+                    System.out.println("# Encryption detils");
+                    System.out.println("#");
+                    encryption.list(System.err);
+                } catch (IOException exception) {
+                    System.err.println("Error processing details");
+                    exception.printStackTrace(System.err);
+                    System.exit(2);
+                }
+
+                System.out.println("#");
+                System.out.println("# Configuration values");
+                System.out.println("#");
+
+                final SortedSet<String> normalize = new TreeSet<>(secure.plainKeys);
+                secure.encryptedKeys.forEach((key) -> normalize.add(key + SUFFIX));
+                normalize.forEach((key) -> System.out.printf("%s = %s\n", key, secure.configurations.get(key)));
+                break;
+
+            default:
+                throw new UnsupportedOperationException("Unknown operation " + operation.get());
+
         }
 
         /* Wipe configurations/password */
