@@ -74,6 +74,7 @@ import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.usrz.libs.crypto.hash.Hash;
+import org.usrz.libs.crypto.utils.CryptoUtils;
 
 /**
  * A simple builder to create {@linkplain X509Certificate X.509 certificates}.
@@ -404,8 +405,7 @@ public class X509CertificateBuilder {
 
         try {
             final CertificateFactory factory = CertificateFactory.getInstance("X.509");
-            final String keyAlgorithm = issuerPrivateKey.getAlgorithm();
-            final String signatureAlgorithm = hash.name() + "with" + (keyAlgorithm.equals("EC") ? "ECDSA" : keyAlgorithm);
+            final String signatureAlgorithm = CryptoUtils.getSignatureAlgorithm(issuerPrivateKey, hash);
             final ContentSigner signer = new JcaContentSignerBuilder(signatureAlgorithm).build(issuerPrivateKey);
             final X509CertificateHolder certificateHolder = certificateBuilder.build(signer);
             return (X509Certificate) factory.generateCertificate(new ByteArrayInputStream(certificateHolder.getEncoded()));

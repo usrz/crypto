@@ -23,6 +23,7 @@ import java.nio.CharBuffer;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CoderResult;
+import java.security.Key;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -37,6 +38,7 @@ import java.security.interfaces.RSAPublicKey;
 import java.security.spec.ECParameterSpec;
 import java.util.Arrays;
 
+import org.usrz.libs.crypto.hash.Hash;
 import org.usrz.libs.utils.Check;
 
 public class CryptoUtils {
@@ -141,6 +143,16 @@ public class CryptoUtils {
             if (destroy) destroyArray(bytes);
             destroyArray(chars);
         }
+    }
+
+    /* ====================================================================== */
+
+    public static String getSignatureAlgorithm(Key key, Hash hash) {
+        return getSignatureAlgorithm(key.getAlgorithm(), hash);
+    }
+
+    public static String getSignatureAlgorithm(String keyAlgorithm, Hash hash) {
+        return hash.name() + "with" + (keyAlgorithm.equals("EC") ? "ECDSA" : keyAlgorithm);
     }
 
     /* ====================================================================== */

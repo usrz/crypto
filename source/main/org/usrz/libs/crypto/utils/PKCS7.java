@@ -15,12 +15,10 @@
  * ========================================================================== */
 package org.usrz.libs.crypto.utils;
 
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
 import java.security.SignatureException;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
-import java.security.interfaces.RSAPrivateKey;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -35,10 +33,10 @@ import org.bouncycastle.cms.jcajce.JcaSignerInfoGeneratorBuilder;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder;
+import org.usrz.libs.crypto.hash.Hash;
 
 /**
- * A utility class for managing signatures in <code>PKCS7</code> using
- * <i>SHA-1</i> for digest and <i>RSA</i> as encryption.
+ * A utility class for managing signatures in <code>PKCS7</code>..
  *
  * @see <a href="http://tools.ietf.org/html/rfc2315">RFC-2315</a>
  * @author <a href="mailto:pier@usrz.com">Pier Fumagalli</a>
@@ -53,47 +51,62 @@ public class PKCS7 {
 
     /**
      * Prepare a detached <code>PKCS7</code> signature using <i>SHA-1</i> for
-     * digest and <i>RSA</i> as encryption.
+     * digest.
      *
      * @param privateKey The private key to use for signing
      * @param certificate The certificate associated with the private key.
      * @param authorities An optional list of certificate authorities to include.
      * @param data The binary data to sign.
      * @return The <code>PKCS7</code> as a byte array.
-     * @throws NoSuchAlgorithmException If either <i>SHA-1</i> or <i>RSA</i>
-     *                                  were not supported.
-     * @throws InvalidKeyException If there was a problem with the key.
      * @throws SignatureException If there was a problem generating the signature.
      */
-    public static byte[] sign(final RSAPrivateKey privateKey,
+    public static byte[] sign(final PrivateKey privateKey,
                               final X509Certificate certificate,
                               final List<X509Certificate> authorities,
                               final byte[] data)
-    throws Exception {
-        final ContentSigner signer =
-                new JcaContentSignerBuilder("SHA1withRSA")
-//                    .setProvider(bouncyCastle)
-                    .build(privateKey);
+    throws SignatureException {
+        return sign(privateKey, certificate, authorities, Hash.SHA1, data);
+    }
 
-        final CMSSignedDataGenerator generator = new CMSSignedDataGenerator();
+    /**
+     * Prepare a detached <code>PKCS7</code> signature.
+     *
+     * @param privateKey The private key to use for signing
+     * @param certificate The certificate associated with the private key.
+     * @param authorities An optional list of certificate authorities to include.
+     * @param data The {@linkplain Hash hashing algorithm} to use for signing.
+     * @param data The binary data to sign.
+     * @return The <code>PKCS7</code> as a byte array.
+     * @throws SignatureException If there was a problem generating the signature.
+     */
+    public static byte[] sign(final PrivateKey privateKey,
+                              final X509Certificate certificate,
+                              final List<X509Certificate> authorities,
+                              final Hash hash, final byte[] data)
+    throws SignatureException {
+        try {
+            final String signatureAlgorithm = CryptoUtils.getSignatureAlgorithm(privateKey, hash);
+            final ContentSigner signer = new JcaContentSignerBuilder(signatureAlgorithm).build(privateKey);
 
-        generator.addSignerInfoGenerator(
-                new JcaSignerInfoGeneratorBuilder(
-                        new JcaDigestCalculatorProviderBuilder()
-//                            .setProvider(bouncyCastle)
-                            .build())
-                    .setSignedAttributeGenerator(new DefaultSignedAttributeTableGenerator())
-                    .build(signer, certificate));
+            final CMSSignedDataGenerator generator = new CMSSignedDataGenerator();
 
-        final Set<Certificate> certificates = new HashSet<>();
-        if (authorities != null) {
-            for (Certificate authority: authorities) certificates.add(authority);
+            generator.addSignerInfoGenerator(
+                    new JcaSignerInfoGeneratorBuilder(new JcaDigestCalculatorProviderBuilder().build())
+                        .setSignedAttributeGenerator(new DefaultSignedAttributeTableGenerator())
+                        .build(signer, certificate));
+
+            final Set<Certificate> certificates = new HashSet<>();
+            if (authorities != null) {
+                for (Certificate authority: authorities) certificates.add(authority);
+            }
+            certificates.add(certificate);
+            generator.addCertificates(new JcaCertStore(certificates));
+
+            final CMSTypedData cmsData = new CMSProcessableByteArray(data);
+            final CMSSignedData signeddata = generator.generate(cmsData, false);
+            return signeddata.getEncoded();
+        } catch (Exception exception) {
+            throw new SignatureException("Signature could not be generated", exception);
         }
-        certificates.add(certificate);
-        generator.addCertificates(new JcaCertStore(certificates));
-
-        final CMSTypedData cmsData = new CMSProcessableByteArray(data);
-        final CMSSignedData signeddata = generator.generate(cmsData, false);
-        return signeddata.getEncoded();
     }
 }
