@@ -34,6 +34,8 @@ import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.Arrays;
 
+import org.usrz.libs.utils.Check;
+
 public class CryptoUtils {
 
     private static final SecureRandom random = new SecureRandom();
@@ -149,6 +151,8 @@ public class CryptoUtils {
     }
 
     public static String validateKeys(PrivateKey privateKey, PublicKey publicKey) {
+        Check.notNull(privateKey, "Null private key");
+        Check.notNull(publicKey, "Null public key");
 
         /* Check algorithm */
         final String algorithm;
