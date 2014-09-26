@@ -62,9 +62,9 @@ public class SecureConfigurationsTest extends AbstractTest {
         assertEquals(secure.requireBoolean("foo.boolean"), true);
 
         final Set<String> keys = new HashSet<>(Arrays.asList("foo.unencrypted",
-                                                             "foo.string",
-                                                             "foo.number",
-                                                             "foo.boolean"));
+                                                             "foo.string.$encrypted",
+                                                             "foo.number.$encrypted",
+                                                             "foo.boolean.$encrypted"));
         assertEquals(secure.keySet(), keys, "Invalid set keys returned from configuration");
 
         vault.close();
@@ -85,9 +85,9 @@ public class SecureConfigurationsTest extends AbstractTest {
         assertEquals(secure.requireBoolean("foo.boolean"), true);
 
         final Set<String> keys = new HashSet<>(Arrays.asList("foo.unencrypted",
-                                                             "foo.string",
-                                                             "foo.number",
-                                                             "foo.boolean"));
+                                                             "foo.string.$encrypted",
+                                                             "foo.number.$encrypted",
+                                                             "foo.boolean.$encrypted"));
         assertEquals(secure.keySet(), keys, "Invalid set keys returned from configuration");
         secure.close();
     }
@@ -105,7 +105,10 @@ public class SecureConfigurationsTest extends AbstractTest {
         assertEquals(secure.requirePassword("foo.number").get(), "12345".toCharArray());
         assertEquals(secure.requirePassword("foo.boolean").get(), "true".toCharArray());
 
-        final Set<String> keys = new HashSet<>(Arrays.asList("foo.unencrypted"));
+        final Set<String> keys = new HashSet<>(Arrays.asList("foo.unencrypted",
+                                                             "foo.string.$encrypted",
+                                                             "foo.number.$encrypted",
+                                                             "foo.boolean.$encrypted"));
         assertEquals(secure.keySet(), keys, "Invalid set keys returned from configuration");
 
         try {

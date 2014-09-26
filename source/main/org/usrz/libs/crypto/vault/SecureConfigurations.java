@@ -23,7 +23,9 @@ import java.io.StringReader;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -200,7 +202,12 @@ implements ClosingDestroyable {
 
     @Override
     public Set<Entry<String, String>> entrySet() {
-        return configurations.entrySet();
+        final Set<Entry<String, String>> set = new HashSet<>(configurations.entrySet());
+        final Iterator<Entry<String, String>> iterator = set.iterator();
+        while (iterator.hasNext()) {
+            if (iterator.next().getKey().startsWith(PREFIX)) iterator.remove();
+        }
+        return Collections.unmodifiableSet(set);
     }
 
     /* ====================================================================== */
