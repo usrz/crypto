@@ -21,12 +21,9 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.security.GeneralSecurityException;
-import java.util.AbstractMap.SimpleImmutableEntry;
-import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -148,6 +145,11 @@ implements ClosingDestroyable {
     /* ====================================================================== */
 
     @Override
+    public boolean containsKey(Object key) {
+        return encryptedKeys.contains(key) || plainKeys.contains(key);
+    }
+
+    @Override
     public String getString(Object key, String defaultValue) {
         /* If we have a plain value, just return its value */
         if (plainKeys.contains(key)) return configurations.getString(key);
@@ -193,46 +195,12 @@ implements ClosingDestroyable {
 
     @Override
     public int size() {
-        return entrySet().size();
+        return configurations.size();
     }
 
     @Override
     public Set<Entry<String, String>> entrySet() {
-
-        /* Initialize all plain keys */
-        final Set<String> keys = new HashSet<>();
-        plainKeys.forEach((key) -> keys.add(key));
-
-        /* If lenient, also add our encrypted keys */
-        if (lenient) encryptedKeys.forEach((key) -> keys.add(key));
-
-        /* Return our set */
-        return new AbstractSet<Entry<String, String>>() {
-
-            @Override
-            public int size() {
-                return keys.size();
-            }
-
-
-            @Override
-            public Iterator<Entry<String, String>> iterator() {
-                final Iterator<String> iterator = keys.iterator();
-                return new Iterator<Entry<String, String>>() {
-
-                    @Override
-                    public boolean hasNext() {
-                        return iterator.hasNext();
-                    }
-
-                    @Override
-                    public Entry<String, String> next() {
-                        final String key = iterator.next();
-                        return new SimpleImmutableEntry<>(key, getString(key));
-                    }
-                };
-            }
-        };
+        return configurations.entrySet();
     }
 
     /* ====================================================================== */
