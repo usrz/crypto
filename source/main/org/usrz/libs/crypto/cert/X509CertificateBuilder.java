@@ -497,7 +497,7 @@ public class X509CertificateBuilder {
      *
      * <p>This method will set the issuer's
      * {@linkplain #withIssuer(X500Principal) principal},
-     * {@linkplain #withIssuerPublicKey(Key) public key}
+     * {@linkplain #withIssuerPublicKey(PublicKey) public key}
      * and will attempt to copy the issuer's
      * {@linkplain #withCrlDistributionPoint(URI) CRL distribution points}
      * in the issued certificate.</p>
@@ -655,8 +655,9 @@ public class X509CertificateBuilder {
     }
 
     /**
-     * Set both the issuer {@linkplain #withIssuerPrivateKey(Key) private} and
-     * {@linkplain #withIssuerPublicKey(Key) public} keys from a {@link KeyPair}.
+     * Set the issuer {@linkplain #withIssuerPrivateKey(PrivateKey) private}
+     * and {@linkplain #withIssuerPublicKey(PublicKey) public} keys from a
+     * {@link KeyPair}.
      */
     public X509CertificateBuilder withIssuerKeyPair(KeyPair keyPair) {
         if (keyPair == null) throw new NullPointerException("Null issuer key pair");
