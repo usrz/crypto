@@ -20,6 +20,7 @@ import static org.usrz.libs.utils.Charsets.UTF8;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
+import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CoderResult;
@@ -78,9 +79,13 @@ public class CryptoUtils {
     /* ====================================================================== */
 
     public static byte[] safeEncode(char[] chars, boolean destroy) {
+        return safeEncode(chars, destroy, UTF8);
+    }
+
+    public static byte[] safeEncode(char[] chars, boolean destroy, Charset charset) {
 
         /* Allocate our temporary byte buffer */
-        final CharsetEncoder encoder = UTF8.newEncoder();
+        final CharsetEncoder encoder = charset.newEncoder();
         final int maxBytes = (int) Math.ceil(encoder.maxBytesPerChar());
         final byte[] bytes = new byte[chars.length * maxBytes];
 
@@ -112,6 +117,10 @@ public class CryptoUtils {
     }
 
     public static char[] safeDecode(byte[] bytes, boolean destroy) {
+        return safeDecode(bytes, destroy, UTF8);
+    }
+
+    public static char[] safeDecode(byte[] bytes, boolean destroy, Charset charset) {
 
         /* Allocate our temporary character buffer */
         final CharsetDecoder decoder = UTF8.newDecoder();
